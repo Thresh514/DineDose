@@ -2,6 +2,32 @@
 
 A healthcare application for managing diet and medication plans remotely.
 
+
+## Development
+Run the command below to start development server
+```python
+python -m venv venv
+```
+
+```python
+source venv/bin/activate
+```
+
+```python
+pip install -r requirements.txt
+```
+
+```python
+python app.py
+```
+
+### Repo Structure
+- **app.py**: main file to start the project
+- **pagelogic**: backend logic
+- **template**: frontend template
+- **staic**: store public image, frontend CSS and JS file
+- **requirements.txt**: Python package dependencies needed to run the project
+
 ## Team
 
 **DJLS Team**:
