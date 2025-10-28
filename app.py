@@ -1,4 +1,5 @@
 from flask import Flask
+import config
 
 from pagelogic import index
 
