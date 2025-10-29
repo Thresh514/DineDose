@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DineDose</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <title>DineDose - Doctor Info</title>
 </head>
 <body>
-    <h1>DineDose</h1>
+    <h1>DineDose Doctor Query</h1>
+
     <form method="POST" action="/doctor">
-        <input type="text" name="num" placeholder="Enter a number">
-        <button>Divide by two</button>
+        <input type="number" name="doctor_id" placeholder="Enter doctor ID" required>
+        <button type="submit">Search</button>
     </form>
 
-    {% if res is not none %}
-        <h2>Result: {{ res }}</h2>
+    {% if doctor %}
+        <h2>Doctor Info</h2>
+        <ul>
+            <li><b>ID:</b> {{ doctor.id }}</li>
+            <li><b>Username:</b> {{ doctor.username }}</li>
+            <li><b>Email:</b> {{ doctor.email }}</li>
+            <li><b>Role:</b> {{ doctor.role }}</li>
+        </ul>
+    {% elif doctor is not none %}
+        <h2>No doctor found for that ID.</h2>
     {% endif %}
-
-    {% if res is none %}
-        <h2>No result yet</h2>
-    {% endif %}
-    
 </body>
 </html>
