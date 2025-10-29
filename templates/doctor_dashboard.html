@@ -1,15 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>DineDose</title>
-        <h1>CCB</h1>
-        <h1>This is sample Doctor DashBoard</h1>
-        <link rel="stylesheet" href="../static/main.css">
-        <script src="../static/main.js"></script>
-    </head>
-    <body>
-        <h1>DineDose</h1>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineDose</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</head>
+<body>
+    <h1>DineDose</h1>
+    <form method="POST" action="/doctor">
+        <input type="text" name="num" placeholder="Enter a number">
+        <button>Divide by two</button>
+    </form>
+
+    {% if res is not none %}
+        <h2>Result: {{ res }}</h2>
+    {% endif %}
+
+    {% if res is none %}
+        <h2>No result yet</h2>
+    {% endif %}
+    
+</body>
 </html>
