@@ -1,5 +1,7 @@
-from flask import Flask, request
+from flask import Flask, jsonify, request
 
+from pagelogic.drug_service import DrugService
+from repository.drug_repo.drug_repo import DrugRepository
 from pagelogic import signup
 from repository.db import db_init
 from pagelogic import (index, doctor_dashboard)
@@ -23,7 +25,21 @@ def create_doctor():
     email = data.get('email')
     return signup.doctorSignUp(username, email)
 
+@app.route("/drug/<int:drug_id>", methods=["GET"])
+def get_drug_by_id(drug_id):
+    result = DrugService.get_drug_by_id(drug_id)
+    if not result:
+        return jsonify({"error": "Drug not found"}), 404
+    return jsonify(result)
 
+
+@app.route("/drug/search", methods=["GET"])
+def search_drug_by_name():
+    name = request.args.get("name")
+    if not name:
+        return jsonify({"error": "Missing parameter 'name'"}), 400
+    results = DrugService.search_drug_by_name(name)
+    return jsonify(results)
 
 
 
