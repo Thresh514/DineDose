@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineDose - Doctor Info</title>
+</head>
+<body>
+    <h1>DineDose Doctor Query</h1>
+
+    <form method="POST" action="/doctor">
+        <input type="number" name="doctor_id" placeholder="Enter doctor ID" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if doctor %}
+        <h2>Doctor Info</h2>
+        <ul>
+            <li><b>ID:</b> {{ doctor.id }}</li>
+            <li><b>Username:</b> {{ doctor.username }}</li>
+            <li><b>Email:</b> {{ doctor.email }}</li>
+            <li><b>Role:</b> {{ doctor.role }}</li>
+        </ul>
+    {% elif doctor is not none %}
+        <h2>No doctor found for that ID.</h2>
+    {% endif %}
+</body>
+</html>
