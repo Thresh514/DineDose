@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="../static/main.css">
+</head>
+<body>
+  <main class="container">
+    <h2>Login</h2>
+
+    <!-- Google 登录 -->
+    <form method="get" action="{{ url_for('google_login') }}">
+      <button type="submit">Login with Google</button>
+    </form>
+
+    <p>or</p>
+
+    <!-- Magic Link 登录 -->
+    <form method="post" action="{{ url_for('send_magic_link') }}">
+      <input type="email" name="email" placeholder="Enter your email" required>
+      <button type="submit">Send Magic Link</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </main>
+</body>
+</html>
