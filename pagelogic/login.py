@@ -59,6 +59,11 @@ def magic_login():
         'email': email,
         'session_token': secrets.token_hex(16)
     })
+    cur.execute(
+        "INSERT INTO sessions (user_id, session_token, user_agent, ip_address) VALUES (%s,%s,%s,%s)",
+        (user['id'], session['session_token'], request.headers.get('User-Agent'), request.remote_addr)
+    )
+    mydb.commit()
     flash('登录成功', 'success')
     return redirect_by_role(user['role'])
 
@@ -95,6 +100,11 @@ def oauth_authorize():
         'name': user['username'],
         'session_token': secrets.token_hex(16)
     })
+    cur.execute(
+        "INSERT INTO sessions (user_id, session_token, user_agent, ip_address) VALUES (%s,%s,%s,%s)",
+        (user['id'], session['session_token'], request.headers.get('User-Agent'), request.remote_addr)
+    )
+    mydb.commit()
     return redirect_by_role(user['role'])
 
 def redirect_by_role(role):
