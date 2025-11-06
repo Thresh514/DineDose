@@ -2,9 +2,12 @@ from flask import render_template, request
 
 from config import mydb
 
+def main():
+    get_doctor_by_id()
+
 def get_doctor_by_id(doctor_id):
     conn = mydb()
-    cur = conn.cursor(dictionary=True)  # ✅ 返回字典格式
+    cur = conn.cursor()
     query = "SELECT * FROM users WHERE id = %s AND role = 'doctor'"
     cur.execute(query, (doctor_id,))
     result = cur.fetchone()
