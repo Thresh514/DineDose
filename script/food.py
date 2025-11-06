@@ -1,27 +1,31 @@
 import ijson
 import pymysql
 from tqdm import tqdm
+import psycopg
+from psycopg.rows import dict_row
 
 # === 数据库连接配置 ===
-conn = pymysql.connect(
-    host='dinedose.cds2osi82wxl.us-east-1.rds.amazonaws.com',
-    user='admin',
-    password='8Q8aA18WrlwUmnDPwnGh',
-    database='db',
-    charset='utf8mb4',
-    port=3306
+conn = psycopg.connect(
+    host="ep-long-glitter-a8i7t160-pooler.eastus2.azure.neon.tech",
+    dbname="neondb",
+    user="neondb_owner",
+    password="npg_0v8JkWHesVTq",
+    sslmode="require"
 )
 cur = conn.cursor()
+
+def cursor(conn):
+    return conn.cursor(row_factory=dict_row)
 
 # === 创建表结构（只执行一次）===
 create_tables = """
 CREATE TABLE IF NOT EXISTS foods (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    fdc_id BIGINT,
+    id BIGSERIAL PRIMARY KEY,
+    fdc_id BIGINT UNIQUE,
     description TEXT,
-    fat DOUBLE,
-    carbonhydrate DOUBLE,
-    calories DOUBLE,
+    fat DOUBLE PRECISION,
+    carbonhydrate DOUBLE PRECISION,
+    calories DOUBLE PRECISION,
     data_type VARCHAR(24),
     food_category_id VARCHAR(700),
     publication_date VARCHAR(10),
@@ -34,10 +38,11 @@ for stmt in create_tables.strip().split(';'):
 
 # === SQL 模板 ===
 insert_food = """
-    INSERT IGNORE INTO foods
+    INSERT INTO foods
     (fdc_id, description, fat, carbonhydrate, calories,
      data_type, food_category_id, publication_date, food_category_num)
     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    ON CONFLICT (fdc_id) DO NOTHING;
 """
 # insert_ingredient = """
 #     INSERT INTO active_ingredients (drug_ndc, name, strength)
