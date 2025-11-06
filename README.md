@@ -100,3 +100,13 @@ CS411 Project
 ---
 
 *2025 Fall*
+
+
+## How to connect to DB
+conn = mydb()
+cur = conn.cursor(dictionary=True)  # ✅ 返回字典格式
+query = "SELECT * FROM users WHERE id = %s AND role = 'doctor'"
+cur.execute(query, (doctor_id,))
+result = cur.fetchone()
+cur.close()
+conn.close()
