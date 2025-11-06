@@ -69,20 +69,9 @@ from flask import request, jsonify
 
 @app.route('/get_plan_by_id', methods=['GET'])
 def get_plan_by_id_controller():
-    plan_id = request.args.get('plan_id')
-    if not plan_id:
-        return jsonify({"error": "missing header plan_id"}), 400
-
-    try:
-        plan_id = int(plan_id)
-    except ValueError:
-        return jsonify({"error": "invalid plan_id"}), 400
-
+    plan_id = request.args.get('plan_id') #从args里面获取变量
+    #localhost:5000/get_plan_by_id?plan_id=1
     plan = plan_repo.get_plan_by_id(plan_id)
-
-    if plan is None:
-        return jsonify({"error": "plan not found"}), 404
-
     return jsonify(plan), 200
 
 if __name__ == '__main__':
