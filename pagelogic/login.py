@@ -109,7 +109,7 @@ def oauth_authorize():
 
 def redirect_by_role(role):
     if role == 'doctor':
-        return doctor_home.doctor_home()
+        return redirect(url_for('doctor'))
     elif role == 'patient':
-        return patient_home.patient_home()
+        return redirect(url_for('patient'))
     return redirect(url_for('index_page'))

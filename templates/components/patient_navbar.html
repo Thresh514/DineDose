@@ -1,0 +1,14 @@
+<nav class="bottom-nav" role="navigation" aria-label="主导航">
+    <a
+        href="{{ url_for('index_page') }}"
+        class="nav-item {% if request.endpoint == 'index_page' %}active{% endif %}"
+        aria-label="首页"
+    >Home</a>
+    <a
+        href="{{ url_for('patient_calendar_page') }}"
+        class="nav-item {% if request.endpoint == 'patient_calendar_page' %}active{% endif %}"
+        aria-label="日历"
+    >Calendar</a>
+</nav>
+
+

@@ -1,15 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Patient Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='patient.css') }}">
 </head>
-<body>
-    <h1>Welcome, Patient</h1>
-    <h2>This is the Patient Homepage</h2>
-    <a href="{{ url_for('logout_page') }}">
-        <button type="button">Logout</button>
-    </a>
+<body class="mobile-page">
+    <header class="app-header">
+        <div class="brand">Dine Dose</div>
+        <div class="header-actions">
+            <img class="icon" src="{{ url_for('static', filename='public/Icon.png') }}" alt="reminder">
+            <img class="icon" src="{{ url_for('static', filename='public/Icon (1).png') }}" alt="my">
+        </div>
+    </header>
+
+    <main class="app-main" role="main">
+        <a class="cta-circle" href="{{ url_for('patient_plan_page') }}" aria-label="View Plan">
+            <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Plan">
+        </a>
+
+        <ul class="dotted-progress" aria-hidden="true">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+
+        <a class="cta-circle cta-circle--secondary" href="{{ url_for('patient_food_category_page') }}" aria-label="Add Record">
+            <img class="circle-icon" src="{{ url_for('static', filename='public/Plus.png') }}" alt="Add Record">
+        </a>
+    </main>
+
+    {% include 'components/patient_navbar.html' %}
 </body>
 </html>

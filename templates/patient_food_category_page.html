@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Choose Foods</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='patient.css') }}">
+</head>
+<body class="mobile-page">
+    <header class="app-header">
+        <div class="brand">Dine Dose</div>
+        <div class="header-actions">
+            <img class="icon" src="{{ url_for('static', filename='public/Icon.png') }}" alt="">
+            <img class="icon" src="{{ url_for('static', filename='public/Icon (1).png') }}" alt="我的">
+        </div>
+    </header>
+
+    <main class="app-main" role="main">
+        <!-- Tabs -->
+        <div class="pfc-tabs" role="tablist" aria-label="类别切换">
+            <button class="pfc-tab is-active" role="tab" aria-selected="true" aria-controls="pfc-panel-foods" id="pfc-tab-foods">Foods</button>
+            <button class="pfc-tab" role="tab" aria-selected="false" aria-controls="pfc-panel-drugs" id="pfc-tab-drugs">Drugs</button>
+        </div>
+
+        <!-- Foods panel -->
+        <section id="pfc-panel-foods" role="tabpanel" aria-labelledby="pfc-tab-foods">
+            <ul class="pfc-list">
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">List item</div>
+                </li>
+                
+            </ul>
+
+            <!-- Search -->
+            <div class="pfc-search">
+                <div class="pfc-search-leading" aria-hidden="true">
+                    <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
+                </div>
+                <label for="pfc-search-input" class="sr-only">Search Foods</label>
+                <div class="pfc-search-field">
+                    <input id="pfc-search-input" class="pfc-search-input" type="search" placeholder="Enter to search foods" />
+                </div>
+            </div>
+        </section>
+
+        <!-- Drugs panel: 仅做占位 -->
+        <section id="pfc-panel-drugs" role="tabpanel" aria-labelledby="pfc-tab-drugs" hidden>
+            <ul class="pfc-list">
+                <li class="pfc-item">
+                    <div class="pfc-avatar" aria-hidden="true">A</div>
+                    <div class="pfc-title">Drug item</div>
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    {% include 'components/patient_navbar.html' %}
+
+    <script>
+        // 简单的 tab 切换（无依赖）
+        (function(){
+            const tabFoods = document.getElementById('pfc-tab-foods');
+            const tabDrugs = document.getElementById('pfc-tab-drugs');
+            const panelFoods = document.getElementById('pfc-panel-foods');
+            const panelDrugs = document.getElementById('pfc-panel-drugs');
+
+            function activate(tab){
+                const isFoods = tab === tabFoods;
+                tabFoods.classList.toggle('is-active', isFoods);
+                tabDrugs.classList.toggle('is-active', !isFoods);
+                tabFoods.setAttribute('aria-selected', String(isFoods));
+                tabDrugs.setAttribute('aria-selected', String(!isFoods));
+                panelFoods.hidden = !isFoods;
+                panelDrugs.hidden = isFoods;
+            }
+
+            tabFoods.addEventListener('click', () => activate(tabFoods));
+            tabDrugs.addEventListener('click', () => activate(tabDrugs));
+        })();
+    </script>
+</body>
+</html>
+

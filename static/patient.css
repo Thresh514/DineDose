@@ -1,0 +1,292 @@
+/* Patient mobile layout */
+:root{
+  --bg:#ffffff;
+  --text:#151515;
+  --muted:#dddddd;
+  --muted-2:#e9e9e9;
+  --nav-bg:#dedede;
+  --active:#cfcfcf;
+  --header-h:72px;
+  --nav-h:84px;
+  --side:20px;
+}
+
+*,
+*::before,
+*::after{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Noto Sans CJK SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  border:0;
+}
+
+.mobile-page{
+  min-height:100svh;
+  padding-bottom:calc(var(--nav-h) + max(env(safe-area-inset-bottom,0px), 12px));
+}
+
+/* Header */
+.app-header{
+  height:var(--header-h);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 var(--side);
+}
+.brand{
+  font-size:28px;
+  font-weight:600;
+  letter-spacing:0.2px;
+}
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  height:32px;
+}
+.header-actions .icon{
+  width:32px;
+  height:32px;
+  object-fit:contain;
+  display:block;
+}
+
+/* Main */
+.app-main{
+  padding:8px var(--side) 24px;
+}
+.cta-circle{
+  display:grid;
+  place-items:center;
+  width:min(62vw, 360px);
+  height:min(62vw, 360px);
+  margin:24px auto;
+  background:var(--muted);
+  border-radius:50%;
+  text-decoration:none;
+}
+.cta-circle--secondary{
+  background:var(--muted);
+}
+.circle-icon{
+  width:40%;
+  max-width:140px;
+  height:auto;
+  user-select:none;
+  pointer-events:none;
+}
+
+/* Dotted progress (middle dashed line look with rounded pills) */
+.dotted-progress{
+  list-style:none;
+  display:flex;
+  gap:16px;
+  padding:0;
+  margin:28px auto 24px;
+  width:min(92%, 560px);
+  justify-content:space-between;
+}
+.dotted-progress li{
+  flex:1;
+  height:14px;
+  background:var(--muted-2);
+  border-radius:999px;
+}
+.dotted-progress li:first-child,
+.dotted-progress li:last-child{
+  flex:0 0 36px; /* 两端更短，贴近设计感 */
+}
+
+/* Bottom Navbar */
+.bottom-nav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:var(--nav-h);
+  background:var(--nav-bg);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-top:1px solid #eee;
+  padding-bottom:max(env(safe-area-inset-bottom,0px), 0px);
+  z-index:10;
+}
+.bottom-nav .nav-item{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+  color:var(--text);
+  font-size:18px;
+}
+.bottom-nav .nav-item.active{
+  background:var(--active);
+  font-weight:600;
+}
+
+/* Small devices fine-tune */
+@media (max-width:360px){
+  .brand{font-size:24px}
+  .dotted-progress{gap:12px}
+  .dotted-progress li{height:12px}
+}
+
+
+/* =========================================================
+   Patient Food Category Page (patient_food_category_page.html) 专用
+   采用 .pfc-* 前缀避免影响其它页面
+   ========================================================= */
+
+/* 顶部 Tabs */
+.pfc-tabs{
+  position:relative;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  gap:32px;
+  padding:12px var(--side) 10px;
+  margin:0 0 8px;
+}
+.pfc-tabs::after{
+  content:"";
+  position:absolute;
+  left:var(--side);
+  right:var(--side);
+  bottom:0;
+  height:1px;
+  background:var(--muted);
+}
+.pfc-tab{
+  position:relative;
+  padding:8px 6px 14px;
+  font-size:20px;
+  font-weight:600;
+  color:#666;
+  user-select:none;
+}
+.pfc-tab.is-active{
+  color:var(--text);
+}
+.pfc-tab.is-active::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:-2px;
+  width:64px;
+  height:4px;
+  background:#555;
+  border-radius:999px;
+}
+
+/* 列表 */
+.pfc-list{
+  list-style:none;
+  margin:0;
+  padding:8px var(--side) 16px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+.pfc-item{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.pfc-avatar{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:var(--muted-2);
+  display:grid;
+  place-items:center;
+  color:var(--text);
+  font-weight:700;
+}
+.pfc-title{
+  font-size:22px;
+  letter-spacing:0.2px;
+}
+
+/* 底部搜索条（紧贴底部导航之上，保持可见） */
+.pfc-search{
+  position:sticky;
+  bottom:calc(var(--nav-h) + max(env(safe-area-inset-bottom,0px), 12px));
+  padding:8px var(--side) 16px;
+  background:linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--bg) 40%, var(--bg) 100%);
+  z-index:5;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+/* 放大镜装饰（左侧独立圆圈） */
+.pfc-search-leading{
+  position:relative;
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+}
+.pfc-search-leading::after{
+  content:none;
+}
+.pfc-search-leading img{
+  width:28px;
+  height:auto;
+  display:block;
+}
+/* 输入框容器 */
+.pfc-search-field{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 16px;
+  border:1px solid var(--muted);
+  border-radius:999px;
+  background:#fff;
+}
+.pfc-search-input{
+  width:100%;
+  border:0;
+  outline:0;
+  background:transparent;
+  font-size:18px;
+  color:var(--text);
+}
+.pfc-search-clear{
+  width:28px;
+  height:28px;
+  border:0;
+  background:transparent;
+  border-radius:50%;
+  color:#666;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+}
+.pfc-search-clear:active{opacity:0.8}
+
+/* 小屏细节优化（本页面） */
+@media (max-width:360px){
+  .pfc-tab{font-size:18px}
+  .pfc-title{font-size:20px}
+  .pfc-avatar{width:56px;height:56px}
+  .pfc-search-field{padding:12px 14px}
+}

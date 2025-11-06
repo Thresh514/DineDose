@@ -64,15 +64,23 @@ def doctor():
 def patient():
     return patient_home.patient_home()
 
+# ---- Patient feature placeholder routes ----
+@app.route('/patient/reminder', methods=['GET'])
+def patient_reminder_page():
+    return "Patient Reminder: Coming soon."
 
-from flask import request, jsonify
+@app.route('/patient/food', methods=['GET'])
+def patient_food_category_page():
+    from flask import render_template
+    return render_template('patient_food_category_page.html')
 
-@app.route('/get_plan_by_id', methods=['GET'])
-def get_plan_by_id_controller():
-    plan_id = request.args.get('plan_id') #从args里面获取变量
-    #localhost:5000/get_plan_by_id?plan_id=1
-    plan = plan_repo.get_plan_by_id(plan_id)
-    return jsonify(plan), 200
+@app.route('/patient/plan', methods=['GET'])
+def patient_plan_page():
+    return "Patient Plan: Coming soon."
+
+@app.route('/patient/calendar', methods=['GET'])
+def patient_calendar_page():
+    return "Patient Calendar: Coming soon."
 
 if __name__ == '__main__':
     app.run(port=5000, host='0.0.0.0', debug=True)  
