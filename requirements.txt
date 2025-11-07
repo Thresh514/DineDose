@@ -16,3 +16,4 @@ psycopg[binary,pool]
 tqdm
 dotenv
 requests
+boto3
