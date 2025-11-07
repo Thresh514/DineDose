@@ -2,6 +2,7 @@
 
 A healthcare application for managing diet and medication plans remotely.
 
+Live Demo: [https://dinedose.onrender.com](https://dinedose.onrender.com)
 
 ## Development
 Run the command below to start development server
@@ -21,11 +22,20 @@ pip install -r requirements.txt
 python app.py
 ```
 
+## How to make a query to DB
+conn = mydb()
+cur = conn.cursor(dictionary=True)  # ✅ 返回字典格式
+query = "SELECT * FROM users WHERE id = %s AND role = 'doctor'"
+cur.execute(query, (doctor_id,))
+result = cur.fetchone()
+cur.close()
+conn.close()
+
 ### Repo Structure
-- **app.py**: main file to start the project
-- **pagelogic**: backend logic
-- **template**: frontend template
-- **staic**: store public image, frontend CSS and JS file
+- **app.py**: Flask app factory & entrypoint (registers Blueprints)
+- **pagelogic/**: backend routes and page logic (Blueprints)
+- **templates/**: Jinja2 templates (incl. `components/`)
+- **static/**: static assets (CSS/JS) and images under `public/`
 - **requirements.txt**: Python package dependencies needed to run the project
 
 | 成员       | 角色定位                           | 主要负责模块                                                   | 具体任务                                                                                                                         |
@@ -36,34 +46,7 @@ python app.py
 | **后端 B** | 🧠 计划编辑与仪表盘逻辑 + 数据验证           | - Edit Plan 模块<br>- Dashboard 管理（医生+病人）<br>- 权限与反馈模块     | • 路由：`/plan/edit`, `/dashboard/...`<br>• 设计 Plan、Feedback 模型<br>• 编写表单验证逻辑（Flask-WTF）<br>• 整合医生端与病人端视图的数据源                   |
 
 ## Database Schema:
-Drug Database
-```sql
-CREATE TABLE IF NOT EXISTS drugs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    product_ndc VARCHAR(50) UNIQUE,
-    brand_name VARCHAR(255),
-    brand_name_base VARCHAR(255),
-    generic_name TEXT,
-    labeler_name VARCHAR(255),
-    dosage_form VARCHAR(255),
-    route VARCHAR(255),
-    marketing_category VARCHAR(255),
-    product_type VARCHAR(255),
-    application_number VARCHAR(255),
-    marketing_start_date VARCHAR(20),
-    listing_expiration_date VARCHAR(20),
-    finished BOOLEAN
-);
-
-CREATE TABLE IF NOT EXISTS active_ingredients (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    drug_ndc VARCHAR(50),
-    name VARCHAR(255),
-    strength VARCHAR(100),
-    FOREIGN KEY (drug_ndc) REFERENCES drugs(product_ndc)
-        ON DELETE CASCADE
-);
-```
+### See ```create.sql```
 
 ## Team
 
@@ -100,13 +83,3 @@ CS411 Project
 ---
 
 *2025 Fall*
-
-
-## How to connect to DB
-conn = mydb()
-cur = conn.cursor(dictionary=True)  # ✅ 返回字典格式
-query = "SELECT * FROM users WHERE id = %s AND role = 'doctor'"
-cur.execute(query, (doctor_id,))
-result = cur.fetchone()
-cur.close()
-conn.close()
