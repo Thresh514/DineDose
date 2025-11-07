@@ -5,7 +5,7 @@ from config import mydb
 #     def __init__(self, plan_id, patient_id, doctor_id, name, description):
 #         self.plan_id = plan_id
 #         self.patient_id = patient_id
-#         self.doctor_id = doctor_id
+#         self.doctor_id = doctor_id#
 #         self.name = name
 #         self.description = description
 
@@ -27,7 +27,22 @@ def get_plan_by_id(plan_id): #return an instance of plan
     return result
 
 def get_all_plan_items_by_plan_id(plan_id): #return a list of plan_item
-    pass
+    print(plan_id)
+    conn = mydb()
+    cur = conn.cursor()
+    query = "select * from plan_item where plan_id = %s"
+    cur.execute(query, (plan_id,))
+    result = cur.fetchall()                 
+    cur.close()
+    conn.close()
+    return result
  
 def get_plan_item_rule_by_plan_item_id(plan_item_id): #return an instance of plan_item_rule
-    pass
+    conn = mydb()
+    cur = conn.cursor()
+    query = "select * from plan_item_rule where plan_item_id = %s"
+    cur.execute(query, (plan_item_id,))
+    result = cur.fetchone()                 
+    cur.close()
+    conn.close()
+    return result

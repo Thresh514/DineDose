@@ -71,7 +71,7 @@ from flask import request, jsonify
 def get_plan_by_id_controller():
     plan_id = request.args.get('plan_id') #从args里面获取变量
     #localhost:5000/get_plan_by_id?plan_id=1
-    plan = plan_repo.get_plan_by_id(plan_id)
+    plan = plan_repo.get_all_plan_items_by_plan_id(plan_id)
     return jsonify(plan), 200
 
 if __name__ == '__main__':
