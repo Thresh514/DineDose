@@ -4,56 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Choose Foods</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='patient.css') }}">
-</head>
-<body class="mobile-page">
-    <header class="app-header">
-        <div class="brand">Dine Dose</div>
-        <div class="header-actions">
-            <img class="icon" src="{{ url_for('static', filename='public/message.png') }}" alt="reminder">
-            <img class="icon" src="{{ url_for('static', filename='public/user.png') }}" alt="my">
-        </div>
-    </header>
-
-    <main class="app-main" role="main">
+    {% extends 'patient_base.html' %}
+    {% block content %} 
         <!-- Tabs -->
         <div class="pfc-tabs" role="tablist" aria-label="类别切换">
-            <button class="pfc-tab is-active" role="tab" aria-selected="true" aria-controls="pfc-panel-foods" id="pfc-tab-foods">Foods</button>
+            <button class="pfc-tab" role="tab" aria-selected="true" aria-controls="pfc-panel-foods" id="pfc-tab-foods">Foods</button>
             <button class="pfc-tab" role="tab" aria-selected="false" aria-controls="pfc-panel-drugs" id="pfc-tab-drugs">Drugs</button>
         </div>
 
         <!-- Foods panel -->
         <section id="pfc-panel-foods" role="tabpanel" aria-labelledby="pfc-tab-foods">
             <ul class="pfc-list">
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
+                {% if foods and foods|length > 0 %}
+                {% for food in foods %}
+                <li class="pfc-item" data-food-id="{{ food.id }}">
+                    <div class="pfc-avatar" aria-hidden="true">{{ (food.description|default('?'))[:1]|upper }}</div>
+                    <div class="pfc-title">{{ food.description|default('No name') }}</div>
                 </li>
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
+                {% endfor %}
+                {% else %}
+                <li class="pfc-item pfc-empty">
+                    <div class="pfc-title">No food data</div>
                 </li>
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
-                </li>
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
-                </li>
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
-                </li>
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
-                </li>
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">List item</div>
-                </li>
-                
+                {% endif %}
             </ul>
 
             <!-- Search -->
@@ -68,19 +41,33 @@
             </div>
         </section>
 
-        <!-- Drugs panel: 仅做占位 -->
+        <!-- Drugs panel -->
         <section id="pfc-panel-drugs" role="tabpanel" aria-labelledby="pfc-tab-drugs" hidden>
             <ul class="pfc-list">
-                <li class="pfc-item">
-                    <div class="pfc-avatar" aria-hidden="true">A</div>
-                    <div class="pfc-title">Drug item</div>
+                {% if drugs and drugs|length > 0 %}
+                {% for drug in drugs %}
+                <li class="pfc-item" data-drug-ndc="{{ drug.product_ndc }}">
+                    <div class="pfc-avatar" aria-hidden="true">{{ ((drug.brand_name or drug.generic_name)|default('?'))[:1]|upper }}</div>
+                    <div class="pfc-title">{{ (drug.brand_name or drug.generic_name)|default('No name') }}</div>
                 </li>
+                {% endfor %}
+                {% else %}
+                <li class="pfc-item pfc-empty">
+                    <div class="pfc-title">No drug data</div>
+                </li>
+                {% endif %}
             </ul>
+
+            <div class="pfc-search">
+                <div class="pfc-search-leading" aria-hidden="true">
+                    <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
+                </div>
+                <label for="pfc-search-input" class="sr-only">Search Drugs</label>
+                <div class="pfc-search-field">
+                    <input id="pfc-search-input" class="pfc-search-input" type="search" placeholder="Enter to search drugs" />
+                </div>
+            </div>
         </section>
-    </main>
-
-    {% include 'components/patient_navbar.html' %}
-
     <script>
         // 简单的 tab 切换（无依赖）
         (function(){
@@ -103,6 +90,7 @@
             tabDrugs.addEventListener('click', () => activate(tabDrugs));
         })();
     </script>
+    {% endblock %}
 </body>
 </html>
 

@@ -70,6 +70,7 @@ html,body{
 /* Main */
 .app-main{
   padding:8px var(--side) 24px;
+  height:100%;
 }
 .cta-circle{
   display:grid;
@@ -140,6 +141,31 @@ html,body{
   font-weight:600;
 }
 
+/* Button 样式 */
+button,
+.btn{
+  font-size:1rem;
+  font-weight:500;
+  color:#555;
+  background:none;
+  border:0px;
+  border-radius:0px;
+  cursor:pointer;
+  transition:background-color 0.2s, opacity 0.2s;
+  user-select:none;
+}
+button:hover,
+.btn:hover{
+  background-color:#e5e5e5;
+  color:#555;
+  border-radius:4px;
+}
+button:active,
+.btn:active{
+  background-color:#dedede;
+  border-radius:4px;
+}
+
 /* Small devices fine-tune */
 @media (max-width:360px){
   .brand{font-size:24px}
@@ -159,8 +185,8 @@ html,body{
   display:flex;
   justify-content:space-around;
   align-items:center;
-  gap:32px;
-  padding:12px var(--side) 10px;
+  gap:12px;
+  padding:0px;
   margin:0 0 8px;
 }
 .pfc-tabs::after{
@@ -174,25 +200,22 @@ html,body{
 }
 .pfc-tab{
   position:relative;
-  padding:8px 6px 14px;
-  font-size:20px;
+  padding:8px 20px;
+  margin:0 0 8px;
+  font-size:1.15rem;
   font-weight:600;
-  color:#666;
   user-select:none;
 }
-.pfc-tab.is-active{
-  color:var(--text);
-}
+
 .pfc-tab.is-active::after{
   content:"";
   position:absolute;
   left:50%;
   transform:translateX(-50%);
-  bottom:-2px;
+  bottom:0;
   width:64px;
   height:4px;
-  background:#555;
-  border-radius:999px;
+  border-width:0px;
 }
 
 /* 列表 */
@@ -227,7 +250,7 @@ html,body{
 /* 底部搜索条（紧贴底部导航之上，保持可见） */
 .pfc-search{
   position:sticky;
-  bottom:calc(var(--nav-h) + max(env(safe-area-inset-bottom,0px), 12px));
+  bottom:0;
   padding:8px var(--side) 16px;
   background:linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--bg) 40%, var(--bg) 100%);
   z-index:5;

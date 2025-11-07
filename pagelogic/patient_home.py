@@ -10,11 +10,11 @@ def patient_home():
 
 @patient_home_bp.route('/patient/reminder', methods=['GET'])
 def patient_reminder_page():
-    return "Patient Reminder: Coming soon."
+    return render_template('patient_reminder.html')
 
 
 @patient_home_bp.route('/patient/food', methods=['GET'])
-def patient_food_category_page():
+def patient_food_page():
     return render_template('patient_food_category_page.html')
 
 
@@ -25,4 +25,4 @@ def patient_plan_page():
 
 @patient_home_bp.route('/patient/calendar', methods=['GET'])
 def patient_calendar_page():
-    return "Patient Calendar: Coming soon."
+    return render_template('patient_calendar.html')

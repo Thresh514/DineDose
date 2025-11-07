@@ -1,0 +1,11 @@
+<header class="app-header">
+    <div class="brand">Dine Dose</div>
+    <div class="header-actions">
+        <a class="icon" href="{{ url_for('patient_home.patient_reminder_page') }}" aria-label="reminder">
+            <img class="icon" src="{{ url_for('static', filename='public/message.png') }}" alt="reminder">
+        </a>
+        <a class="icon" href="{{ url_for('logout.logout') }}" aria-label="my">
+            <img class="icon" src="{{ url_for('static', filename='public/user.png') }}" alt="my">
+        </a>
+    </div>
+</header>

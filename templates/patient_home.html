@@ -5,17 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Patient Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='patient.css') }}">
-</head>
-<body class="mobile-page">
-    <header class="app-header">
-        <div class="brand">Dine Dose</div>
-        <div class="header-actions">
-            <img class="icon" src="{{ url_for('static', filename='public/message.png') }}" alt="reminder">
-            <img class="icon" src="{{ url_for('static', filename='public/user.png') }}" alt="my">
-        </div>
-    </header>
-
-    <main class="app-main" role="main">
+    {% extends 'patient_base.html' %}
+    {% block content %} 
         <a class="cta-circle" href="{{ url_for('patient_home.patient_plan_page') }}" aria-label="View Plan">
             <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Plan">
         </a>
@@ -30,11 +21,11 @@
             <li></li>
         </ul>
 
-        <a class="cta-circle cta-circle--secondary" href="{{ url_for('patient_home.patient_food_category_page') }}" aria-label="Add Record">
+        <a class="cta-circle cta-circle--secondary" href="{{ url_for('patient_home.patient_food_page') }}" aria-label="Add Record">
             <img class="circle-icon" src="{{ url_for('static', filename='public/Plus.png') }}" alt="Add Record">
         </a>
     </main>
 
-    {% include 'components/patient_navbar.html' %}
+    {% endblock %}
 </body>
 </html>
