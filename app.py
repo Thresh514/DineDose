@@ -1,86 +1,40 @@
-from flask import Flask, jsonify, request
-import config
-from flask_mail import Mail
-from authlib.integrations.flask_client import OAuth
+from flask import Flask
+from extensions import mail, oauth
 
-from pagelogic import (index, login, logout, doctor_home, patient_home)
-from pagelogic.repo import plan_repo
 
-app = Flask(__name__)
-app.secret_key = config.SECRET_KEY
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object('config')
 
-mail = Mail(app)
-oauth = OAuth(app)
+    # 初始化扩展
+    mail.init_app(app)
+    oauth.init_app(app)
 
-google_creds = config.OAUTH_CREDENTIALS["google"]
+    # 注册 OAuth Provider
+    import config
+    oauth.register(
+        name='google',
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        api_base_url='https://www.googleapis.com/oauth2/v3/',
+        client_id=config.OAUTH_CREDENTIALS['google']['client_id'],
+        client_secret=config.OAUTH_CREDENTIALS['google']['client_secret'],
+        client_kwargs={'scope': 'openid email profile'}
+    )
 
-oauth.register(
-    name='google',
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    api_base_url='https://www.googleapis.com/oauth2/v3/',
-    client_id=config.OAUTH_CREDENTIALS['google']['client_id'],
-    client_secret=config.OAUTH_CREDENTIALS['google']['client_secret'],
-    client_kwargs={'scope': 'openid email profile'}
-)
+    # 注册 Blueprints
+    from pagelogic.index import index_bp
+    from pagelogic.login import login_bp
+    from pagelogic.logout import logout_bp
+    from pagelogic.doctor_home import doctor_home_bp
+    from pagelogic.patient_home import patient_home_bp
 
-login.mail = mail
-login.oauth = oauth
+    app.register_blueprint(index_bp)
+    app.register_blueprint(login_bp)
+    app.register_blueprint(logout_bp)
+    app.register_blueprint(doctor_home_bp)
+    app.register_blueprint(patient_home_bp)
 
-@app.route('/' , methods=['GET','POST'])
-def index_page():
-    return index.index()
+    return app
 
-@app.route('/login')
-def login_page():
-    return login.login()
 
-@app.route('/logout', methods=['GET'])
-def logout_page():
-    return logout.logout()
-
-@app.route('/login/authorize', methods=['GET'])
-def oauth_authorize():
-    return login.oauth_authorize()
-
-# --- OAuth 登录 ---
-@app.route('/login/google', methods=['GET'])
-def google_login():
-    return login.oauth_login() 
-
-# --- Magic Link 发送邮件 ---
-@app.route('/login/magic', methods=['GET','POST'])
-def send_magic_link():
-    return login.send_magic_link()
-
-@app.route('/magic_login', methods=['GET','POST'])
-def magic_login():
-    return login.magic_login()
-
-@app.route('/doctor', methods=['GET', 'POST'])
-def doctor():
-    return doctor_home.doctor_home()
-
-@app.route('/patient', methods=['GET', 'POST'])
-def patient():
-    return patient_home.patient_home()
-
-# ---- Patient feature placeholder routes ----
-@app.route('/patient/reminder', methods=['GET'])
-def patient_reminder_page():
-    return "Patient Reminder: Coming soon."
-
-@app.route('/patient/food', methods=['GET'])
-def patient_food_category_page():
-    from flask import render_template
-    return render_template('patient_food_category_page.html')
-
-@app.route('/patient/plan', methods=['GET'])
-def patient_plan_page():
-    return "Patient Plan: Coming soon."
-
-@app.route('/patient/calendar', methods=['GET'])
-def patient_calendar_page():
-    return "Patient Calendar: Coming soon."
-
-if __name__ == '__main__':
-    app.run(port=5000, host='0.0.0.0', debug=True)  
+app = create_app()

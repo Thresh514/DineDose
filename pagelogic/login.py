@@ -1,23 +1,24 @@
-from flask import render_template, request, redirect, session, url_for, flash
-from authlib.integrations.flask_client import OAuth
+from flask import render_template, request, redirect, session, url_for, flash, Blueprint
 import secrets, config
-from app import mail, oauth
+from extensions import mail, oauth
 from itsdangerous import URLSafeTimedSerializer
-from pagelogic import doctor_home, patient_home
 from utils.emailsender import send_email_ses
 
+login_bp = Blueprint('login', __name__)
 s = URLSafeTimedSerializer(config.SECRET_KEY)
 
+@login_bp.route('/login')
 def login():
     if session.get('type'):
         return redirect_by_role(session['type'])
     return render_template("login.html")
 
 # Magic Link 登录
+@login_bp.route('/login/magic', methods=['GET','POST'])
 def send_magic_link():
     email = request.form['email']
     token = s.dumps(email, salt='magic-login')
-    link = url_for('magic_login', token=token, _external=True)
+    link = url_for('login.magic_login', token=token, _external=True)
 
     subject = "Your Magic Login Link"
     html_body = f"""
@@ -32,15 +33,16 @@ def send_magic_link():
     else:
         flash("❌ Failed to send email.", "error")
 
-    return redirect(url_for('login_page'))
+    return redirect(url_for('login.login'))
 
+@login_bp.route('/magic_login', methods=['GET','POST'])
 def magic_login():
     token = request.args.get('token')
     try:
         email = s.loads(token, salt='magic-login', max_age=600)
     except Exception:
         flash('Invalid or expired link', 'error')
-        return redirect(url_for('login_page'))
+        return redirect(url_for('login.login'))
 
     mydb = config.mydb()
     cur = config.cursor(mydb)
@@ -68,10 +70,12 @@ def magic_login():
     return redirect_by_role(user['role'])
 
 # Google OAuth 登录
+@login_bp.route('/login/google', methods=['GET'])
 def oauth_login():
-    redirect_uri = url_for('oauth_authorize', _external=True)
+    redirect_uri = url_for('login.oauth_authorize', _external=True)
     return oauth.google.authorize_redirect(redirect_uri)
 
+@login_bp.route('/login/authorize', methods=['GET'])
 def oauth_authorize():
     token = oauth.google.authorize_access_token()
     user_info = oauth.google.get('userinfo').json()
@@ -109,7 +113,7 @@ def oauth_authorize():
 
 def redirect_by_role(role):
     if role == 'doctor':
-        return redirect(url_for('doctor'))
+        return redirect(url_for('doctor_home.doctor_home'))
     elif role == 'patient':
-        return redirect(url_for('patient'))
-    return redirect(url_for('index_page'))
+        return redirect(url_for('patient_home.patient_home'))
+    return redirect(url_for('index.index'))
