@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -10,13 +10,13 @@
     <header class="app-header">
         <div class="brand">Dine Dose</div>
         <div class="header-actions">
-            <img class="icon" src="{{ url_for('static', filename='public/Icon.png') }}" alt="reminder">
-            <img class="icon" src="{{ url_for('static', filename='public/Icon (1).png') }}" alt="my">
+            <img class="icon" src="{{ url_for('static', filename='public/message.png') }}" alt="reminder">
+            <img class="icon" src="{{ url_for('static', filename='public/user.png') }}" alt="my">
         </div>
     </header>
 
     <main class="app-main" role="main">
-        <a class="cta-circle" href="{{ url_for('patient_plan_page') }}" aria-label="View Plan">
+        <a class="cta-circle" href="{{ url_for('patient_home.patient_plan_page') }}" aria-label="View Plan">
             <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Plan">
         </a>
 
@@ -30,7 +30,7 @@
             <li></li>
         </ul>
 
-        <a class="cta-circle cta-circle--secondary" href="{{ url_for('patient_food_category_page') }}" aria-label="Add Record">
+        <a class="cta-circle cta-circle--secondary" href="{{ url_for('patient_home.patient_food_category_page') }}" aria-label="Add Record">
             <img class="circle-icon" src="{{ url_for('static', filename='public/Plus.png') }}" alt="Add Record">
         </a>
     </main>
