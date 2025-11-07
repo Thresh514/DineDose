@@ -1,5 +1,5 @@
 **/*__pycache__/
 /venv/
-config.py
 *.json
 .DS_Store
+.env

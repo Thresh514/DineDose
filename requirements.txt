@@ -14,4 +14,4 @@ python-dotenv
 ijson
 psycopg[binary,pool]
 tqdm
-psycopg.rows
+dotenv
