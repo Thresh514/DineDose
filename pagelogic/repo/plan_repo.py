@@ -13,7 +13,7 @@ from config import mydb
 def main():
     get_plan_by_id(1)
 
-def get_plan_by_id(plan_id): #return an instance of plan
+def get_plan_by_id(plan_id): #return an instance of plan by plan_id
 
     conn = mydb()
     cur = conn.cursor()      # ✅ 返回字典格式
@@ -27,7 +27,16 @@ def get_plan_by_id(plan_id): #return an instance of plan
     return result
 
 def get_all_plan_items_by_plan_id(plan_id): #return a list of plan_item
-    pass
+    conn = mydb()
+    cur = conn.cursor()      # ✅ 返回字典格式
+    print("Querying for:", plan_id)
+    query = "select * from plan_item where plan_id = %s" 
+    cur.execute(query, (plan_id,))
+    result = cur.fetchall()                 #获取这个query的结果
+    print(result)
+    cur.close()
+    conn.close()
+    return result
  
 def get_plan_item_rule_by_plan_item_id(plan_item_id): #return an instance of plan_item_rule
     pass
