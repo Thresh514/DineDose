@@ -68,11 +68,18 @@ def patient():
 from flask import request, jsonify
 
 @app.route('/get_plan_by_id', methods=['GET'])
-def get_plan_by_id_controller():
-    plan_id = request.args.get('plan_id') #从args里面获取变量
-    #localhost:5000/get_plan_by_id?plan_id=1
+def asdawqdq():
+    print("hello world")
+    plan_id = request.args.get('plan_id')
     plan = plan_repo.get_plan_by_id(plan_id)
-    return jsonify(plan), 200
+    return jsonify(plan), 200 
+
+@app.route('/get_plan_item_by_id', methods=['GET'])
+def asdawqsssdq():
+    print("hello world")
+    plan_id = request.args.get('plan_id')
+    plan = plan_repo.get_all_plan_items_by_plan_id(plan_id)
+    return jsonify(plan), 200 
 
 if __name__ == '__main__':
     app.run(port=5000, host='0.0.0.0', debug=True)  
