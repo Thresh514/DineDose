@@ -3,7 +3,7 @@ from config import mydb
 
 #
 class plan:
-    def __init(self, 
+    def __init__(self, 
                id, 
                patient_id, 
                doctor_id, 
