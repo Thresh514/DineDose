@@ -4,6 +4,12 @@ from psycopg.rows import dict_row
 
 SECRET_KEY = "55a084ecc8d46bef8ee5070e0e9204c89af7b754145a52669281a0656c169c27"
 
+# Flask Session 配置 - 确保 OAuth state 在进程间正确共享
+SESSION_COOKIE_SECURE = False  # 开发环境设为 False，生产环境使用 HTTPS 时设为 True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+PERMANENT_SESSION_LIFETIME = 86400  # 24 小时
+
 AWS_REGION = "us-east-2"
 AWS_ACCESS_KEY = "AKIAVTJABL27KS5SA6WT"
 AWS_SECRET_KEY = "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"
