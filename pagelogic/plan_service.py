@@ -1,5 +1,3 @@
-    
-
 #获取某个patient 从一个时间点到另一个时间点的所有plan
 #return plan, 以方便前端直接显示
 from pagelogic.repo import plan_repo
