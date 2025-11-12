@@ -26,12 +26,14 @@ def create_app():
     from pagelogic.logout import logout_bp
     from pagelogic.doctor_home import doctor_home_bp
     from pagelogic.patient_home import patient_home_bp
+    from pagelogic.test_bp import test_bp
 
     app.register_blueprint(index_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(logout_bp)
     app.register_blueprint(doctor_home_bp)
     app.register_blueprint(patient_home_bp)
+    app.register_blueprint(test_bp)
 
     return app
 

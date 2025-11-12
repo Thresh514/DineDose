@@ -1,7 +1,7 @@
 from config import mydb
 
 
-#
+
 class plan:
     def __init__(self, 
                id, 
@@ -28,7 +28,7 @@ class plan_item:
                 id, 
                 plan_id, 
                 drug_id, 
-                drug_name, 
+                drug_name, #如果从数据库返回，此项为NULL
                 dosage, 
                 unit, 
                 amount_literal, 
@@ -119,6 +119,9 @@ def get_plan_item_rule_by_plan_item_id(plan_item_id): #return an instance of pla
 #Key: plan_item.id
 #Value: 对应的 plan_item_rules
 def get_plan_item_rules_by_plan_id(plan_id):
+    #plan_id -> 所有对应的plan_items
+    #plan_items ->各自对应的plan_item_rule
+    
     item_id_to_rules = dict()
 
     return item_id_to_rules
