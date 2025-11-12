@@ -6,7 +6,7 @@ test_bp = Blueprint('test_bp', __name__)
 
 
 @test_bp.route('/get_user_plan', methods=['GET'])
-def get_user():
+def get_user_plan():
     user_id = request.args.get("id")
     from_when = request.args.get("from")
     to_when = request.args.get("to")
@@ -15,3 +15,9 @@ def get_user():
     return jsonify({
         plan
     }), 200
+
+@test_bp.route('/ping', methods=['GET'])
+def pingpong():
+    return jsonify(
+        "pong"
+    ), 200
