@@ -97,7 +97,7 @@ def get_plan_by_id(plan_id): #return an instance of plan by plan_id
     print(result)
     cur.close()
     conn.close()
-    plan_obj = Plan(
+    plan_obj = plan(
         id=result["id"],
         patient_id=result["patient_id"],
         doctor_id=result["doctor_id"],
