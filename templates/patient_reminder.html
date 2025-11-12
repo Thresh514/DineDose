@@ -1,10 +1,92 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Remindar</title> 
-    {% extends 'patient_base.html' %}
-    {% block content %} 
-    <h1>Remindar</h1>
-    {% endblock %}
+{% extends 'patient_base.html' %}
+{% block content %}
+<div class="reminder-page">
+    <!-- 当前提醒卡片 -->
+    <div class="reminder-card reminder-card--current">
+        {% if current_reminder %}
+        <div class="reminder-card-row">
+            <span class="reminder-label">Task Name:</span>
+            <span class="reminder-value">{{ current_reminder.drug_name or 'Ibuprofen 100mg' }}</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Notes:</span>
+            <span class="reminder-value">{{ current_reminder.note or 'Take after breakfast' }}</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Time:</span>
+            <span class="reminder-value">{{ current_reminder.time or '8:00 AM' }}</span>
+        </div>
+        {% else %}
+        <!-- 占位数据，后端数据传入后会被替换 -->
+        <div class="reminder-card-row">
+            <span class="reminder-label">Task Name:</span>
+            <span class="reminder-value">Ibuprofen 100mg</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Notes:</span>
+            <span class="reminder-value">Take after breakfast</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Time:</span>
+            <span class="reminder-value">8:00 AM</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- 状态显示 -->
+    <div class="reminder-status">
+        <span class="reminder-label">Status:</span>
+        {% if current_reminder and current_reminder.status == 'completed' %}
+        <span class="reminder-status-badge reminder-status-badge--completed">✅ Completed</span>
+        {% else %}
+        <span class="reminder-status-badge reminder-status-badge--pending">⏳ Pending</span>
+        {% endif %}
+    </div>
+    
+    <!-- 完成按钮 -->
+    <button class="reminder-complete-btn" aria-label="Mark as Completed">Mark as Completed</button>
+    
+    <!-- 同步提示 -->
+    <div class="reminder-sync-note">Will sync when online</div>
+    
+    <!-- 即将到来的提醒 -->
+    <div class="reminder-card reminder-card--upcoming">
+        <div class="reminder-card-header">Upcoming Reminder</div>
+        {% if upcoming_reminder %}
+        <div class="reminder-card-row">
+            <span class="reminder-label">Task Name:</span>
+            <span class="reminder-value">{{ upcoming_reminder.drug_name or 'Ibuprofen 100mg' }}</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Notes:</span>
+            <span class="reminder-value">{{ upcoming_reminder.note or 'Take after dinner' }}</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Time:</span>
+            <span class="reminder-value">{{ upcoming_reminder.time or '8:00 PM' }}</span>
+        </div>
+        {% else %}
+        <!-- 占位数据，后端数据传入后会被替换 -->
+        <div class="reminder-card-row">
+            <span class="reminder-label">Task Name:</span>
+            <span class="reminder-value">Ibuprofen 100mg</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Notes:</span>
+            <span class="reminder-value">Take after dinner</span>
+        </div>
+        <div class="reminder-card-row">
+            <span class="reminder-label">Time:</span>
+            <span class="reminder-value">8:00 PM</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- 成功消息横幅 -->
+    {% if show_success_message %}
+    <div class="reminder-success-banner" role="alert">
+        ⚡ Status updated successfully
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

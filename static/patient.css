@@ -7,7 +7,7 @@
   --nav-bg:#dedede;
   --active:#cfcfcf;
   --header-h:72px;
-  --nav-h:84px;
+  --nav-h:64px;
   --side:20px;
 }
 
@@ -312,4 +312,373 @@ button:active,
   .pfc-title{font-size:20px}
   .pfc-avatar{width:56px;height:56px}
   .pfc-search-field{padding:12px 14px}
+}
+
+/* =========================================================
+   Plan Page (patient_plan.html) 专用
+   采用 .calendar-* 前缀避免影响其它页面
+   ========================================================= */
+
+.plan-page{
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.plan-page.h-screen{
+  height:100vh;
+  height:100svh;
+}
+
+/* 标题 */
+.plan-title{
+  font-size:32px;
+  font-weight:600;
+  margin:0 0 16px;
+  padding:0 var(--side);
+  color:var(--text);
+  letter-spacing:0.2px;
+}
+
+/* 星期导航 */
+.plan-week-nav{
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  gap:8px;
+  padding:0 var(--side) 12px;
+  margin:0 0 8px;
+  border-bottom:1px solid var(--muted);
+}
+
+.week-day{
+  flex:1;
+  padding:8px 4px;
+  font-size:18px;
+  font-weight:500;
+  color:var(--text);
+  background:transparent;
+  border:0;
+  cursor:pointer;
+  transition:background-color 0.2s;
+  border-radius:50%;
+  min-width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.week-day:hover{
+  background:var(--muted-2);
+}
+
+.week-day.active{
+  background:var(--muted);
+  font-weight:600;
+}
+
+/* 时间段部分容器 */
+.plan-sections{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  padding:0 var(--side);
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 时间段部分 */
+.time-section{
+  position:relative;
+  padding:24px var(--side);
+  margin:0 calc(-1 * var(--side)) 0;
+  border:2px dashed var(--muted);
+  border-left:0;
+  border-right:0;
+  overflow:hidden;
+}
+
+.time-section:last-child{
+  border-bottom:0;
+}
+
+/* 背景图标 */
+.time-section-bg{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  width:200px;
+  height:200px;
+  opacity:0.75;
+  pointer-events:none;
+  z-index:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.time-icon{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  max-width:100%;
+  max-height:100%;
+}
+
+/* 计划项列表 */
+.plan-item-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  position:relative;
+  z-index:1;
+}
+
+/* 计划项 */
+.plan-item{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:0;
+}
+
+/* 头像圆圈 */
+.plan-item-avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:var(--muted-2);
+  display:grid;
+  place-items:center;
+  color:var(--text);
+  font-weight:700;
+  font-size:20px;
+  flex-shrink:0;
+}
+
+/* 内容区域 */
+.plan-item-content{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.plan-item-name{
+  font-size:18px;
+  color:var(--text);
+  letter-spacing:0.2px;
+}
+
+.plan-item-dosage{
+  font-size:14px;
+  color:#666;
+}
+
+/* 复选框按钮 */
+.plan-item-checkbox{
+  width:32px;
+  height:32px;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  color:#666;
+  flex-shrink:0;
+  transition:color 0.2s, opacity 0.2s;
+}
+
+.plan-item-checkbox:hover{
+  color:var(--text);
+  opacity:0.8;
+}
+
+.plan-item-checkbox:active{
+  opacity:0.6;
+}
+
+.plan-item-checkbox svg{
+  width:24px;
+  height:24px;
+}
+
+/* 复选框选中状态 */
+.plan-item-checkbox.checked{
+  color:var(--text);
+}
+
+/* 小屏优化 */
+@media (max-width:360px){
+  .plan-title{font-size:28px}
+  .week-day{font-size:16px;min-width:32px;height:32px}
+  .plan-item-avatar{width:44px;height:44px;font-size:18px}
+  .plan-item-name{font-size:16px}
+  .time-section-bg{width:160px;height:160px}
+}
+
+/* =========================================================
+   Reminder Page (patient_reminder.html) 专用
+   采用 .reminder-* 前缀避免影响其它页面
+   ========================================================= */
+
+.reminder-page{
+  padding:0 var(--side) 24px;
+}
+
+/* 页面标题 */
+.reminder-page-title{
+  font-size:14px;
+  color:#999;
+  margin:16px 0 8px;
+  font-weight:400;
+}
+
+/* 主标题 */
+.reminder-main-title{
+  font-size:28px;
+  font-weight:700;
+  margin:0 0 24px;
+  color:var(--text);
+  letter-spacing:0.2px;
+}
+
+/* 提醒卡片 */
+.reminder-card{
+  background:var(--bg);
+  border:1px solid var(--muted);
+  border-radius:12px;
+  padding:20px;
+  margin:20px 0px;
+}
+
+/* 当前提醒卡片 - 更醒目 */
+.reminder-card--current{
+  border:2px solid var(--text);
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  background:var(--bg);
+}
+
+.reminder-card--current .reminder-value{
+  font-size:20px;
+  font-weight:600;
+}
+
+.reminder-card--current .reminder-label{
+  font-weight:600;
+  color:var(--text);
+}
+
+.reminder-card--upcoming{
+  margin-top:24px;
+}
+
+.reminder-card-header{
+  font-size:16px;
+  color:#999;
+  font-weight:500;
+  margin:0 0 16px;
+}
+
+.reminder-card-row{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin:0 0 16px;
+}
+
+.reminder-card-row:last-child{
+  margin-bottom:0;
+}
+
+.reminder-label{
+  font-size:14px;
+  color:#666;
+  font-weight:500;
+}
+
+.reminder-value{
+  font-size:18px;
+  color:var(--text);
+  font-weight:400;
+}
+
+/* 状态显示 */
+.reminder-status{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:0 0 20px;
+}
+
+.reminder-status-badge{
+  font-size:16px;
+  font-weight:500;
+  padding:4px 0;
+}
+
+.reminder-status-badge--pending{
+  color:var(--text);
+}
+
+.reminder-status-badge--completed{
+  color:#4caf50;
+}
+
+/* 完成按钮 */
+.reminder-complete-btn{
+  width:100%;
+  padding:16px 24px;
+  background:#646464;
+  color:#fff;
+  border:0;
+  border-radius:12px;
+  font-size:18px;
+  font-weight:500;
+  cursor:pointer;
+  transition:background-color 0.2s, opacity 0.2s;
+  margin:0 0 12px;
+}
+
+.reminder-complete-btn:hover{
+  background:#555;
+}
+
+.reminder-complete-btn:active{
+  opacity:0.8;
+}
+
+/* 同步提示 */
+.reminder-sync-note{
+  font-size:14px;
+  color:#999;
+  text-align:center;
+  margin:0 0 24px;
+}
+
+/* 成功消息横幅 */
+.reminder-success-banner{
+  background:var(--muted-2);
+  border-radius:12px;
+  padding:16px 20px;
+  font-size:16px;
+  color:var(--text);
+  text-align:center;
+  margin:24px 0 0;
+}
+
+/* 小屏优化 */
+@media (max-width:360px){
+  .reminder-main-title{font-size:28px}
+  .reminder-card{padding:16px}
+  .reminder-value{font-size:16px}
+  .reminder-complete-btn{font-size:16px;padding:14px 20px}
 }

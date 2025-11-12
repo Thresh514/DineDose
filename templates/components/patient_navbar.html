@@ -1,14 +1,14 @@
 <nav class="bottom-nav" role="navigation" aria-label="主导航">
     <a
-        href="{{ url_for('index.index') }}"
-        class="nav-item {% if request.endpoint == 'index.index' %}active{% endif %}"
+        href="{{ url_for('patient_home.patient_home') }}"
+        class="nav-item {% if request.endpoint == 'patient_home.patient_home' %}active{% endif %}"
         aria-label="Home"
     >Home</a>
     <a
-        href="{{ url_for('patient_home.patient_calendar_page') }}"
-        class="nav-item {% if request.endpoint == 'patient_home.patient_calendar_page' %}active{% endif %}"
-        aria-label="Calendar"
-    >Calendar</a>
+        href="{{ url_for('patient_home.patient_plan_page') }}"
+        class="nav-item {% if request.endpoint == 'patient_home.patient_plan_page' %}active{% endif %}"
+        aria-label="Plan"
+    >Plan</a>
 </nav>
 
 

@@ -1,0 +1,171 @@
+{% extends 'patient_base.html' %}
+{% block content %}
+<div class="plan-page h-screen">
+    <!-- 星期导航 -->
+    <div class="plan-week-nav">
+        <button class="week-day active" data-day="0">S</button>
+        <button class="week-day" data-day="1">M</button>
+        <button class="week-day" data-day="2">T</button>
+        <button class="week-day" data-day="3">W</button>
+        <button class="week-day" data-day="4">T</button>
+        <button class="week-day" data-day="5">F</button>
+        <button class="week-day" data-day="6">S</button>
+    </div>
+    
+    <!-- 时间段列表 -->
+    <div class="plan-sections">
+        <!-- 早晨部分 -->
+        <section class="time-section time-section--morning">
+            <div class="time-section-bg">
+                <img src="{{ url_for('static', filename='public/Sunrise.png') }}" alt="Morning" class="time-icon" aria-hidden="true">
+            </div>
+            <ul class="plan-item-list">
+                {% if morning_items %}
+                    {% for item in morning_items %}
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
+                            {% if item.dosage and item.unit %}
+                            <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <!-- 占位数据，后端数据传入后会被替换 -->
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">A</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">List item</span>
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">A</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">List item</span>
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+        </section>
+        
+        <!-- 中午部分 -->
+        <section class="time-section time-section--noon">
+            <div class="time-section-bg">
+                <img src="{{ url_for('static', filename='public/Sun.png') }}" alt="Noon" class="time-icon" aria-hidden="true">
+            </div>
+            <ul class="plan-item-list">
+                {% if noon_items %}
+                    {% for item in noon_items %}
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
+                            {% if item.dosage and item.unit %}
+                            <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <!-- 占位数据，后端数据传入后会被替换 -->
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">A</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">List item</span>
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">A</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">List item</span>
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+        </section>
+        
+        <!-- 晚上部分 -->
+        <section class="time-section time-section--evening">
+            <div class="time-section-bg">
+                <img src="{{ url_for('static', filename='public/Sunset.png') }}" alt="Evening" class="time-icon" aria-hidden="true">
+            </div>
+            <ul class="plan-item-list">
+                {% if evening_items %}
+                    {% for item in evening_items %}
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
+                            {% if item.dosage and item.unit %}
+                            <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <!-- 占位数据，后端数据传入后会被替换 -->
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">A</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">List item</span>
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                    <li class="plan-item">
+                        <div class="plan-item-avatar">A</div>
+                        <div class="plan-item-content">
+                            <span class="plan-item-name">List item</span>
+                        </div>
+                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"/>
+                            </svg>
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+        </section>
+    </div>
+</div>
+{% endblock %}

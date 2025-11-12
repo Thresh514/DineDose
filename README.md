@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 
 ```python
-python app.py
+gunicorn app:app
 ```
 
 ## How to make a query to DB

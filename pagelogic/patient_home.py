@@ -20,9 +20,4 @@ def patient_food_page():
 
 @patient_home_bp.route('/patient/plan', methods=['GET'])
 def patient_plan_page():
-    return "Patient Plan: Coming soon."
-
-
-@patient_home_bp.route('/patient/calendar', methods=['GET'])
-def patient_calendar_page():
-    return render_template('patient_calendar.html')
+    return render_template('patient_plan.html')
