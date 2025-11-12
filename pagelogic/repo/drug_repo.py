@@ -31,24 +31,72 @@ class drug:
             self.listing_expiration_date = listing_expiration_date
             self.finished = finished
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "product_ndc": self.product_ndc,
+            "brand_name": self.brand_name,
+            "brand_name_base": self.brand_name_base,
+            "generic_name": self.generic_name,
+            "labeler_name": self.labeler_name,
+            "dosage_form": self.dosage_form,
+            "route": self.route,
+            "marketing_category": self.marketing_category,
+            "product_type": self.product_type,
+            "application_number": self.application_number,
+            "marketing_start_date": self.marketing_start_date,
+            "listing_expiration_date": self.listing_expiration_date,
+            "finished": self.finished
+        }
 
 def get_drug_by_id(id):
     pass
 
 def get_drugs_by_ids(ids):
+    if not ids:
+        return []
+
     conn = mydb()
-    cur = conn.cursor()      # ✅ 返回字典格式
-    print("Querying for:", ids)
-    query = "select * from drugs where id = %s" 
-    cur.execute(query, (ids,))
-    result = cur.fetchone()                 #获取这个query的结果
-    print(result)
+    cur = conn.cursor()  # 普通 cursor，没有 dict 功能
+
+    print("Querying for drug ids:", ids)
+
+    placeholders = ",".join(["%s"] * len(ids))
+    query = f"SELECT * FROM drugs WHERE id IN ({placeholders})"
+
+    cur.execute(query, tuple(ids))
+    rows = cur.fetchall()
+
+    # ⭐ 获取列名
+    columns = [desc[0] for desc in cur.description]
+
     cur.close()
     conn.close()
-    return result
 
+    drugs = []
+    for r in rows:
+        # ⭐ 手动把 tuple → dict
+        rd = dict(zip(columns, r))
 
+        d = drug(
+            id=rd["id"],
+            product_ndc=rd["product_ndc"],
+            brand_name=rd["brand_name"],
+            brand_name_base=rd["brand_name_base"],
+            generic_name=rd["generic_name"],
+            labeler_name=rd["labeler_name"],
+            dosage_form=rd["dosage_form"],
+            route=rd["route"],
+            marketing_category=rd["marketing_category"],
+            product_type=rd["product_type"],
+            application_number=rd["application_number"],
+            marketing_start_date=rd["marketing_start_date"],
+            listing_expiration_date=rd["listing_expiration_date"],
+            finished=rd["finished"]
+        )
+        drugs.append(d)
 
+    return drugs
 
 
 

@@ -1,7 +1,7 @@
 from config import mydb
 
 
-
+#
 class plan:
     def __init__(self, 
                id, 
@@ -19,6 +19,18 @@ class plan:
         self.doctor_name = doctor_name
         self.name = name
         self.plan_items = plan_items
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "patient_id": self.patient_id,
+            "doctor_id": self.doctor_id,
+            "patient_name": self.patient_name,
+            "doctor_name": self.doctor_name,
+            "name": self.name,
+            "plan_items": [
+                item.to_dict() for item in self.plan_items
+            ] if self.plan_items else []
+        }        
 
 
 #返回给前端的struct
@@ -28,7 +40,7 @@ class plan_item:
                 id, 
                 plan_id, 
                 drug_id, 
-                drug_name, #如果从数据库返回，此项为NULL
+                drug_name, 
                 dosage, 
                 unit, 
                 amount_literal, 
@@ -84,7 +96,50 @@ class plan_item_rule:
         self.sat = sat
         self.sun = sun
         self.times = times
-        
+
+
+def get_plan_by_user_id(user_id):
+    """
+    返回一个 plan instance。
+    """
+    conn = mydb()
+    cur = conn.cursor()  # 普通 cursor（tuple row）
+
+    query = """
+        SELECT id, patient_id, doctor_id, patient_name, doctor_name, name
+        FROM plan
+        WHERE patient_id = %s
+        LIMIT 1
+    """
+
+    cur.execute(query, (user_id,))
+    row = cur.fetchone()
+
+    # 如果没有 plan
+    if not row:
+        cur.close()
+        conn.close()
+        return None
+
+    # 获取列名
+    columns = [d[0] for d in cur.description]
+    row_dict = dict(zip(columns, row))
+
+    cur.close()
+    conn.close()
+
+    # 构造 plan instance
+    p = plan(
+        id=row_dict["id"],
+        patient_id=row_dict["patient_id"],
+        doctor_id=row_dict["doctor_id"],
+        patient_name=row_dict["patient_name"],
+        doctor_name=row_dict["doctor_name"],
+        name=row_dict["name"],
+        plan_items=None,  # 默认先设成 None，上层会填
+    )
+
+    return p
 
 def get_plan_by_id(plan_id): #return an instance of plan by plan_id
 
@@ -119,9 +174,6 @@ def get_plan_item_rule_by_plan_item_id(plan_item_id): #return an instance of pla
 #Key: plan_item.id
 #Value: 对应的 plan_item_rules
 def get_plan_item_rules_by_plan_id(plan_id):
-    #plan_id -> 所有对应的plan_items
-    #plan_items ->各自对应的plan_item_rule
-    
     item_id_to_rules = dict()
 
     return item_id_to_rules
