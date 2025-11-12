@@ -36,11 +36,19 @@ def get_drug_by_id(id):
     pass
 
 def get_drugs_by_ids(ids):
-    pass
-#take a list of drug_id
-#return a hashtable of drug_id to drug_name
-def get_names_by_ids(ids):
-    pass
+    conn = mydb()
+    cur = conn.cursor()      # ✅ 返回字典格式
+    print("Querying for:", ids)
+    query = "select * from drugs where id = %s" 
+    cur.execute(query, (ids,))
+    result = cur.fetchone()                 #获取这个query的结果
+    print(result)
+    cur.close()
+    conn.close()
+    return result
+
+
+
 
 
 

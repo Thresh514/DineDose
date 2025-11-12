@@ -1,7 +1,7 @@
 from config import mydb
 
 
-#
+
 class plan:
     def __init__(self, 
                id, 
@@ -28,7 +28,7 @@ class plan_item:
                 id, 
                 plan_id, 
                 drug_id, 
-                drug_name, 
+                drug_name, #如果从数据库返回，此项为NULL
                 dosage, 
                 unit, 
                 amount_literal, 
