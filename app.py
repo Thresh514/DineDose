@@ -9,7 +9,6 @@ def create_app():
     # 初始化扩展
     mail.init_app(app)
     oauth.init_app(app)
-
     # 注册 OAuth Provider
     import config
     oauth.register(

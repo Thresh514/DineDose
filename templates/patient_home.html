@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='patient.css') }}">
     {% extends 'patient_base.html' %}
     {% block content %} 
-        <a class="cta-circle" href="{{ url_for('patient_home.patient_plan_page') }}" aria-label="View Plan">
-            <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Plan">
+        <a class="cta-circle" href="{{ url_for('patient_home.patient_reminder_page') }}" aria-label="View Reminder">
+            <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Reminder">
         </a>
 
         <ul class="dotted-progress" aria-hidden="true">

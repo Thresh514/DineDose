@@ -77,7 +77,12 @@ def oauth_login():
 
 @login_bp.route('/login/authorize', methods=['GET'])
 def oauth_authorize():
-    token = oauth.google.authorize_access_token()
+    try:
+        token = oauth.google.authorize_access_token()
+    except Exception as e:
+        flash(f'OAuth 认证失败: {str(e)}', 'error')
+        return redirect(url_for('login.login'))
+    
     user_info = oauth.google.get('userinfo').json()
     email = user_info['email']
     name = user_info['name']

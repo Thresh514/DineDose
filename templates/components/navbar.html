@@ -5,10 +5,10 @@
         aria-label="Home"
     >Home</a>
     <a
-        href="{{ url_for('patient_home.patient_calendar_page') }}"
-        class="nav-item {% if request.endpoint == 'patient_home.patient_calendar_page' %}active{% endif %}"
-        aria-label="Calendar"
-    >Calendar</a>
+        href="{{ url_for('patient_home.patient_plan_page') }}"
+        class="nav-item {% if request.endpoint == 'patient_home.patient_plan_page' %}active{% endif %}"
+        aria-label="plan"
+    >Plan</a>
 </nav>
 
 
