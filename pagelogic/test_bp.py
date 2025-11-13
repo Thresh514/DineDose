@@ -1,6 +1,7 @@
 from pagelogic.repo import plan_repo
 from flask import jsonify, render_template, Blueprint, request
 
+from pagelogic.repo import drug_repo, plan_repo
 from pagelogic.service import plan_service
 
 test_bp = Blueprint('test_bp', __name__)
@@ -24,14 +25,24 @@ def pingpong():
         "pong"
     ), 200
 
+@test_bp.route('/get_drug', methods=['GET'])
+def test_get_drugs_by_ids():
+    ids = request.args.getlist("ids")   # ['1','2','3']
+    print(ids)
+    ids = list(map(int, ids))           # [1,2,3]
+    print(ids)
 
-@test_bp.route('/get_plan_item_rules_by_plan_id', methods=['GET'])
-def test_get_plan_item_rules_by_plan_id():
-    plan_id = request.args.get("id")
+    drugs = drug_repo.get_drugs_by_ids(ids)
+    print(drugs)
+    drug_dicts = [d.to_dict() for d in drugs]
 
-    result = plan_repo.get_plan_item_rules_by_plan_id(plan_id)
+    return jsonify(drug_dicts), 200
 
-    for k, v in result.items():
-        print("key", k, "value", v)
 
+@test_bp.route('/get_plan_by_user_id', methods=['GET'])
+def test_get_plan_by_user_id():
+    user_id = request.args.get("id")
+
+    plan = plan_repo.get_plan_by_user_id(user_id)
+    print(plan.to_dict())
     return jsonify(), 200
