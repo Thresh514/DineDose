@@ -84,6 +84,24 @@ class plan_item_rule:
         self.sat = sat
         self.sun = sun
         self.times = times
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "plan_item_id": self.plan_item_id,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "repeat_type": self.repeat_type,
+            "interval_value": self.interval_value,
+            "mon": self.mon,
+            "tue": self.tue,
+            "wed": self.wed,
+            "thu": self.thu,
+            "fri": self.fri,
+            "sat": self.sat,
+            "sun": self.sun,
+            "times": self.times
+        }
         
 
 def get_plan_by_id(plan_id): #return an instance of plan by plan_id
@@ -153,41 +171,64 @@ def get_plan_item_rule_by_plan_item_id(plan_item_id): #return an instance of pla
 #Value: 对应的 plan_item_rules
 def get_plan_item_rules_by_plan_id(plan_id):
     conn = mydb()
-    cur = conn.cursor()
+    cur = conn.cursor()   # tuple cursor
+
     query = """
-        SELECT pi.id AS plan_item_id, pir.*
+        SELECT 
+            pi.id AS plan_item_id,
+            pir.id AS rule_id,
+            pir.plan_item_id AS rule_plan_item_id,
+            pir.start_date AS rule_start_date,
+            pir.end_date AS rule_end_date,
+            pir.repeat_type AS rule_repeat_type,
+            pir.interval_value AS rule_interval_value,
+            pir.mon AS rule_mon,
+            pir.tue AS rule_tue,
+            pir.wed AS rule_wed,
+            pir.thu AS rule_thu,
+            pir.fri AS rule_fri,
+            pir.sat AS rule_sat,
+            pir.sun AS rule_sun,
+            pir.times AS rule_times
         FROM plan_item pi
         LEFT JOIN plan_item_rule pir
         ON pi.id = pir.plan_item_id
         WHERE pi.plan_id = %s;
     """
+
     cur.execute(query, (plan_id,))
     rows = cur.fetchall()
+    columns = [desc[0] for desc in cur.description]
+
     cur.close()
     conn.close()
+
     item_id_to_rules = {}
+
     for row in rows:
-        item_id = row["plan_item_id"]
-        if row["id"] is not None:
+        row_dict = dict(zip(columns, row))
+
+        item_id = row_dict["plan_item_id"]
+
+        rule_obj = None
+        if row_dict["rule_id"] is not None:  # 有 rule 才构建对象
             rule_obj = plan_item_rule(
-            id=row["id"],
-            plan_item_id=row["plan_item_id"],
-            start_date=row["start_date"],
-            end_date=row["end_date"],
-            repeat_type=row["repeat_type"],
-            interval_value=row["interval_value"],
-            mon=row["mon"],
-            tue=row["tue"],
-            wed=row["wed"],
-            thu=row["thu"],
-            fri=row["fri"],
-            sat=row["sat"],
-            sun=row["sun"],
-            times=row["times"]
-        )
+                id=row_dict["rule_id"],
+                plan_item_id=row_dict["rule_plan_item_id"],
+                start_date=row_dict["rule_start_date"],
+                end_date=row_dict["rule_end_date"],
+                repeat_type=row_dict["rule_repeat_type"],
+                interval_value=row_dict["rule_interval_value"],
+                mon=row_dict["rule_mon"],
+                tue=row_dict["rule_tue"],
+                wed=row_dict["rule_wed"],
+                thu=row_dict["rule_thu"],
+                fri=row_dict["rule_fri"],
+                sat=row_dict["rule_sat"],
+                sun=row_dict["rule_sun"],
+                times=row_dict["rule_times"]
+            )
+
         item_id_to_rules[item_id] = rule_obj
+
     return item_id_to_rules
-
-
-
-
