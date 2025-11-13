@@ -1,232 +1,266 @@
+from dataclasses import dataclass, field, asdict, is_dataclass
+from datetime import date, time as dt_time, datetime
+from typing import List, Optional, Dict
 from config import mydb
 
 
-#
-class plan:
-    def __init__(self, 
-               id, 
-               patient_id, 
-               doctor_id, 
-               patient_name, 
-               doctor_name, 
-               name, 
-               plan_items, #如果从数据库返回，此项为NULL
-                ):
-        self.id = id
-        self.patient_id = patient_id
-        self.doctor_id = doctor_id
-        self.patient_name = patient_name
-        self.doctor_name = doctor_name
-        self.name = name
-        self.plan_items = plan_items
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "patient_id": self.patient_id,
-            "doctor_id": self.doctor_id,
-            "patient_name": self.patient_name,
-            "doctor_name": self.doctor_name,
-            "name": self.name,
-            "plan_items": [
-                item.to_dict() for item in self.plan_items
-            ] if self.plan_items else []
-        }        
+# ==================== 通用序列化工具 ====================
 
-
-#返回给前端的struct
-class plan_item:
-    def __init__(
-                self, 
-                id, 
-                plan_id, 
-                drug_id, 
-                drug_name, 
-                dosage, 
-                unit, 
-                amount_literal, 
-                note,
-                date, #如果从数据库返回，此项为NULL
-                time, #如果从数据库返回，此项为NULL
-                plan_item_rule #如果从数据库返回，此项为NULL
-                ):
-        self.id = id
-        self.plan_id = plan_id
-        self.drug_id = drug_id
-        self.drug_name = drug_name
-        self.dosage = dosage
-        self.unit = unit
-        self.amount_literal = amount_literal
-        self.note = note
-        self.date = date
-        self.time = time
-        self.plan_item_rule = plan_item_rule
-
-class plan_item_rule:
-    def __init__(self, 
-                 id, 
-                 plan_item_id, 
-                 start_date, 
-                 end_date, 
-                 repeat_type,  
-                 #'ONCE', 'DAILY', 'WEEKLY', 'PRN'
-                 #ONCE means only need to type in start_date and times
-                 #DAILY means repeat daily, fill in interval value and times
-                 #WEEKLY means repeat according to specified mon tue...sun flags; also need to fill in times
-                 #PRN means repeat according only
-                 interval_value, #间隔多少 如 repeat_type = DAILY 时, 1表示每天一次
-                 mon, 
-                 tue, 
-                 wed, 
-                 thu, 
-                 fri, 
-                 sat, 
-                 sun, 
-                 times):
-        self.id = id
-        self.plan_item_id = plan_item_id
-        self.start_date = start_date
-        self.end_date = end_date
-        self.repeat_type = repeat_type
-        self.interval_value =  interval_value
-        self.mon = mon
-        self.tue = tue 
-        self.wed = wed
-        self.thu = thu
-        self.fri = fri 
-        self.sat = sat
-        self.sun = sun
-        self.times = times
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "plan_item_id": self.plan_item_id,
-            "start_date": self.start_date,
-            "end_date": self.end_date,
-            "repeat_type": self.repeat_type,
-            "interval_value": self.interval_value,
-            "mon": self.mon,
-            "tue": self.tue,
-            "wed": self.wed,
-            "thu": self.thu,
-            "fri": self.fri,
-            "sat": self.sat,
-            "sun": self.sun,
-            "times": self.times
-        }
-        
-
-def get_plan_by_user_id(user_id):
+def _serialize_for_json(obj):
     """
-    返回一个 plan instance。
+    递归把 dataclass / date / time / list / dict 等
+    转成可以直接 jsonify 的结构。
+    """
+    # 日期 / 日期时间
+    if isinstance(obj, (date, datetime)):
+        return obj.isoformat()
+    # time (23:00:00)
+    if isinstance(obj, dt_time):
+        return obj.isoformat()  # "HH:MM:SS"
+
+    # dataclass：先 asdict，再递归
+    if is_dataclass(obj):
+        return {k: _serialize_for_json(v) for k, v in asdict(obj).items()}
+
+    # list / tuple
+    if isinstance(obj, (list, tuple)):
+        return [_serialize_for_json(v) for v in obj]
+
+    # dict
+    if isinstance(obj, dict):
+        return {k: _serialize_for_json(v) for k, v in obj.items()}
+
+    # 其他（int/str/bool/None）
+    return obj
+
+
+
+@dataclass
+class plan_item_rule:
+    id: int
+    plan_item_id: int
+    start_date: date
+    end_date: Optional[date]
+    repeat_type: str          # 'ONCE', 'DAILY', 'WEEKLY', 'PRN'
+    interval_value: Optional[int]
+    mon: bool
+    tue: bool
+    wed: bool
+    thu: bool
+    fri: bool
+    sat: bool
+    sun: bool
+    # PostgreSQL time[] -> Python list[datetime.time] 或 list[str]
+    times: Optional[List[dt_time]] = None
+
+    def to_dict(self) -> dict:
+        # 交给通用序列化函数处理（含 date/time）
+        return _serialize_for_json(self)
+
+    def __str__(self) -> str:
+        return (
+            f"PlanItemRule("
+            f"id={self.id}, "
+            f"plan_item_id={self.plan_item_id}, "
+            f"repeat_type={self.repeat_type}, "
+            f"start_date={self.start_date}, "
+            f"end_date={self.end_date}, "
+            f"times={self.times}"
+            f")"
+        )
+
+
+@dataclass
+class plan_item:
+    id: int
+    plan_id: int
+    drug_id: int
+    drug_name: Optional[str]   # DB 不存，后面在逻辑层填
+    dosage: int
+    unit: str
+    amount_literal: Optional[str]
+    note: Optional[str]
+    date: Optional["date"] = None          # 展开后的具体日期
+    time: Optional[dt_time] = None       # 展开后的具体时间
+    plan_item_rule: Optional["plan_item_rule"] = None
+
+    def to_dict(self) -> dict:
+        return _serialize_for_json(self)
+
+    def __str__(self) -> str:
+        return (
+            f"PlanItem("
+            f"id={self.id}, "
+            f"plan_id={self.plan_id}, "
+            f"drug_id={self.drug_id}, "
+            f"drug_name='{self.drug_name}', "
+            f"dosage={self.dosage}{self.unit}, "
+            f"date={self.date}, "
+            f"time={self.time}, "
+            f"rule_id={self.plan_item_rule.id if self.plan_item_rule else None}"
+            f")"
+        )
+
+
+@dataclass
+class plan:
+    id: int
+    patient_id: int
+    doctor_id: int
+    name: str
+    description: Optional[str]
+    doctor_name: Optional[str]
+    patient_name: Optional[str]
+    # plan_items 默认空 list，之后在逻辑层填充
+    plan_items: List[plan_item] = field(default_factory=list)
+
+    def __str__(self) -> str:
+        return (
+            f"Plan("
+            f"id={self.id}, "
+            f"patient_id={self.patient_id}, "
+            f"doctor_id={self.doctor_id}, "
+            f"name='{self.name}', "
+            f"patient_name='{self.patient_name}', "
+            f"doctor_name='{self.doctor_name}', "
+            f"plan_items_count={len(self.plan_items)}"
+            f")"
+        )
+
+    def to_dict(self) -> dict:
+        return _serialize_for_json(self)
+
+
+# ==================== repo functions ====================
+
+def _row_to_dict(cur, row) -> dict:
+    """把 tuple row 转成 dict，避免依赖 DictCursor。"""
+    columns = [desc[0] for desc in cur.description]
+    return dict(zip(columns, row))
+
+
+def get_plan_by_user_id(user_id: int) -> Optional[plan]:
+    """
+    根据 patient_id 获取一个 plan instance。
     """
     conn = mydb()
-    cur = conn.cursor()  # 普通 cursor（tuple row）
+    cur = conn.cursor()
 
     query = """
-        SELECT id, patient_id, doctor_id, patient_name, doctor_name, name
+        SELECT id, patient_id, doctor_id, name, description,
+               doctor_name, patient_name
         FROM plan
         WHERE patient_id = %s
         LIMIT 1
     """
-
     cur.execute(query, (user_id,))
     row = cur.fetchone()
 
-    # 如果没有 plan
     if not row:
         cur.close()
         conn.close()
         return None
 
-    # 获取列名
-    columns = [d[0] for d in cur.description]
-    row_dict = dict(zip(columns, row))
+    row_dict = _row_to_dict(cur, row)
 
     cur.close()
     conn.close()
 
-    # 构造 plan instance
-    p = plan(
+    return plan(
         id=row_dict["id"],
         patient_id=row_dict["patient_id"],
         doctor_id=row_dict["doctor_id"],
-        patient_name=row_dict["patient_name"],
-        doctor_name=row_dict["doctor_name"],
         name=row_dict["name"],
-        plan_items=None,  # 默认先设成 None，上层会填
+        description=row_dict.get("description"),
+        doctor_name=row_dict.get("doctor_name"),
+        patient_name=row_dict.get("patient_name"),
     )
 
-    return p
 
-def get_plan_by_id(plan_id): #return an instance of plan by plan_id
-
-    conn = mydb()
-    cur = conn.cursor()      # ✅ 返回字典格式
-    print("Querying for:", plan_id)
-    query = "select * from plan where id = %s" 
-    cur.execute(query, (plan_id,))
-    result = cur.fetchone()                 #获取这个query的结果
-    print(result)
-    cur.close()
-    conn.close()
-    plan_obj = plan(
-        id=result["id"],
-        patient_id=result["patient_id"],
-        doctor_id=result["doctor_id"],
-        patient_name=result["patient_name"],
-        doctor_name=result["doctor_name"],
-        name=result["name"],
-        plan_items=None   
-    )
-    return plan_obj
-
-def get_all_plan_items_by_plan_id(plan_id): #return a list of plan_item
-    conn = mydb()
-    cur = conn.cursor()      # ✅ 返回字典格式
-    print("Querying for:", plan_id)
-    query = "select * from plan_item where plan_id = %s" 
-    cur.execute(query, (plan_id,))
-    result = cur.fetchall()                 #获取这个query的结果
-    print(result)
-    cur.close()
-    conn.close()
-
-    plan_item_list = []
-    for row in result:
-        item_obj = plan_item(
-            id=row["id"],
-            plan_id=row["plan_id"],
-            drug_id=row["drug_id"],
-            drug_name=row["drug_name"],
-            dosage=row["dosage"],
-            unit=row["unit"],
-            amount_literal=row["amount_literal"],
-            note=row["note"],
-            date=None,     # DB 查询不含 date → 固定为 None
-            time=None,     # DB 查询不含 time → 固定为 None
-            plan_item_rule=None  
-        )
-        plan_item_list.append(item_obj)
-    return plan_item_list
- 
-def get_plan_item_rule_by_plan_item_id(plan_item_id): #return an instance of plan_item_rule
+def get_plan_by_id(plan_id: int) -> Optional[plan]:
+    """
+    根据 plan.id 获取一个 plan instance。
+    """
     conn = mydb()
     cur = conn.cursor()
-    query = "select * from plan_item_rule where plan_item_id = %s"
-    cur.execute(query, (plan_item_id,))
-    result = cur.fetchall()   
+
+    query = """
+        SELECT id, patient_id, doctor_id, name, description,
+               doctor_name, patient_name
+        FROM plan
+        WHERE id = %s
+    """
+    cur.execute(query, (plan_id,))
+    row = cur.fetchone()
+
+    if not row:
+        cur.close()
+        conn.close()
+        return None
+
+    row_dict = _row_to_dict(cur, row)
+
     cur.close()
     conn.close()
-    return result
 
-#通过一个plan_id, 获取每个plan_item，以及其对应的plan_item_rule
-# 具体来说，获取plan_item_id to plan_item_rule 这样一个dictionary:
-#Key: plan_item.id
-#Value: 对应的 plan_item_rules
-def get_plan_item_rules_by_plan_id(plan_id):
+    return plan(
+        id=row_dict["id"],
+        patient_id=row_dict["patient_id"],
+        doctor_id=row_dict["doctor_id"],
+        name=row_dict["name"],
+        description=row_dict.get("description"),
+        doctor_name=row_dict.get("doctor_name"),
+        patient_name=row_dict.get("patient_name"),
+    )
+
+
+def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
+    """
+    返回指定 plan_id 的所有 plan_item 列表。
+    """
     conn = mydb()
-    cur = conn.cursor()   # tuple cursor
+    cur = conn.cursor()
+
+    query = """
+        SELECT id, plan_id, drug_id, dosage, unit,
+               amount_literal, note
+        FROM plan_item
+        WHERE plan_id = %s
+    """
+    cur.execute(query, (plan_id,))
+    rows = cur.fetchall()
+
+    items: List[plan_item] = []
+    for row in rows:
+        rd = _row_to_dict(cur, row)
+        item = plan_item(
+            id=rd["id"],
+            plan_id=rd["plan_id"],
+            drug_id=rd["drug_id"],
+            drug_name=None,                     # 逻辑层再填 generic_name
+            dosage=rd["dosage"],
+            unit=rd["unit"],
+            amount_literal=rd.get("amount_literal"),
+            note=rd.get("note"),
+            date=None,
+            time=None,
+            plan_item_rule=None,
+        )
+        items.append(item)
+
+    cur.close()
+    conn.close()
+    return items
+
+
+def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rule]]:
+    """
+    通过 plan_id 获取：
+        plan_item_id -> [plan_item_rule, ...]
+    的字典。
+    """
+    conn = mydb()
+    cur = conn.cursor()
 
     query = """
         SELECT 
@@ -258,32 +292,34 @@ def get_plan_item_rules_by_plan_id(plan_id):
     cur.close()
     conn.close()
 
-    item_id_to_rules = {}
+    item_id_to_rules: Dict[int, List[plan_item_rule]] = {}
 
     for row in rows:
-        row_dict = dict(zip(columns, row))
+        rd = dict(zip(columns, row))
+        item_id = rd["plan_item_id"]
 
-        item_id = row_dict["plan_item_id"]
+        # 可能有 plan_item 但没有对应 rule（LEFT JOIN）
+        if rd["rule_id"] is None:
+            item_id_to_rules.setdefault(item_id, [])
+            continue
 
-        rule_obj = None
-        if row_dict["rule_id"] is not None:  # 有 rule 才构建对象
-            rule_obj = plan_item_rule(
-                id=row_dict["rule_id"],
-                plan_item_id=row_dict["rule_plan_item_id"],
-                start_date=row_dict["rule_start_date"],
-                end_date=row_dict["rule_end_date"],
-                repeat_type=row_dict["rule_repeat_type"],
-                interval_value=row_dict["rule_interval_value"],
-                mon=row_dict["rule_mon"],
-                tue=row_dict["rule_tue"],
-                wed=row_dict["rule_wed"],
-                thu=row_dict["rule_thu"],
-                fri=row_dict["rule_fri"],
-                sat=row_dict["rule_sat"],
-                sun=row_dict["rule_sun"],
-                times=row_dict["rule_times"]
-            )
+        rule_obj = plan_item_rule(
+            id=rd["rule_id"],
+            plan_item_id=rd["rule_plan_item_id"],
+            start_date=rd["rule_start_date"],
+            end_date=rd["rule_end_date"],
+            repeat_type=rd["rule_repeat_type"],
+            interval_value=rd["rule_interval_value"],
+            mon=rd["rule_mon"],
+            tue=rd["rule_tue"],
+            wed=rd["rule_wed"],
+            thu=rd["rule_thu"],
+            fri=rd["rule_fri"],
+            sat=rd["rule_sat"],
+            sun=rd["rule_sun"],
+            times=rd["rule_times"],  # PostgreSQL time[] → list[time]
+        )
 
-        item_id_to_rules[item_id] = rule_obj
+        item_id_to_rules.setdefault(item_id, []).append(rule_obj)
 
     return item_id_to_rules

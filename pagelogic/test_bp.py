@@ -1,3 +1,4 @@
+from datetime import date
 from pagelogic.repo import plan_repo
 from flask import jsonify, render_template, Blueprint, request
 
@@ -7,17 +8,23 @@ from pagelogic.service import plan_service
 test_bp = Blueprint('test_bp', __name__)
 
 
-@test_bp.route('/get_user_plan', methods=['GET'])
-def get_user_plan():
-    user_id = request.args.get("id")
-    from_when = request.args.get("from")
-    to_when = request.args.get("to")
-    request
+#sample call: 
+# GET /get_user_plan?user_id=2&from=2025-11-01&to=2025-12-31
+#可以传入date
+# GET /get_user_plan?user_id=2&from=2025-11-01T10:00:00&to=2025-12-15T22:00:00
+#datetime也ok
+@test_bp.route("/get_user_plan", methods=["GET"])
+def get_user_plan_handler():
+    user_id = int(request.args.get("id"))
+    from_str = request.args.get("from")   # 可能是 None
+    to_str = request.args.get("to")
+
+    from_when = date.fromisoformat(from_str) if from_str else None
+    to_when = date.fromisoformat(to_str) if to_str else None
 
     plan = plan_service.get_user_plan(user_id, from_when, to_when)
-    return jsonify({
-        plan
-    }), 200
+    print("total number of plan_items: ", len(plan.plan_items))
+    return jsonify(plan.to_dict()), 200
 
 @test_bp.route('/ping', methods=['GET'])
 def pingpong():
@@ -45,4 +52,5 @@ def test_get_plan_by_user_id():
 
     plan = plan_repo.get_plan_by_user_id(user_id)
     print(plan.to_dict())
-    return jsonify(), 200
+    return jsonify(plan.to_dict()), 200
+
