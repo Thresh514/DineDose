@@ -1,3 +1,4 @@
+from pagelogic.repo import plan_repo
 from flask import jsonify, render_template, Blueprint, request
 
 from pagelogic.repo import drug_repo, plan_repo
@@ -11,6 +12,7 @@ def get_user_plan():
     user_id = request.args.get("id")
     from_when = request.args.get("from")
     to_when = request.args.get("to")
+    request
 
     plan = plan_service.get_user_plan(user_id, from_when, to_when)
     return jsonify({
