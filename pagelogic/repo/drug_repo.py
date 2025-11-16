@@ -163,8 +163,12 @@ def get_drugs_by_ids(ids: List[int]) -> List[drug]:
     return drugs
 
 
-def get_drug_by_id_locally():
-    pass
+def get_drug_by_id_locally(id: int) -> Optional[drug]:
+    for d in drugs:
+        if d.id == id:
+            return d
+    return None
 
-def get_drugs_by_ids_locally():
-    pass
+
+def get_drugs_by_ids_locally(ids: List[int]) -> List[drug]:
+    return [d for d in drugs if d.id in ids]
