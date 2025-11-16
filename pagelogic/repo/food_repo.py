@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+import time
 from typing import List, Optional
 from config import mydb
 
@@ -7,12 +8,15 @@ foods = []
 @dataclass
 class food:
     id: int
-    name: str
-    category: str
-    calories: float
-    protein: float
+    fdc_id: int
+    description: str
     fat: float
-    carbohydrates: float
+    carbonhydrate: float
+    calories: float
+    data_type: str
+    food_category_id: str
+    publication_date: str
+    food_category_num: int
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -28,22 +32,27 @@ class food:
             f"carbohydrates={self.carbohydrates})"
         )
     
-def _row_to_food(cur, row) -> food:
-    """Convert a database row to a food dataclass."""
+def _row_to_food(cur, row):
     columns = [desc[0] for desc in cur.description]
     rd = dict(zip(columns, row))
 
     return food(
         id=rd["id"],
-        name=rd["name"],
-        category=rd["category"],
-        calories=rd["calories"],
-        protein=rd["protein"],
+        fdc_id=rd["fdc_id"],
+        description=rd["description"],
         fat=rd["fat"],
-        carbohydrates=rd["carbohydrates"]
+        carbonhydrate=rd["carbonhydrate"],
+        calories=rd["calories"],
+        data_type=rd["data_type"],
+        food_category_id=rd["food_category_id"],
+        publication_date=rd["publication_date"],
+        food_category_num=rd["food_category_num"],
     )
 
+
 def get_foods():
+    print("star loading foods from DB...", time.time())
+    global foods
     conn = mydb()
     cur = conn.cursor()
 
@@ -52,6 +61,7 @@ def get_foods():
         rows = cur.fetchall()
         foods = [_row_to_food(cur, row) for row in rows]
         print(foods[:10], foods[-10:])
+        print("finished loading foods from DB.", time.time())
         return foods
     finally:
         cur.close()

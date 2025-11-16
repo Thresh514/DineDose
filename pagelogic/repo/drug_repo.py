@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+import time
 from typing import List, Optional
 from config import mydb
 
@@ -69,6 +70,8 @@ def get_drugs():
     cur = conn.cursor() #copy-paste
 
     print("Entered get_drugs from app.py")
+    print("star loading drugs from DB...", time.time())
+
 
     query = """
         SELECT
@@ -84,9 +87,7 @@ def get_drugs():
     for row in rows:
         d = _row_to_drug(cur, row)
         drugs.append(d)
-    
-    print(drugs[:10], drugs[-10:])
-
+    print("finished loading drugs from DB.", time.time())
     # assign 给 drug_repo的drugs
     cur.close()
     conn.close()

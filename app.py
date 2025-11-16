@@ -1,6 +1,7 @@
 from flask import Flask
 from extensions import mail, oauth
 from pagelogic.repo import drug_repo
+from pagelogic.repo import food_repo
 
 
 def create_app():

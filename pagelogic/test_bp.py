@@ -2,7 +2,7 @@ from datetime import date
 from pagelogic.repo import plan_repo
 from flask import jsonify, render_template, Blueprint, request
 
-from pagelogic.repo import drug_repo, plan_repo
+from pagelogic.repo import drug_repo, plan_repo, food_repo
 from pagelogic.service import plan_service
 
 test_bp = Blueprint('test_bp', __name__)
@@ -54,3 +54,16 @@ def test_get_plan_by_user_id():
     print(plan.to_dict())
     return jsonify(plan.to_dict()), 200
 
+@test_bp.route('/get_food_by_id_locally', methods=['GET'])
+def test_get_food_by_id_locally():
+    food_id = request.args.get("id")
+    if not food_id:
+        return jsonify({"error": "Missing id"}), 400
+
+    food_id = int(food_id)
+
+    food = food_repo.get_food_by_id_locally(food_id)
+    if food is None:
+        return jsonify({"error": f"No food found with id {food_id}"}), 404
+
+    return jsonify(food.to_dict()), 200
