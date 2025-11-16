@@ -39,6 +39,9 @@ def create_app():
     drug_repo.get_drugs()#预热drug db入server
     drug_repo.drugs
 
+    food_repo.get_foods()#预热food db入server
+    food_repo.foods
+
     return app
 
 
