@@ -1,5 +1,6 @@
 from flask import Flask
 from extensions import mail, oauth
+from pagelogic.repo import drug_repo
 
 
 def create_app():
@@ -34,6 +35,9 @@ def create_app():
     app.register_blueprint(doctor_home_bp)
     app.register_blueprint(patient_home_bp)
     app.register_blueprint(test_bp)
+
+    drug_repo.get_drugs()#预热drug db入server
+    drug_repo.drugs
 
     return app
 

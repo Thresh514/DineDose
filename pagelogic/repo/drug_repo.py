@@ -3,6 +3,8 @@ from typing import List, Optional
 from config import mydb
 
 
+drugs = [] #TODO: 如果查询慢，尝试优化
+
 # =============== dataclass model ===============
 
 @dataclass
@@ -62,13 +64,42 @@ def _row_to_drug(cur, row) -> drug:
 
 
 # =============== repo functions ===============
+def get_drugs():
+    conn = mydb()       #copy-paste
+    cur = conn.cursor() #copy-paste
+
+    print("Entered get_drugs from app.py")
+
+    query = """
+        SELECT
+            id, product_ndc, brand_name, brand_name_base,
+            generic_name, labeler_name, dosage_form, route,
+            marketing_category, product_type, application_number,
+            marketing_start_date, listing_expiration_date, finished
+        FROM drugs
+    """
+
+    cur.execute(query)
+    rows = cur.fetchall() #一个list of （drugs 作为我不知道啥形式）
+    for row in rows:
+        d = _row_to_drug(cur, row)
+        drugs.append(d)
+    
+    print(drugs[:10], drugs[-10:])
+
+    # assign 给 drug_repo的drugs
+    cur.close()
+    conn.close()
+
+    pass
+
 
 def get_drug_by_id(id: int) -> Optional[drug]:
     """
     按主键 id 拿一条 drug；不存在则返回 None。
     """
-    conn = mydb()
-    cur = conn.cursor()
+    conn = mydb()       #copy-paste
+    cur = conn.cursor() #copy-paste
 
     query = """
         SELECT
@@ -87,7 +118,8 @@ def get_drug_by_id(id: int) -> Optional[drug]:
         cur.close()
         conn.close()
         return None
-
+    
+    print(row)
     d = _row_to_drug(cur, row)
 
     cur.close()
@@ -129,3 +161,10 @@ def get_drugs_by_ids(ids: List[int]) -> List[drug]:
     cur.close()
     conn.close()
     return drugs
+
+
+def get_drug_by_id_locally():
+    pass
+
+def get_drugs_by_ids_locally():
+    pass
