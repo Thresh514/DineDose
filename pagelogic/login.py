@@ -59,7 +59,8 @@ def magic_login():
     session.update({
         'type': user.get('role', 'patient'),
         'email': email,
-        'session_token': secrets.token_hex(16)
+        'session_token': secrets.token_hex(16),
+        'user_id': user['id']
     })
     cur.execute(
         "INSERT INTO sessions (user_id, session_token, user_agent, ip_address) VALUES (%s,%s,%s,%s)",
@@ -107,7 +108,8 @@ def oauth_authorize():
         'type': user['role'],
         'email': user['email'],
         'name': user['username'],
-        'session_token': secrets.token_hex(16)
+        'session_token': secrets.token_hex(16),
+        'user_id': user['id']
     })
     cur.execute(
         "INSERT INTO sessions (user_id, session_token, user_agent, ip_address) VALUES (%s,%s,%s,%s)",

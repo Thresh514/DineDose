@@ -75,7 +75,7 @@ def get_user_plan(
     drug_ids = [item.drug_id for item in plan_items]
     #获取plan_items中，drug_id对应的drug_name,
     
-    drugs = drug_repo.get_drugs_by_ids(drug_ids)
+    drugs = drug_repo.get_drugs_by_ids_locally(drug_ids)
     #返回一个dictionary
     #key: drug_id
     #value: drug的name 注意，这里具体返回哪个name，或者是不是可以直接返回drug instances？有待讨论
