@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 import time
 from typing import List, Optional
 from config import mydb
+import config
 
 foods = []
 
@@ -56,8 +57,15 @@ def get_foods():
     conn = mydb()
     cur = conn.cursor()
 
+
     try:
-        cur.execute("SELECT * FROM foods")
+        sql_message = "SELECT * FROM foods"
+        if config.FLASK_ENV == "dev":
+            print("get_foods are running in DEV mode, so only top 100 food will be loaded into local memory:")
+            sql_message += " LIMIT 100"
+
+        cur.execute(sql_message)
+        
         rows = cur.fetchall()
         foods = [_row_to_food(cur, row) for row in rows]
         print(foods[:10], foods[-10:])

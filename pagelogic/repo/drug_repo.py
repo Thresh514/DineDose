@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 import time
 from typing import List, Optional
 from config import mydb
-
+import config
 
 drugs = [] #TODO: 如果查询慢，尝试优化
 
@@ -69,6 +69,7 @@ def get_drugs():
     conn = mydb()       #copy-paste
     cur = conn.cursor() #copy-paste
 
+
     print("Entered get_drugs from app.py")
     print("star loading drugs from DB...", time.time())
 
@@ -81,6 +82,9 @@ def get_drugs():
             marketing_start_date, listing_expiration_date, finished
         FROM drugs
     """
+    if config.FLASK_ENV == "dev":
+        print("get_foods are running in DEV mode, so only top 100 food will be loaded into local memory:")
+        query += " LIMIT 100"
 
     cur.execute(query)
     rows = cur.fetchall() #一个list of （drugs 作为我不知道啥形式）

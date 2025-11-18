@@ -3,6 +3,10 @@ import psycopg
 from psycopg.rows import dict_row 
 import os
 
+from dotenv import load_dotenv
+load_dotenv() #解决 环境变量 加载失败问题
+
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Flask Session 配置 - 确保 OAuth state 在进程间正确共享
@@ -15,6 +19,9 @@ AWS_REGION = os.getenv("AWS_REGION")
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 SES_SENDER = os.getenv("SES_SENDER")
+
+FLASK_ENV= os.getenv("FLASK_ENV")
+print("FLASK_ENV: ", FLASK_ENV)
 
 OAUTH_CREDENTIALS = {
     "google": {
