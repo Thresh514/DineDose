@@ -76,6 +76,22 @@ conn.close()
 - Role-based interface
 - SMS/Email notifications
 
+## Session:
+Session are set in login.py:
+
+```
+    session.update({
+        'type': user.get('role', 'patient'),
+        'email': email,
+        'session_token': secrets.token_hex(16),
+        'user_id': user['id']
+    })
+```
+to get it and display to html:
+```
+<div>{{ session.get('user_id') }}</div>
+```
+
 ## Course
 
 CS411 Project
