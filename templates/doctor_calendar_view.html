@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>User Plan Calendar</title>
+    <title>Patient Plan - Doctor View</title>
     <style>
+        /* 这里直接用之前那套 CSS，不再重复解释 */
         body { font-family: sans-serif; margin: 20px; }
 
         .toolbar {
@@ -70,7 +71,6 @@
             font-size: 12px;
         }
 
-        /* Loading overlay */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -102,7 +102,6 @@
             font-size: 14px;
         }
 
-        /* Event detail modal */
         #event-modal {
             position: fixed;
             top: 0; left: 0;
@@ -147,349 +146,25 @@
         }
     </style>
 </head>
-
 <body>
 
-<h2>📅 Medication Plan Calendar</h2>
+    <h2>Patient Plan Calendar</h2>
 
-<div class="toolbar">
-    <button id="prev-btn" class="nav-btn">◀</button>
-    <button id="next-btn" class="nav-btn">▶</button>
+    {% include "components/calendar_dom.html" %}
+    {% include "components/calendar_view.html" %}
 
-    <button class="view-btn" data-view="day">Day</button>
-    <button class="view-btn" data-view="week">Week</button>
-    <button class="view-btn" data-view="month">Month</button>
+    <script>
+        window.addEventListener("load", function () {
+            // 这里用的是后端传进来的 patient_id，
+            // 而不是 session['user_id']，因为医生在看“某个病人”的计划
+            const patientId = "{{ patient_id }}";
 
-    <span id="current-range"></span>
-</div>
-
-<div id="calendar" class="calendar"></div>
-
-<!-- LOADING OVERLAY -->
-<div id="loading-overlay">
-    <div>
-        <div class="spinner"></div>
-        <div id="loading-text">Loading…</div>
-    </div>
-</div>
-
-<!-- EVENT DETAIL MODAL -->
-<div id="event-modal">
-    <div class="modal-content">
-        <button id="modal-close">✖</button>
-        <h3 id="modal-title">Medication Detail</h3>
-        <div id="modal-body"></div>
-    </div>
-</div>
-
-<script>
-/** -------- Loading Helpers -------- **/
-function showLoading() {
-    document.getElementById("loading-overlay").style.display = "flex";
-}
-function hideLoading() {
-    document.getElementById("loading-overlay").style.display = "none";
-}
-
-/** -------- Global state -------- **/
-const userId = "{{ session['user_id'] }}";     // from Flask session
-let currentView = "month";                     // "day" | "week" | "month"
-let currentAnchor = new Date();                // center date for navigation
-
-// cache: key -> plan_item
-let planCache = {};
-let allPlanItems = [];
-
-// cache coverage range
-let loadedFrom = null;
-let loadedTo   = null;
-
-// ✅ Drug cache: drug_id -> drug detail object
-const drugCache = {};   // <---- 新增：前端缓存药品信息
-
-/** -------- Utils -------- **/
-function toISODate(d) { return d.toISOString().slice(0, 10); }
-function truncDate(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-
-function getWeekStart(d) {
-    const tmp = truncDate(d);
-    const day = tmp.getDay();
-    const diff = (day + 6) % 7; // Monday = 0
-    tmp.setDate(tmp.getDate() - diff);
-    return tmp;
-}
-function addDays(date, delta) {
-    const d = new Date(date);
-    d.setDate(d.getDate() + delta);
-    return d;
-}
-function updateRangeLabel(from, to) {
-    document.getElementById("current-range").textContent =
-        `${toISODate(from)} → ${toISODate(to)}`;
-}
-
-function makeKey(item) {
-    return `${item.id}-${item.date}-${item.time || ""}`;
-}
-
-function mergePlanItems(items) {
-    if (!items) return;
-    for (const it of items) planCache[makeKey(it)] = it;
-    allPlanItems = Object.values(planCache);
-}
-
-/** -------- View Range Calculator -------- **/
-function computeViewRange(anchor, view) {
-    const base = truncDate(anchor);
-    let from, to;
-
-    if (view === "day") {
-        from = base;
-        to   = base;
-    } else if (view === "week") {
-        from = getWeekStart(base);
-        to   = addDays(from, 6);
-    } else {
-        from = new Date(base.getFullYear(), base.getMonth(), 1);
-        to   = new Date(base.getFullYear(), base.getMonth() + 1, 0);
-    }
-    return { from, to };
-}
-
-/** -------- Fetching w/ Smart Caching -------- **/
-async function fetchRange(fromDate, toDate) {
-    const fromStr = toISODate(fromDate);
-    const toStr   = toISODate(toDate);
-
-    const url = `/get_user_plan?id=${userId}&from=${fromStr}&to=${toStr}`;
-    const res = await fetch(url);
-    if (!res.ok) return;
-
-    const data = await res.json();
-    mergePlanItems(data.plan_items || []);
-}
-
-async function ensureDataForRange(fromDate, toDate) {
-    fromDate = truncDate(fromDate);
-    toDate   = truncDate(toDate);
-
-    if (!loadedFrom || !loadedTo) {
-        await fetchRange(fromDate, toDate);
-        loadedFrom = new Date(fromDate);
-        loadedTo   = new Date(toDate);
-        return;
-    }
-
-    const tasks = [];
-
-    if (fromDate < loadedFrom) {
-        const newFrom = new Date(fromDate);
-        const newTo   = addDays(loadedFrom, -1);
-        tasks.push(fetchRange(newFrom, newTo).then(() => loadedFrom = newFrom));
-    }
-
-    if (toDate > loadedTo) {
-        const newFrom = addDays(loadedTo, 1);
-        const newTo   = new Date(toDate);
-        tasks.push(fetchRange(newFrom, newTo).then(() => loadedTo = newTo));
-    }
-
-    if (tasks.length) await Promise.all(tasks);
-}
-
-/** -------- Modal Helpers -------- **/
-function openModal(htmlContent) {
-    document.getElementById("modal-body").innerHTML = htmlContent;
-    document.getElementById("event-modal").style.display = "flex";
-}
-function closeModal() {
-    document.getElementById("event-modal").style.display = "none";
-}
-
-document.getElementById("modal-close").onclick = closeModal;
-document.getElementById("event-modal").onclick = function (e) {
-    if (e.target.id === "event-modal") closeModal();
-};
-
-/** -------- Drug Detail Fetch (with cache) -------- **/
-async function fetchDrugDetail(drugId) {
-    if (!drugId) return null;
-
-    // ✅ 先查前端缓存
-    if (drugCache[drugId]) {
-        return drugCache[drugId];
-    }
-
-    const url = `http://localhost:8000/get_drug_by_id_locally?id=${drugId}`;
-    try {
-        const res = await fetch(url);
-        if (!res.ok) return null;
-
-        const data = await res.json();
-
-        // ✅ 写入缓存，下次直接用
-        drugCache[drugId] = data;
-
-        return data;
-    } catch (e) {
-        console.error("Failed to fetch drug detail:", e);
-        return null;
-    }
-}
-
-/** -------- Show Event Detail -------- **/
-async function showEventDetail(ev) {
-    const drug = await fetchDrugDetail(ev.drug_id);
-
-    let drugHTML = "";
-    if (drug) {
-        drugHTML = `
-            <h4>${drug.brand_name}</h4>
-            <p><strong>Generic:</strong> ${drug.generic_name}</p>
-            <p><strong>Route:</strong> ${drug.route}</p>
-            <p><strong>Dosage form:</strong> ${drug.dosage_form}</p>
-            <p><strong>Product NDC:</strong> ${drug.product_ndc}</p>
-            <p><strong>Labeler:</strong> ${drug.labeler_name}</p>
-            <p><strong>Marketing category:</strong> ${drug.marketing_category}</p>
-        `;
-    } else {
-        drugHTML = `<p>⚠ Unable to load drug details.</p>`;
-    }
-
-    const eventHTML = `
-        <div style="border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:10px;">
-            <p><strong>Date:</strong> ${ev.date}</p>
-            <p><strong>Time:</strong> ${ev.time || "ALL DAY"}</p>
-        </div>
-
-        <p><strong>Medication:</strong> ${ev.drug_name}</p>
-        <p><strong>Dosage:</strong> ${ev.dosage}${ev.unit}</p>
-        <p><strong>Amount literal:</strong> ${ev.amount_literal || "(none)"}</p>
-        <p><strong>Note:</strong> ${ev.note || "(none)"}</p>
-
-        <hr>
-
-        <h3 style="margin-top:10px;">Drug Information</h3>
-        ${drugHTML}
-    `;
-
-    openModal(eventHTML);
-}
-
-/** -------- Rendering Pipeline -------- **/
-async function loadAndRenderCurrentView() {
-    showLoading();
-    try {
-        const { from, to } = computeViewRange(currentAnchor, currentView);
-        await ensureDataForRange(from, to);
-        renderFromCache(from, to);
-    } finally {
-        hideLoading();
-    }
-}
-
-function renderFromCache(fromDate, toDate) {
-    const fromStr = toISODate(fromDate);
-    const toStr   = toISODate(toDate);
-
-    const visible = allPlanItems.filter(it =>
-        it.date >= fromStr && it.date <= toStr
-    );
-
-    renderCalendar(visible, fromDate, toDate);
-    updateRangeLabel(fromDate, toDate);
-}
-
-/** -------- Calendar Rendering -------- **/
-function renderCalendar(planItems, fromDate, toDate) {
-    const cal = document.getElementById("calendar");
-    cal.innerHTML = "";
-    cal.classList.remove("day-view", "week-view", "month-view");
-    cal.classList.add(currentView + "-view");
-
-    if (!planItems.length) {
-        cal.className = "calendar day-view";
-        const cell = document.createElement("div");
-        cell.className = "day";
-        cell.innerHTML = `
-            <div class="day-header">${toISODate(fromDate)} → ${toISODate(toDate)}</div>
-            <div style="margin-top:8px; text-align:center; font-size:13px;">
-               😊 No schedules in this period.
-            </div>`;
-        cal.appendChild(cell);
-        return;
-    }
-
-    const map = {};
-    for (const item of planItems) {
-        (map[item.date] ||= []).push(item);
-    }
-
-    const cur = new Date(fromDate);
-    while (cur <= toDate) {
-        const dateStr = toISODate(cur);
-        const cell = document.createElement("div");
-        cell.className = "day";
-        cell.innerHTML = `<div class="day-header">${dateStr}</div>`;
-
-        const events = map[dateStr];
-        if (events) {
-            events.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
-            for (const ev of events) {
-                const el = document.createElement("div");
-                el.className = "event";
-                el.innerHTML = `
-                    <div><strong>${ev.time || "ALL DAY"}</strong></div>
-                    <div>${ev.drug_name}</div>
-                    <div>${ev.dosage}${ev.unit} (${ev.amount_literal || ""})</div>`;
-                el.style.cursor = "pointer";
-                el.onclick = () => showEventDetail(ev);
-                cell.appendChild(el);
-            }
-        }
-        cal.appendChild(cell);
-        cur.setDate(cur.getDate() + 1);
-    }
-}
-
-/** -------- Controls -------- **/
-function initViewButtons() {
-    const buttons = document.querySelectorAll(".view-btn");
-
-    buttons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            currentView = btn.dataset.view;
-            buttons.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            loadAndRenderCurrentView();
+            create_calendar({
+                userId: patientId,
+                planApiBase: "/get_user_plan",  // 后端已经根据 id 返回该 user 的 plan
+                drugApiBase: "/get_drug"
+            });
         });
-    });
-
-    document.querySelector('[data-view="month"]').classList.add("active");
-}
-
-function initNavButtons() {
-    document.getElementById("prev-btn").addEventListener("click", () => shiftAnchor(-1));
-    document.getElementById("next-btn").addEventListener("click", () => shiftAnchor(1));
-}
-
-function shiftAnchor(direction) {
-    if (currentView === "day") {
-        currentAnchor.setDate(currentAnchor.getDate() + direction);
-    } else if (currentView === "week") {
-        currentAnchor.setDate(currentAnchor.getDate() + 7 * direction);
-    } else {
-        currentAnchor.setMonth(currentAnchor.getMonth() + direction);
-    }
-    loadAndRenderCurrentView();
-}
-
-/** -------- Entry -------- **/
-window.onload = async function () {
-    initViewButtons();
-    initNavButtons();
-    await loadAndRenderCurrentView();
-};
-</script>
+    </script>
 </body>
 </html>

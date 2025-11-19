@@ -58,7 +58,7 @@ def get_user_by_id(user_id: int) -> Optional[User]:
     query = """
         SELECT id, username, email, google_id, avatar_url,
                role, is_verified, created_at
-        FROM "user"
+        FROM "users"
         WHERE id = %s
     """
     cur.execute(query, (user_id,))
@@ -83,7 +83,7 @@ def get_user_by_email(email: str) -> Optional[User]:
     query = """
         SELECT id, username, email, google_id, avatar_url,
                role, is_verified, created_at
-        FROM "user"
+        FROM "users"
         WHERE email = %s
     """
     cur.execute(query, (email,))
@@ -111,7 +111,7 @@ def get_user_by_google_id(google_id: str) -> Optional[User]:
     query = """
         SELECT id, username, email, google_id, avatar_url,
                role, is_verified, created_at
-        FROM "user"
+        FROM "users"
         WHERE google_id = %s
     """
     cur.execute(query, (google_id,))
@@ -140,13 +140,13 @@ def create_user(
 ) -> User:
     """
     插入一条 user 记录并返回 User 实例。
-    这里假设表名为 "user"，且 created_at 有默认值 (NOW())。
+
     """
     conn = mydb()
     cur = conn.cursor()
 
     query = """
-        INSERT INTO "user" (username, email, google_id, avatar_url, role, is_verified)
+        INSERT INTO "users" (username, email, google_id, avatar_url, role, is_verified)
         VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id, username, email, google_id, avatar_url,
                   role, is_verified, created_at
@@ -197,7 +197,7 @@ def update_user_basic_info(
     cur = conn.cursor()
 
     query = f"""
-        UPDATE "user"
+        UPDATE "users"
         SET {", ".join(sets)}
         WHERE id = %s
         RETURNING id, username, email, google_id, avatar_url,
@@ -234,7 +234,7 @@ def get_doctor_by_patient_id(patient_id: int) -> Optional[User]:
         SELECT DISTINCT
             u.id, u.username, u.email, u.google_id, u.avatar_url,
             u.role, u.is_verified, u.created_at
-        FROM "user" u
+        FROM "users" u
         JOIN plan p
             ON p.doctor_id = u.id
         WHERE p.patient_id = %s
@@ -269,7 +269,7 @@ def get_patients_by_doctor_id(doctor_id: int) -> List[User]:
         SELECT DISTINCT
             u.id, u.username, u.email, u.google_id, u.avatar_url,
             u.role, u.is_verified, u.created_at
-        FROM "user" u
+        FROM "users" u
         JOIN plan p
             ON p.patient_id = u.id
         WHERE p.doctor_id = %s

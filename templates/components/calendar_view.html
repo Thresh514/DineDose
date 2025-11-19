@@ -1,0 +1,358 @@
+<script>
+/**
+ * 通用日历组件
+ * options:
+ *  - userId: 当前用户 id（string / number）
+ *  - planApiBase: 获取计划的后端接口（默认 /get_user_plan）
+ *  - drugApiBase: 获取药物信息接口（默认 /get_drug）
+ *  - 一堆元素 id / selector 可以覆写，默认用你现在的结构
+ */
+function create_calendar(options) {
+    const {
+        userId,
+        planApiBase = "/get_user_plan",
+        drugApiBase = "/get_drug",
+
+        calendarId = "calendar",
+        prevBtnId = "prev-btn",
+        nextBtnId = "next-btn",
+        viewBtnSelector = ".view-btn",
+        rangeLabelId = "current-range",
+        loadingOverlayId = "loading-overlay",
+        modalId = "event-modal",
+        modalCloseId = "modal-close",
+        modalBodyId = "modal-body",
+    } = options;
+
+    // ==== DOM ====
+    const calendarEl       = document.getElementById(calendarId);
+    const prevBtn          = document.getElementById(prevBtnId);
+    const nextBtn          = document.getElementById(nextBtnId);
+    const rangeLabelEl     = document.getElementById(rangeLabelId);
+    const loadingOverlayEl = document.getElementById(loadingOverlayId);
+    const modalEl          = document.getElementById(modalId);
+    const modalCloseBtn    = document.getElementById(modalCloseId);
+    const modalBodyEl      = document.getElementById(modalBodyId);
+    const viewButtons      = document.querySelectorAll(viewBtnSelector);
+
+    if (!calendarEl) {
+        console.error("Calendar element not found:", calendarId);
+        return;
+    }
+
+    // ==== loading ====
+    function showLoading() {
+        if (loadingOverlayEl) loadingOverlayEl.style.display = "flex";
+    }
+    function hideLoading() {
+        if (loadingOverlayEl) loadingOverlayEl.style.display = "none";
+    }
+
+    // ==== state ====
+    let currentView = "month";        // "day" | "week" | "month"
+    let currentAnchor = new Date();   // 中心日期
+
+    const planCache = {};             // key -> plan_item
+    let allPlanItems = [];
+
+    let loadedFrom = null;            // Date
+    let loadedTo   = null;            // Date
+
+    const drugCache = {};             // drug_id -> detail
+
+    // ==== 工具函数 ====
+    function toISODate(d) { return d.toISOString().slice(0, 10); }
+    function truncDate(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+    function getWeekStart(d) {
+        const tmp = truncDate(d);
+        const day = tmp.getDay();
+        const diff = (day + 6) % 7; // Monday = 0
+        tmp.setDate(tmp.getDate() - diff);
+        return tmp;
+    }
+    function addDays(date, delta) {
+        const d = new Date(date);
+        d.setDate(d.getDate() + delta);
+        return d;
+    }
+    function updateRangeLabel(from, to) {
+        if (!rangeLabelEl) return;
+        rangeLabelEl.textContent = `${toISODate(from)} → ${toISODate(to)}`;
+    }
+
+    function makeKey(item) {
+        return `${item.id}-${item.date}-${item.time || ""}`;
+    }
+
+    function mergePlanItems(items) {
+        if (!items) return;
+        for (const it of items) {
+            planCache[makeKey(it)] = it;
+        }
+        allPlanItems = Object.values(planCache);
+    }
+
+    function computeViewRange(anchor, view) {
+        const base = truncDate(anchor);
+        let from, to;
+
+        if (view === "day") {
+            from = base;
+            to   = base;
+        } else if (view === "week") {
+            from = getWeekStart(base);
+            to   = addDays(from, 6);
+        } else {
+            from = new Date(base.getFullYear(), base.getMonth(), 1);
+            to   = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+        }
+        return { from, to };
+    }
+
+    // ==== 数据获取 ====
+    async function fetchRange(fromDate, toDate) {
+        const fromStr = toISODate(fromDate);
+        const toStr   = toISODate(toDate);
+
+        const url = `${planApiBase}?id=${userId}&from=${fromStr}&to=${toStr}`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        mergePlanItems(data.plan_items || []);
+    }
+
+    async function ensureDataForRange(fromDate, toDate) {
+        fromDate = truncDate(fromDate);
+        toDate   = truncDate(toDate);
+
+        if (!loadedFrom || !loadedTo) {
+            await fetchRange(fromDate, toDate);
+            loadedFrom = new Date(fromDate);
+            loadedTo   = new Date(toDate);
+            return;
+        }
+
+        const tasks = [];
+
+        if (fromDate < loadedFrom) {
+            const newFrom = new Date(fromDate);
+            const newTo   = addDays(loadedFrom, -1);
+            tasks.push(fetchRange(newFrom, newTo).then(() => loadedFrom = newFrom));
+        }
+
+        if (toDate > loadedTo) {
+            const newFrom = addDays(loadedTo, 1);
+            const newTo   = new Date(toDate);
+            tasks.push(fetchRange(newFrom, newTo).then(() => loadedTo = newTo));
+        }
+
+        if (tasks.length) await Promise.all(tasks);
+    }
+
+    // ==== Modal ====
+    function openModal(htmlContent) {
+        if (!modalEl || !modalBodyEl) return;
+        modalBodyEl.innerHTML = htmlContent;
+        modalEl.style.display = "flex";
+    }
+    function closeModal() {
+        if (!modalEl) return;
+        modalEl.style.display = "none";
+    }
+
+    if (modalCloseBtn) {
+        modalCloseBtn.onclick = closeModal;
+    }
+    if (modalEl) {
+        modalEl.onclick = function (e) {
+            if (e.target.id === modalId) closeModal();
+        };
+    }
+
+    // ==== 药物信息（含缓存） ====
+    async function fetchDrugDetail(drugId) {
+        if (!drugId) return null;
+
+        if (drugCache[drugId]) return drugCache[drugId];
+
+        const url = `${drugApiBase}?id=${drugId}`;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            const data = await res.json();
+            drugCache[drugId] = data;   // 写入缓存
+            return data;
+        } catch (e) {
+            console.error("Failed to fetch drug detail:", e);
+            return null;
+        }
+    }
+
+    async function showEventDetail(ev) {
+        const drug = await fetchDrugDetail(ev.drug_id);
+
+        let drugHTML = "";
+        if (drug) {
+            drugHTML = `
+                <h4>${drug.brand_name}</h4>
+                <p><strong>Generic:</strong> ${drug.generic_name}</p>
+                <p><strong>Route:</strong> ${drug.route}</p>
+                <p><strong>Dosage form:</strong> ${drug.dosage_form}</p>
+                <p><strong>Product NDC:</strong> ${drug.product_ndc}</p>
+                <p><strong>Labeler:</strong> ${drug.labeler_name}</p>
+                <p><strong>Marketing category:</strong> ${drug.marketing_category}</p>
+            `;
+        } else {
+            drugHTML = `<p>⚠ Unable to load drug details.</p>`;
+        }
+
+        const eventHTML = `
+            <div style="border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:10px;">
+                <p><strong>Date:</strong> ${ev.date}</p>
+                <p><strong>Time:</strong> ${ev.time || "ALL DAY"}</p>
+            </div>
+
+            <p><strong>Medication:</strong> ${ev.drug_name}</p>
+            <p><strong>Dosage:</strong> ${ev.dosage}${ev.unit}</p>
+            <p><strong>Amount literal:</strong> ${ev.amount_literal || "(none)"}</p>
+            <p><strong>Note:</strong> ${ev.note || "(none)"}</p>
+
+            <hr>
+
+            <h3 style="margin-top:10px;">Drug Information</h3>
+            ${drugHTML}
+        `;
+        openModal(eventHTML);
+    }
+
+    // ==== 渲染 ====
+    async function loadAndRenderCurrentView() {
+        showLoading();
+        try {
+            const { from, to } = computeViewRange(currentAnchor, currentView);
+            await ensureDataForRange(from, to);
+            renderFromCache(from, to);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function renderFromCache(fromDate, toDate) {
+        const fromStr = toISODate(fromDate);
+        const toStr   = toISODate(toDate);
+
+        const visible = allPlanItems.filter(it =>
+            it.date >= fromStr && it.date <= toStr
+        );
+
+        renderCalendar(visible, fromDate, toDate);
+        updateRangeLabel(fromDate, toDate);
+    }
+
+    function renderCalendar(planItems, fromDate, toDate) {
+        calendarEl.innerHTML = "";
+        calendarEl.classList.remove("day-view", "week-view", "month-view");
+        calendarEl.classList.add(currentView + "-view");
+
+        if (!planItems.length) {
+            calendarEl.className = "calendar day-view";
+            const cell = document.createElement("div");
+            cell.className = "day";
+            cell.innerHTML = `
+                <div class="day-header">${toISODate(fromDate)} → ${toISODate(toDate)}</div>
+                <div style="margin-top:8px; text-align:center; font-size:13px;">
+                   😊 No schedules in this period.
+                </div>`;
+            calendarEl.appendChild(cell);
+            return;
+        }
+
+        const map = {};
+        for (const item of planItems) {
+            (map[item.date] ||= []).push(item);
+        }
+
+        const cur = new Date(fromDate);
+        while (cur <= toDate) {
+            const dateStr = toISODate(cur);
+            const cell = document.createElement("div");
+            cell.className = "day";
+            cell.innerHTML = `<div class="day-header">${dateStr}</div>`;
+
+            const events = map[dateStr];
+            if (events) {
+                events.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+                for (const ev of events) {
+                    const el = document.createElement("div");
+                    el.className = "event";
+                    el.innerHTML = `
+                        <div><strong>${ev.time || "ALL DAY"}</strong></div>
+                        <div>${ev.drug_name}</div>
+                        <div>${ev.dosage}${ev.unit} (${ev.amount_literal || ""})</div>`;
+                    el.style.cursor = "pointer";
+                    el.onclick = () => showEventDetail(ev);
+                    cell.appendChild(el);
+                }
+            }
+            calendarEl.appendChild(cell);
+            cur.setDate(cur.getDate() + 1);
+        }
+    }
+
+    // ==== 控件 ====
+    function initViewButtons() {
+        viewButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                currentView = btn.dataset.view;
+                viewButtons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                loadAndRenderCurrentView();
+            });
+        });
+
+        // 默认 month active
+        const monthBtn = document.querySelector(`${viewBtnSelector}[data-view="month"]`);
+        if (monthBtn) monthBtn.classList.add("active");
+    }
+
+    function initNavButtons() {
+        if (prevBtn) {
+            prevBtn.addEventListener("click", () => shiftAnchor(-1));
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => shiftAnchor(1));
+        }
+    }
+
+    function shiftAnchor(direction) {
+        if (currentView === "day") {
+            currentAnchor.setDate(currentAnchor.getDate() + direction);
+        } else if (currentView === "week") {
+            currentAnchor.setDate(currentAnchor.getDate() + 7 * direction);
+        } else {
+            currentAnchor.setMonth(currentAnchor.getMonth() + direction);
+        }
+        loadAndRenderCurrentView();
+    }
+
+    // ==== 初始化 ====
+    initViewButtons();
+    initNavButtons();
+    loadAndRenderCurrentView();
+
+    // 返回一点 API（可选）
+    return {
+        refresh: loadAndRenderCurrentView,
+        setView(view) {
+            currentView = view;
+            loadAndRenderCurrentView();
+        },
+        setAnchor(date) {
+            currentAnchor = new Date(date);
+            loadAndRenderCurrentView();
+        }
+    };
+}
+</script>
