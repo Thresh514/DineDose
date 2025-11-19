@@ -65,7 +65,7 @@ def create_food_record(
     cur = conn.cursor()
 
     query = """
-    INSERT INTO food_logs (
+    INSERT INTO food_records (
         user_id, food_id, eaten_date, eaten_time,
         amount_numeric, unit, amount_literal,
         source, plan_item_id, notes
@@ -98,7 +98,7 @@ def get_food_record_by_id(record_id: int) -> Optional[food_record]:
 
     query = """
         SELECT *
-        FROM food_logs
+        FROM food_records
         WHERE id = %s
     """
 
@@ -124,7 +124,7 @@ def get_food_records_by_user_id(user_id: int) -> List[food_record]:
 
     query = """
         SELECT *
-        FROM food_logs
+        FROM food_records
         WHERE user_id = %s
         ORDER BY eaten_date DESC, eaten_time DESC
     """
@@ -149,7 +149,7 @@ def get_food_records_by_date_range(
 
     query = """
         SELECT *
-        FROM food_logs
+        FROM food_records
         WHERE user_id = %s
         AND eaten_date BETWEEN %s AND %s
         ORDER BY eaten_date, eaten_time
@@ -170,7 +170,7 @@ def delete_food_record(record_id: int) -> bool:
     conn = mydb()
     cur = conn.cursor()
 
-    cur.execute("DELETE FROM food_logs WHERE id = %s", (record_id,))
+    cur.execute("DELETE FROM food_records WHERE id = %s", (record_id,))
     deleted = cur.rowcount > 0
 
     conn.commit()
@@ -191,7 +191,7 @@ def update_food_record(
     cur = conn.cursor()
 
     query = """
-        UPDATE food_logs
+        UPDATE food_records
         SET amount_numeric = %s,
             unit = %s,
             amount_literal = %s,

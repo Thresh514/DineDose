@@ -1,0 +1,31 @@
+<h2>Medication Plan Calendar</h2>
+
+<div class="toolbar">
+    <button id="prev-btn" class="nav-btn">◀</button>
+    <button id="next-btn" class="nav-btn">▶</button>
+
+    <button class="view-btn" data-view="day">Day</button>
+    <button class="view-btn" data-view="week">Week</button>
+    <button class="view-btn" data-view="month">Month</button>
+
+    <span id="current-range"></span>
+</div>
+
+<div id="calendar" class="calendar"></div>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+    <div>
+        <div class="spinner"></div>
+        <div id="loading-text">Loading…</div>
+    </div>
+</div>
+
+<!-- EVENT DETAIL MODAL -->
+<div id="event-modal">
+    <div class="modal-content">
+        <button id="modal-close">✖</button>
+        <h3 id="modal-title">Medication Detail</h3>
+        <div id="modal-body"></div>
+    </div>
+</div>

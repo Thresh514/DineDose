@@ -2,37 +2,7 @@ from dataclasses import dataclass, field, asdict, is_dataclass
 from datetime import date, time as dt_time, datetime
 from typing import List, Optional, Dict
 from config import mydb
-
-
-# ==================== 通用序列化工具 ====================
-
-def _serialize_for_json(obj):
-    """
-    递归把 dataclass / date / time / list / dict 等
-    转成可以直接 jsonify 的结构。
-    """
-    # 日期 / 日期时间
-    if isinstance(obj, (date, datetime)):
-        return obj.isoformat()
-    # time (23:00:00)
-    if isinstance(obj, dt_time):
-        return obj.isoformat()  # "HH:MM:SS"
-
-    # dataclass：先 asdict，再递归
-    if is_dataclass(obj):
-        return {k: _serialize_for_json(v) for k, v in asdict(obj).items()}
-
-    # list / tuple
-    if isinstance(obj, (list, tuple)):
-        return [_serialize_for_json(v) for v in obj]
-
-    # dict
-    if isinstance(obj, dict):
-        return {k: _serialize_for_json(v) for k, v in obj.items()}
-
-    # 其他（int/str/bool/None）
-    return obj
-
+import utils.serializer as serializer
 
 
 @dataclass
@@ -55,7 +25,7 @@ class plan_item_rule:
 
     def to_dict(self) -> dict:
         # 交给通用序列化函数处理（含 date/time）
-        return _serialize_for_json(self)
+        return serializer.serialize_for_json(self)
 
     def __str__(self) -> str:
         return (
@@ -85,7 +55,7 @@ class plan_item:
     plan_item_rule: Optional["plan_item_rule"] = None
 
     def to_dict(self) -> dict:
-        return _serialize_for_json(self)
+        return serializer.serialize_for_json(self)
 
     def __str__(self) -> str:
         return (
@@ -128,7 +98,7 @@ class plan:
         )
 
     def to_dict(self) -> dict:
-        return _serialize_for_json(self)
+        return serializer.serialize_for_json(self)
 
 
 # ==================== repo functions ====================

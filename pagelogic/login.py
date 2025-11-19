@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, session, url_for, flash, B
 import secrets, config
 from extensions import mail, oauth
 from itsdangerous import URLSafeTimedSerializer
+from pagelogic.bp import doctor_page_bp
 from utils.emailsender import send_email_ses
 
 login_bp = Blueprint('login', __name__)
@@ -120,7 +121,7 @@ def oauth_authorize():
 
 def redirect_by_role(role):
     if role == 'doctor':
-        return redirect(url_for('doctor_home.doctor_home'))
+        return redirect(url_for('doctor_page_bp.doctor_patients_page'))
     elif role == 'patient':
         return redirect(url_for('patient_home.patient_home'))
     return redirect(url_for('index.index'))
