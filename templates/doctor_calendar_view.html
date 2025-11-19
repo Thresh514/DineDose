@@ -148,7 +148,10 @@
 </head>
 <body>
 
-    <h2>Patient Plan Calendar</h2>
+    <h2>
+        {{ patient_name }}'s Plan Calendar
+        (ID: {{ patient_id }})
+    </h2>
 
     {% include "components/calendar_dom.html" %}
     {% include "components/calendar_view.html" %}
@@ -156,7 +159,6 @@
     <script>
         window.addEventListener("load", function () {
             // 这里用的是后端传进来的 patient_id，
-            // 而不是 session['user_id']，因为医生在看“某个病人”的计划
             const patientId = "{{ patient_id }}";
 
             create_calendar({

@@ -58,18 +58,10 @@
 
     <script>
         window.addEventListener("load", function () {
-            const doctorId = "{{ doctor_id }}";  // 后端传入的 doctor_id
-
-            if (!doctorId) {
-                document.getElementById("patient-list").textContent = "No doctor_id in session.";
-                return;
-            }
+            const doctorId = "{{ doctor_id }}";
 
             fetch(`/get_patients?id=${doctorId}`)
-                .then(res => {
-                    if (!res.ok) throw new Error("Failed to fetch patients");
-                    return res.json();
-                })
+                .then(res => res.json())
                 .then(patients => {
                     const list = document.getElementById("patient-list");
                     list.innerHTML = "";
@@ -80,16 +72,19 @@
                     }
 
                     patients.forEach(p => {
-                        const card = document.createElement("div");
-                        card.className = "patient-card";
-
                         const name = p.username || "(No name)";
                         const email = p.email || "";
+
+                        const card = document.createElement("div");
+                        card.className = "patient-card";
 
                         card.innerHTML = `
                             <div class="patient-name">${name}</div>
                             <div class="patient-email">${email}</div>
-                            <button class="view-plan-btn" data-pid="${p.id}">
+                            <button class="view-plan-btn"
+                                    data-pid="${p.id}"
+                                    data-name="${name}"
+                                    data-email="${email}">
                                 View Plan
                             </button>
                         `;
@@ -97,13 +92,21 @@
                         list.appendChild(card);
                     });
 
-                    // 事件代理：点击任意 “View Plan” 跳转
+                    // 事件代理：点击 View Plan 的按钮
                     list.addEventListener("click", function (e) {
-                        if (e.target.classList.contains("view-plan-btn")) {
-                            const patientId = e.target.getAttribute("data-pid");
-                            // 跳转到医生查看该 patient 计划的页面
-                            window.location.href = `/doctor/patient_plan?id=${patientId}`;
-                        }
+                        if (!e.target.classList.contains("view-plan-btn")) return;
+
+                        const btn   = e.target;
+                        const pid   = btn.dataset.pid;
+                        const name  = btn.dataset.name;
+                        const email = btn.dataset.email;
+
+                        const url =
+                            `/doctor/patient_plan?id=${encodeURIComponent(pid)}` +
+                            `&name=${encodeURIComponent(name)}` +
+                            `&email=${encodeURIComponent(email)}`;
+
+                        window.location.href = url;
                     });
                 })
                 .catch(err => {

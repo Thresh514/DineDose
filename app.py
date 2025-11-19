@@ -27,7 +27,6 @@ def create_app():
     from pagelogic.index import index_bp
     from pagelogic.login import login_bp
     from pagelogic.logout import logout_bp
-    from pagelogic.doctor_home import doctor_home_bp
     from pagelogic.patient_home import patient_home_bp
     from pagelogic.test_bp import test_bp
     from pagelogic.bp import drug_bp, food_bp, plan_bp, test_connect, user_bp
@@ -35,7 +34,6 @@ def create_app():
     app.register_blueprint(index_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(logout_bp)
-    app.register_blueprint(doctor_home_bp)
     app.register_blueprint(patient_home_bp)
     app.register_blueprint(test_bp)
     app.register_blueprint(user_bp.user_bp)

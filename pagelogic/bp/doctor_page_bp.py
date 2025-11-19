@@ -14,8 +14,13 @@ def doctor_patients_page():
 
 @doctor_page_bp.route("/doctor/patient_plan")
 def doctor_view_patient_plan():
-    """
-    医生查看某个 patient 的用药计划（日历视图）。
-    """
-    patient_id = int(request.args.get("id"))
-    return render_template("doctor_calendar_view.html", patient_id=patient_id)
+    patient_id = request.args.get("id")
+    patient_name = request.args.get("name", "Unknown")
+    patient_email = request.args.get("email", "")
+
+    return render_template(
+        "doctor_calendar_view.html",
+        patient_id=patient_id,
+        patient_name=patient_name,
+        patient_email=patient_email,
+    )
