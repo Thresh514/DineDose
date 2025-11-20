@@ -147,6 +147,23 @@ def patient_food_page():
     return render_template('patient_food_category_page.html', foods=foods, drugs=drugs)
 
 
+@patient_home_bp.route('/patient/food/detail/<int:food_id>', methods=['GET'])
+def patient_food_detail_page(food_id):
+    """
+    食物详情/添加餐食页面
+    """
+    food = food_repo.get_food_by_id_locally(food_id)
+    if not food:
+        return "Food not found", 404
+    
+    # 获取当前用户ID（从session）
+    user_id = session.get('user_id', 1)  # 默认值，实际应从session获取
+    
+    return render_template('patient_food_detail.html', 
+                          food=food.to_dict(), 
+                          user_id=user_id)
+
+
 @patient_home_bp.route('/patient/food/history', methods=['GET'])
 def patient_food_history_page():
     """

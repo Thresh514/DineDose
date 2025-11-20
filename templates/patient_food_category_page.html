@@ -115,6 +115,35 @@
             tabFoods.addEventListener('click', () => activate(tabFoods));
             tabDrugs.addEventListener('click', () => activate(tabDrugs));
             searchInput.addEventListener('input', performSearch);
+
+            // 使用事件委托处理食物项点击跳转
+            listFoods.addEventListener('click', function(e) {
+                const item = e.target.closest('.pfc-item[data-food-id]');
+                if (item && !item.classList.contains('pfc-empty')) {
+                    const foodId = item.getAttribute('data-food-id');
+                    if (foodId) {
+                        window.location.href = `/patient/food/detail/${foodId}`;
+                    }
+                }
+            });
+
+            // 设置食物项的鼠标样式
+            function updateFoodItemStyles() {
+                const foodItems = listFoods.querySelectorAll('.pfc-item[data-food-id]:not(.pfc-empty)');
+                foodItems.forEach(item => {
+                    item.style.cursor = 'pointer';
+                });
+            }
+
+            // 初始化样式
+            updateFoodItemStyles();
+
+            // 搜索后更新样式
+            const originalPerformSearch = performSearch;
+            performSearch = function() {
+                originalPerformSearch();
+                updateFoodItemStyles();
+            };
         })();
     </script>
     {% endblock %}

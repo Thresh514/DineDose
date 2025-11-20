@@ -1000,3 +1000,160 @@ button:active,
   .food-history-item-name{font-size:15px}
   .food-history-item-meta{font-size:13px}
 }
+
+/* =========================================================
+   Food Detail Page (patient_food_detail.html) 专用
+   采用 .food-detail-* 前缀避免影响其它页面
+   ========================================================= */
+
+.food-detail-page {
+    padding: 0 var(--side) 24px;
+}
+
+/* 页面标题 */
+.food-detail-header {
+    padding: 16px 0;
+    margin-bottom: 16px;
+}
+
+.food-detail-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+    letter-spacing: 0.2px;
+}
+
+/* 主卡片 */
+.food-detail-card {
+    background: var(--bg);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 16px;
+}
+
+/* 食物图片容器 */
+.food-detail-image-container {
+    width: 100%;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.food-detail-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+/* 表单 */
+.food-detail-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 表单字段 */
+.food-detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.food-detail-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.food-detail-input,
+.food-detail-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--muted);
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    transition: border-color 0.2s;
+}
+
+.food-detail-input:focus,
+.food-detail-textarea:focus {
+    outline: none;
+    border-color: var(--text);
+}
+
+.food-detail-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* 按钮组 */
+.food-detail-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.food-detail-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.food-detail-btn--cancel {
+    background: var(--muted-2);
+    color: var(--text);
+}
+
+.food-detail-btn--cancel:hover {
+    background: var(--muted);
+}
+
+.food-detail-btn--save {
+    background: #646464;
+    color: #fff;
+}
+
+.food-detail-btn--save:hover {
+    background: #555;
+}
+
+.food-detail-btn--save:active {
+    opacity: 0.8;
+}
+
+/* 成功消息横幅 */
+.food-detail-success-banner {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: var(--muted-2);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 16px;
+    color: var(--text);
+}
+
+/* 小屏优化 */
+@media (max-width: 360px) {
+    .food-detail-title {
+        font-size: 24px;
+    }
+    .food-detail-card {
+        padding: 20px;
+    }
+    .food-detail-btn {
+        font-size: 16px;
+        padding: 14px 20px;
+    }
+}

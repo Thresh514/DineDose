@@ -1,0 +1,147 @@
+{% extends 'patient_base.html' %}
+{% block content %}
+<div class="food-detail-page">
+    <!-- 页面标题 -->
+    <div class="food-detail-header">
+        <h1 class="food-detail-title">Add Meal Intake</h1>
+    </div>
+
+    <!-- 主要内容卡片 -->
+    <div class="food-detail-card" data-food-id="{{ food.id }}" data-user-id="{{ user_id }}">
+        <!-- 食物图片 -->
+        <div class="food-detail-image-container">
+            <img src="https://via.placeholder.com/300x300?text={{ food.description[:1] }}" 
+                 alt="{{ food.description }}" 
+                 class="food-detail-image"
+                 id="food-detail-image">
+        </div>
+
+        <!-- 表单 -->
+        <form id="food-detail-form" class="food-detail-form">
+            <!-- Amount 输入 -->
+            <div class="food-detail-field">
+                <label for="amount" class="food-detail-label">Amount</label>
+                <input type="text" 
+                       id="amount" 
+                       name="amount" 
+                       class="food-detail-input" 
+                       placeholder="1 piece">
+            </div>
+
+            <!-- Unit 输入 -->
+            <div class="food-detail-field">
+                <label for="unit" class="food-detail-label">Unit</label>
+                <input type="text" 
+                       id="unit" 
+                       name="unit" 
+                       class="food-detail-input" 
+                       placeholder="500g">
+            </div>
+
+            <!-- Notes 输入 -->
+            <div class="food-detail-field">
+                <label for="notes" class="food-detail-label">Notes</label>
+                <textarea id="notes" 
+                          name="notes" 
+                          class="food-detail-textarea" 
+                          rows="4" 
+                          placeholder="Write notes here if needed!"></textarea>
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="food-detail-actions">
+                <button type="button" 
+                        id="cancel-btn" 
+                        class="food-detail-btn food-detail-btn--cancel">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        id="save-btn" 
+                        class="food-detail-btn food-detail-btn--save">
+                    Save Meal
+                </button>
+            </div>
+        </form>
+
+        <!-- 成功消息横幅 -->
+        <div id="success-banner" class="food-detail-success-banner" style="display: none;">
+            Meal added successfully
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const form = document.getElementById('food-detail-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const successBanner = document.getElementById('success-banner');
+    const card = document.querySelector('.food-detail-card');
+    const foodId = parseInt(card.getAttribute('data-food-id'), 10);
+    const userId = parseInt(card.getAttribute('data-user-id'), 10);
+
+    // Cancel 按钮 - 返回上一页
+    cancelBtn.addEventListener('click', function() {
+        window.history.back();
+    });
+
+    // 表单提交
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const amount = document.getElementById('amount').value.trim();
+        const unit = document.getElementById('unit').value.trim();
+        const notes = document.getElementById('notes').value.trim();
+
+        // 构建请求数据
+        const data = {
+            user_id: userId,
+            food_id: foodId,
+            notes: notes || null
+        };
+
+        // 如果有 amount，尝试解析为数字
+        if (amount) {
+            const amountNum = parseFloat(amount);
+            if (!isNaN(amountNum)) {
+                data.amount_numeric = amountNum;
+            } else {
+                data.amount_literal = amount;
+            }
+        }
+
+        // 如果有 unit
+        if (unit) {
+            data.unit = unit;
+        }
+
+        try {
+            const response = await fetch('/create_food_record', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // 显示成功消息
+                successBanner.style.display = 'block';
+                
+                // 3秒后返回上一页或跳转到历史页面
+                setTimeout(() => {
+                    window.location.href = '/patient/food/history';
+                }, 2000);
+            } else {
+                alert('Failed to save meal: ' + (result.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to save meal. Please try again.');
+        }
+    });
+})();
+</script>
+{% endblock %}
+
