@@ -50,6 +50,7 @@ def create_app():
     food_repo.get_foods()#预热food db入server
     food_repo.foods
 
+    print(app.url_map)
     return app
 
 
