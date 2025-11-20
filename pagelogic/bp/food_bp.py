@@ -8,14 +8,11 @@ food_bp = Blueprint('food_bp', __name__)
 #返回一个 food[]
 #传入id或者name；不能两者同时传入
 # /gets_foods?name=Banana&id=1 是违法的
-
 #如果是id，返回一个长度为1的list of food
 #如果是name，返回一个description内包含name 的list of food
-
-#sample call: 
+#sample call:
 # /gets_foods?name=Banana
 # /gets_foods?id=1
-
 @food_bp.route('/get_foods', methods=['GET'])
 def get_food_locally():
     food_id = int(request.args.get("id", 0))
