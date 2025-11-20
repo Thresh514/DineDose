@@ -6,15 +6,17 @@
         {% if current_reminder %}
         <div class="reminder-card-row">
             <span class="reminder-label">Task Name:</span>
-            <span class="reminder-value">{{ current_reminder.drug_name or 'Ibuprofen 100mg' }}</span>
+            <span class="reminder-value">{{ current_reminder.drug_name|default('Unknown') }}{% if current_reminder.dosage and current_reminder.unit %} {{ current_reminder.dosage }} {{ current_reminder.unit }}{% endif %}</span>
         </div>
+        {% if current_reminder.note %}
         <div class="reminder-card-row">
             <span class="reminder-label">Notes:</span>
-            <span class="reminder-value">{{ current_reminder.note or 'Take after breakfast' }}</span>
+            <span class="reminder-value">{{ current_reminder.note }}</span>
         </div>
+        {% endif %}
         <div class="reminder-card-row">
             <span class="reminder-label">Time:</span>
-            <span class="reminder-value">{{ current_reminder.time or '8:00 AM' }}</span>
+            <span class="reminder-value">{{ current_reminder.time|default('No time') }}</span>
         </div>
         {% else %}
         <!-- 占位数据，后端数据传入后会被替换 -->
@@ -34,17 +36,27 @@
     </div>
     
     <!-- 状态显示 -->
+    {% if current_reminder %}
     <div class="reminder-status">
         <span class="reminder-label">Status:</span>
-        {% if current_reminder and current_reminder.status == 'completed' %}
-        <span class="reminder-status-badge reminder-status-badge--completed">✅ Completed</span>
-        {% else %}
         <span class="reminder-status-badge reminder-status-badge--pending">⏳ Pending</span>
-        {% endif %}
     </div>
+    {% endif %}
     
     <!-- 完成按钮 -->
-    <button class="reminder-complete-btn" aria-label="Mark as Completed">Mark as Completed</button>
+    {% if current_reminder %}
+    <button class="reminder-complete-btn" 
+            aria-label="Mark as Completed"
+            data-plan-item-id="{{ current_reminder.plan_item_id }}"
+            data-drug-id="{{ current_reminder.drug_id }}"
+            data-date-iso="{{ current_reminder.date_iso }}"
+            data-time-iso="{{ current_reminder.time_iso|default('') }}"
+            data-dosage="{{ current_reminder.dosage|default('') }}"
+            data-unit="{{ current_reminder.unit|default('') }}"
+            data-note="{{ current_reminder.note|default('') }}">Mark as Completed</button>
+    {% else %}
+    <button class="reminder-complete-btn" aria-label="Mark as Completed" disabled>Mark as Completed</button>
+    {% endif %}
     
     <!-- 同步提示 -->
     <div class="reminder-sync-note">Will sync when online</div>
@@ -55,15 +67,17 @@
         {% if upcoming_reminder %}
         <div class="reminder-card-row">
             <span class="reminder-label">Task Name:</span>
-            <span class="reminder-value">{{ upcoming_reminder.drug_name or 'Ibuprofen 100mg' }}</span>
+            <span class="reminder-value">{{ upcoming_reminder.drug_name|default('Unknown') }}{% if upcoming_reminder.dosage and upcoming_reminder.unit %} {{ upcoming_reminder.dosage }} {{ upcoming_reminder.unit }}{% endif %}</span>
         </div>
+        {% if upcoming_reminder.note %}
         <div class="reminder-card-row">
             <span class="reminder-label">Notes:</span>
-            <span class="reminder-value">{{ upcoming_reminder.note or 'Take after dinner' }}</span>
+            <span class="reminder-value">{{ upcoming_reminder.note }}</span>
         </div>
+        {% endif %}
         <div class="reminder-card-row">
             <span class="reminder-label">Time:</span>
-            <span class="reminder-value">{{ upcoming_reminder.time or '8:00 PM' }}</span>
+            <span class="reminder-value">{{ upcoming_reminder.time|default('No time') }}</span>
         </div>
         {% else %}
         <!-- 占位数据，后端数据传入后会被替换 -->
@@ -83,10 +97,167 @@
     </div>
     
     <!-- 成功消息横幅 -->
-    {% if show_success_message %}
-    <div class="reminder-success-banner" role="alert">
+    <div class="reminder-success-banner" id="success-banner" role="alert" style="display: none;">
         ⚡ Status updated successfully
     </div>
-    {% endif %}
 </div>
+
+<script>
+(function() {
+    const completeBtn = document.querySelector('.reminder-complete-btn');
+    const successBanner = document.getElementById('success-banner');
+    const statusBadge = document.querySelector('.reminder-status-badge');
+    
+    const userId = {% if user_id %}{{ user_id }}{% else %}null{% endif %};
+    if (!userId) {
+        console.error('User ID not available');
+        return;
+    }
+    
+    if (!completeBtn || completeBtn.disabled) {
+        return;
+    }
+    
+    // 从按钮的 data 属性获取提醒信息
+    const reminderData = {
+        planItemId: parseInt(completeBtn.dataset.planItemId),
+        drugId: parseInt(completeBtn.dataset.drugId),
+        dateIso: completeBtn.dataset.dateIso,
+        timeIso: completeBtn.dataset.timeIso || null,
+        dosage: completeBtn.dataset.dosage || null,
+        unit: completeBtn.dataset.unit || '',
+        note: completeBtn.dataset.note || ''
+    };
+    
+    // 更新 UI 显示已完成状态
+    function updateUIForCompleted() {
+        if (statusBadge) {
+            statusBadge.textContent = '✅ Completed';
+            statusBadge.className = 'reminder-status-badge reminder-status-badge--completed';
+        }
+        if (completeBtn && !completeBtn.disabled) {
+            completeBtn.textContent = 'Completed ✓';
+            completeBtn.style.opacity = '0.6';
+            completeBtn.disabled = true;
+        }
+    }
+    
+    // 页面加载时检查当前提醒是否已完成
+    async function checkReminderStatus() {
+        try {
+            const recordsResponse = await fetch(`/get_drug_records_by_user_id?user_id=${userId}`);
+            if (!recordsResponse.ok) {
+                console.error('Failed to fetch drug records on page load');
+                return;
+            }
+            const allRecords = await recordsResponse.json();
+            
+            // 查找是否已存在对应的记录（通过 plan_item_id 和日期匹配）
+            const existingRecord = allRecords.find(record => 
+                record.plan_item_id === reminderData.planItemId &&
+                record.taken_date === reminderData.dateIso &&
+                (record.status === 'TAKEN' || record.status === 'ON_TIME')
+            );
+            
+            if (existingRecord) {
+                // 如果存在且状态是 TAKEN 或 ON_TIME，更新 UI
+                updateUIForCompleted();
+            }
+        } catch (error) {
+            console.error('Error checking reminder status:', error);
+        }
+    }
+    
+    // 页面加载时执行检查
+    checkReminderStatus();
+    
+    completeBtn.addEventListener('click', async function() {
+        // 禁用按钮，防止重复点击
+        completeBtn.disabled = true;
+        completeBtn.textContent = 'Processing...';
+        
+        try {
+            // 1. 获取用户的所有 drug records
+            const recordsResponse = await fetch(`/get_drug_records_by_user_id?user_id=${userId}`);
+            if (!recordsResponse.ok) {
+                throw new Error('Failed to fetch drug records');
+            }
+            const allRecords = await recordsResponse.json();
+            
+            // 2. 查找是否已存在对应的记录（通过 plan_item_id 和日期匹配）
+            const existingRecord = allRecords.find(record => 
+                record.plan_item_id === reminderData.planItemId &&
+                record.taken_date === reminderData.dateIso
+            );
+            
+            if (existingRecord) {
+                // 3. 如果存在，更新记录状态为 TAKEN
+                const params = new URLSearchParams({
+                    id: existingRecord.id.toString(),
+                    status: 'TAKEN'
+                });
+                if (reminderData.dosage) {
+                    params.append('dosage_numeric', reminderData.dosage);
+                }
+                if (reminderData.unit) {
+                    params.append('unit', reminderData.unit);
+                }
+                if (reminderData.note) {
+                    params.append('notes', reminderData.note);
+                }
+                const updateUrl = `/update_drug_record?${params.toString()}`;
+                const updateResponse = await fetch(updateUrl);
+                
+                if (!updateResponse.ok) {
+                    throw new Error('Failed to update drug record');
+                }
+                
+                console.log('Drug record updated:', await updateResponse.json());
+            } else {
+                // 4. 如果不存在，创建新记录
+                const createData = {
+                    user_id: userId,
+                    drug_id: reminderData.drugId,
+                    taken_date: reminderData.dateIso,
+                    taken_time: reminderData.timeIso,
+                    dosage_numeric: reminderData.dosage ? parseFloat(reminderData.dosage) : null,
+                    unit: reminderData.unit,
+                    plan_item_id: reminderData.planItemId,
+                    status: 'TAKEN',
+                    notes: reminderData.note
+                };
+                
+                const createResponse = await fetch('/create_drug_record', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(createData)
+                });
+                
+                if (!createResponse.ok) {
+                    throw new Error('Failed to create drug record');
+                }
+                
+                console.log('Drug record created:', await createResponse.json());
+            }
+            
+            // 5. 更新 UI：显示成功消息，更新状态徽章
+            successBanner.style.display = 'block';
+            updateUIForCompleted();
+            
+            // 3秒后隐藏成功消息
+            setTimeout(() => {
+                successBanner.style.display = 'none';
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Error marking reminder as complete:', error);
+            alert('Failed to mark as completed. Please try again.');
+            completeBtn.disabled = false;
+            completeBtn.textContent = 'Mark as Completed';
+        }
+    });
+})();
+</script>
 {% endblock %}

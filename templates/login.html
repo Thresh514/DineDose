@@ -3,35 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login</title>
+  <title>Login - DineDose</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 </head>
 <body>
-  <main class="container">
-    <h2>Login</h2>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Dine Dose</h1>
+    </div>
+    
+    <main class="container">
+      <!-- Gmail 登录 -->
+      <div class="login-option">
+        <a href="{{ url_for('login.oauth_login') }}" class="login-btn google-login-btn">
+          Gmail Login
+        </a>
+      </div>
 
-    <!-- Google 登录 -->
-    <form method="get" action="{{ url_for('login.oauth_login') }}">
-      <button type="submit">Login with Google</button>
-    </form>
+      <!-- 分隔线 -->
+      <p class="divider">or</p>
 
-    <p>or</p>
+      <!-- Magic Link 登录 -->
+      <div class="login-option">
+        <form method="post" action="{{ url_for('login.send_magic_link') }}" id="magicLinkForm">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+          </div>
+          <button type="submit" class="login-btn magic-link-btn">
+            Send Magic Link
+          </button>
+        </form>
+      </div>
 
-    <!-- Magic Link 登录 -->
-    <form method="post" action="{{ url_for('login.send_magic_link') }}">
-      <input type="email" name="email" placeholder="Enter your email" required>
-      <button type="submit">Send Magic Link</button>
-    </form>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul>
-          {% for category, message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-  </main>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flash-messages">
+            {% for category, message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+    </main>
+  </div>
 </body>
 </html>

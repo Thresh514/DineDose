@@ -1,8 +1,12 @@
 from flask import Flask
 from extensions import mail, oauth
+from pagelogic import test_bp
+from pagelogic.login import login_bp
 from pagelogic.bp import doctor_page_bp
 from pagelogic.repo import drug_repo
 from pagelogic.repo import food_repo
+from pagelogic.bp import drug_record_bp
+
 
 
 def create_app():
@@ -29,7 +33,7 @@ def create_app():
     from pagelogic.logout import logout_bp
     from pagelogic.patient_home import patient_home_bp
     from pagelogic.test_bp import test_bp
-    from pagelogic.bp import drug_bp, food_bp, plan_bp, test_connect, user_bp
+    from pagelogic.bp import drug_bp, food_bp, plan_bp, test_connect, user_bp, drug_record_bp, food_record_bp
 
     app.register_blueprint(index_bp)
     app.register_blueprint(login_bp)
@@ -42,6 +46,8 @@ def create_app():
     app.register_blueprint(food_bp.food_bp)
     app.register_blueprint(drug_bp.drug_bp)
     app.register_blueprint(doctor_page_bp.doctor_page_bp)
+    app.register_blueprint(drug_record_bp.drug_record_bp)
+    app.register_blueprint(food_record_bp.food_record_bp)
     
 
     drug_repo.get_drugs()#预热drug db入server

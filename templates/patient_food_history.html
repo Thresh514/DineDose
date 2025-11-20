@@ -1,0 +1,137 @@
+{% extends 'patient_base.html' %}
+{% block content %}
+<div class="food-history-page">
+    <!-- 页面标题 -->
+    <div class="food-history-header">
+        <h1 class="food-history-title">Food History</h1>
+    </div>
+
+    <!-- 日期筛选 -->
+    <div class="food-history-filters">
+        <button class="filter-btn {% if current_period == 'all' %}active{% endif %}" data-period="all">All</button>
+        <button class="filter-btn {% if current_period == 'today' %}active{% endif %}" data-period="today">Today</button>
+        <button class="filter-btn {% if current_period == 'week' %}active{% endif %}" data-period="week">This Week</button>
+        <button class="filter-btn {% if current_period == 'month' %}active{% endif %}" data-period="month">This Month</button>
+    </div>
+
+    <!-- 食物记录列表 -->
+    <div class="food-history-list">
+        {% if food_records and food_records|length > 0 %}
+            <!-- 按日期分组显示 -->
+            {% for record in food_records %}
+                {% set prev_date = food_records[loop.index0 - 1].eaten_date if not loop.first else None %}
+                {% if loop.first or record.eaten_date != prev_date %}
+                    {% if not loop.first %}
+                        </ul>
+                    {% endif %}
+                    <div class="food-history-date-group">
+                        <div class="food-history-date-header">
+                            <span class="date-label">{{ record.eaten_date.strftime('%B %d, %Y') }}</span>
+                            <span class="date-weekday">{{ record.eaten_date.strftime('%A') }}</span>
+                        </div>
+                        <ul class="food-history-items">
+                {% endif %}
+                
+                <li class="food-history-item" data-record-id="{{ record.id }}">
+                    <div class="food-history-item-avatar">
+                        {{ (record.food_name or '?')[:1]|upper }}
+                    </div>
+                    <div class="food-history-item-content">
+                        <div class="food-history-item-name" title="{{ record.food_name or 'Unknown Food' }}">
+                            {{ (record.food_name or 'Unknown Food')|truncate(30, True, '...') }}
+                        </div>
+                        <div class="food-history-item-meta">
+                            {% if record.created_at %}
+                                {% if record.created_at is string %}
+                                    <span class="food-history-created" title="Created at {{ record.created_at }}">{{ record.created_at }}</span>
+                                {% else %}
+                                    <span class="food-history-created" title="Created at {{ record.created_at.strftime('%B %d, %Y %I:%M %p') }}">{{ record.created_at.strftime('%I:%M %p') }}</span>
+                                {% endif %}
+                            {% endif %}
+                            {% if record.amount_numeric and record.unit %}
+                                <span class="food-history-amount">{{ record.amount_numeric }} {{ record.unit }}</span>
+                            {% elif record.amount_literal %}
+                                <span class="food-history-amount">{{ record.amount_literal }}</span>
+                            {% endif %}
+                        </div>
+                        {% if record.notes %}
+                        <div class="food-history-notes">{{ record.notes }}</div>
+                        {% endif %}
+                    </div>
+                    <button class="food-history-item-delete" aria-label="Delete record" data-record-id="{{ record.id }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </li>
+                
+                {% if loop.last %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <!-- 空状态 -->
+            <div class="food-history-empty">
+                <div class="food-history-empty-icon">🍽️</div>
+                <div class="food-history-empty-text">No food records yet</div>
+                <div class="food-history-empty-hint">Start adding foods to track your meals</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    // 日期筛选功能
+    var filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var period = this.getAttribute('data-period');
+            // 重新加载页面并带上period参数
+            var url = new URL(window.location.href);
+            url.searchParams.set('period', period);
+            window.location.href = url.toString();
+        });
+    });
+
+    // 删除记录功能
+    var deleteButtons = document.querySelectorAll('.food-history-item-delete');
+    deleteButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var recordId = this.getAttribute('data-record-id');
+            var recordItem = this.closest('.food-history-item');
+            
+            if (confirm('Are you sure you want to delete this record?')) {
+                // 调用后端接口删除记录
+                fetch('/delete_food_record?id=' + recordId, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(function(response) {
+                    if (response.ok) {
+                        // 删除成功，从DOM中移除该记录
+                        recordItem.remove();
+                        
+                        // 检查是否还有记录，如果没有则显示空状态
+                        var remainingItems = document.querySelectorAll('.food-history-item');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // 重新加载页面以显示空状态
+                        }
+                    } else {
+                        alert('Failed to delete record. Please try again.');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error deleting record:', error);
+                    alert('An error occurred while deleting the record.');
+                });
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}
+

@@ -1,15 +1,50 @@
 {% extends 'patient_base.html' %}
 {% block content %}
-<div class="plan-page h-screen">
+<div class="plan-page h-screen" 
+     data-plan-url="{{ url_for('patient_home.patient_plan_page') }}"
+     {% if selected_date %}data-selected-date="{{ selected_date.isoformat() }}"{% endif %}>
+    <!-- 周导航控制 -->
+    <div class="plan-week-controls">
+        <button class="week-nav-btn" id="prev-week-btn" aria-label="Previous week">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+        <div class="week-range">
+            {% if week_start and week_end %}
+            <span class="week-range-text">
+                {{ week_start.strftime('%b %d') }} - {{ week_end.strftime('%b %d, %Y') }}
+            </span>
+            {% endif %}
+        </div>
+        <button class="week-nav-btn" id="next-week-btn" aria-label="Next week">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </button>
+    </div>
+    
     <!-- 星期导航 -->
     <div class="plan-week-nav">
-        <button class="week-day active" data-day="0">S</button>
-        <button class="week-day" data-day="1">M</button>
-        <button class="week-day" data-day="2">T</button>
-        <button class="week-day" data-day="3">W</button>
-        <button class="week-day" data-day="4">T</button>
-        <button class="week-day" data-day="5">F</button>
-        <button class="week-day" data-day="6">S</button>
+        {% if week_dates %}
+            {% for day_info in week_dates %}
+            <button class="week-day {% if day_info.is_selected %}active{% endif %} {% if day_info.is_today %}today{% endif %}" 
+                    data-date="{{ day_info.date.isoformat() }}"
+                    aria-label="{{ day_info.date.strftime('%A, %B %d') }}">
+                <span class="week-day-letter">{{ day_info.day_letter }}</span>
+                <span class="week-day-number">{{ day_info.date.day }}</span>
+            </button>
+            {% endfor %}
+        {% else %}
+            <!-- 默认显示（如果没有数据） -->
+            <button class="week-day active" data-day="0">S</button>
+            <button class="week-day" data-day="1">M</button>
+            <button class="week-day" data-day="2">T</button>
+            <button class="week-day" data-day="3">W</button>
+            <button class="week-day" data-day="4">T</button>
+            <button class="week-day" data-day="5">F</button>
+            <button class="week-day" data-day="6">S</button>
+        {% endif %}
     </div>
     
     <!-- 时间段列表 -->
@@ -23,11 +58,18 @@
                 {% if morning_items %}
                     {% for item in morning_items %}
                     <li class="plan-item">
-                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}
                             <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                            {% if item.time %}
+                                {% if item.time is string %}
+                                    <span class="plan-item-time">{{ item.time }}</span>
+                                {% else %}
+                                    <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
                             {% endif %}
                         </div>
                         <button class="plan-item-checkbox" aria-label="Mark as completed">
@@ -74,11 +116,18 @@
                 {% if noon_items %}
                     {% for item in noon_items %}
                     <li class="plan-item">
-                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}
                             <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                            {% if item.time %}
+                                {% if item.time is string %}
+                                    <span class="plan-item-time">{{ item.time }}</span>
+                                {% else %}
+                                    <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
                             {% endif %}
                         </div>
                         <button class="plan-item-checkbox" aria-label="Mark as completed">
@@ -125,11 +174,18 @@
                 {% if evening_items %}
                     {% for item in evening_items %}
                     <li class="plan-item">
-                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}
                             <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                            {% if item.time %}
+                                {% if item.time is string %}
+                                    <span class="plan-item-time">{{ item.time }}</span>
+                                {% else %}
+                                    <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
                             {% endif %}
                         </div>
                         <button class="plan-item-checkbox" aria-label="Mark as completed">
@@ -168,4 +224,58 @@
         </section>
     </div>
 </div>
+
+<script>
+(function() {
+    var planPage = document.querySelector('.plan-page');
+    var prevWeekBtn = document.getElementById('prev-week-btn');
+    var nextWeekBtn = document.getElementById('next-week-btn');
+    var weekDayButtons = document.querySelectorAll('.week-day[data-date]');
+    
+    if (!planPage) return;
+    
+    var planPageUrl = planPage.getAttribute('data-plan-url') || '';
+    var currentDateStr = planPage.getAttribute('data-selected-date');
+    
+    // 周切换功能
+    function navigateWeek(direction) {
+        if (!currentDateStr) return;
+        
+        var currentDate = new Date(currentDateStr + 'T00:00:00');
+        var daysToAdd = direction === 'next' ? 7 : -7;
+        var newDate = new Date(currentDate);
+        newDate.setDate(currentDate.getDate() + daysToAdd);
+        
+        // 重定向到新日期的页面
+        var year = newDate.getFullYear();
+        var month = String(newDate.getMonth() + 1).padStart(2, '0');
+        var day = String(newDate.getDate()).padStart(2, '0');
+        var dateStr = year + '-' + month + '-' + day;
+        window.location.href = planPageUrl + '?date=' + dateStr;
+    }
+    
+    // 日期选择功能
+    function selectDate(dateStr) {
+        window.location.href = planPageUrl + '?date=' + dateStr;
+    }
+    
+    // 绑定事件
+    if (prevWeekBtn) {
+        prevWeekBtn.addEventListener('click', function() { navigateWeek('prev'); });
+    }
+    
+    if (nextWeekBtn) {
+        nextWeekBtn.addEventListener('click', function() { navigateWeek('next'); });
+    }
+    
+    weekDayButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var dateStr = btn.getAttribute('data-date');
+            if (dateStr) {
+                selectDate(dateStr);
+            }
+        });
+    });
+})();
+</script>
 {% endblock %}

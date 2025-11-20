@@ -56,6 +56,10 @@
 
     <div id="patient-list"></div>
 
+    <a class="icon" href="{{ url_for('logout.logout') }}" aria-label="my">
+        <img class="icon" src="{{ url_for('static', filename='public/user.png') }}" alt="my">
+    </a>
+    
     <script>
         window.addEventListener("load", function () {
             const doctorId = "{{ doctor_id }}";

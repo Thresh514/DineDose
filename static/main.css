@@ -1,0 +1,386 @@
+/* 基础重置和变量 - 与 patient.css 统一 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #ffffff;
+  --text: #151515;
+  --muted: #dddddd;
+  --muted-2: #e9e9e9;
+  --nav-bg: #dedede;
+  --active: #cfcfcf;
+  --side: 20px;
+  --text-light: #666;
+  --border-radius: 8px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Noto Sans CJK SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Index 页面样式 */
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+#particles-js {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  background-color: var(--bg);
+}
+
+.index-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--side);
+  text-align: center;
+}
+
+.index-container h1 {
+  font-size: 3.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.2px;
+  position: relative;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.8s ease-out, breathe 3s ease-in-out infinite 1s;
+}
+
+.intro-text {
+  font-size: 1.15rem;
+  color: var(--text-light);
+  max-width: 600px;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+.index-container .login-link {
+  display: inline-block;
+  padding: 14px 32px;
+  background-color: var(--text);
+  color: var(--bg);
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.index-container .login-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.index-container .login-link:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.index-container .login-link:hover {
+  background-color: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.index-container .login-link:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* 淡入动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.fade-in-up-delay {
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.fade-in-up-delay-2 {
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+/* 标题呼吸效果 */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Login 页面样式 */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--side);
+}
+
+.login-header {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.2px;
+  margin: 0;
+}
+
+.container {
+  background-color: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-option {
+  margin-bottom: 0;
+}
+
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.container input[type="email"] {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1rem;
+  border: 1px solid var(--muted);
+  border-radius: var(--border-radius);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.container input[type="email"]:focus {
+  outline: none;
+  border-color: var(--text);
+}
+
+.container input[type="email"]::placeholder {
+  color: var(--text-light);
+}
+
+/* 登录按钮通用样式 */
+.login-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--bg);
+  background-color: #646464;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  font-family: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+
+.login-btn:hover {
+  background-color: #555;
+}
+
+.login-btn:active {
+  opacity: 0.8;
+}
+
+/* Google Login 按钮 */
+.google-login-btn {
+  margin-bottom: 0;
+}
+
+/* 分隔线 */
+.divider {
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background-color: var(--muted);
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+/* Magic Link 按钮 */
+.magic-link-btn {
+  margin-top: 1rem;
+}
+
+/* Forgot password 链接 */
+.forgot-password {
+  display: block;
+  text-align: center;
+  margin-top: 1rem;
+  color: var(--text-light);
+  text-decoration: underline;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.forgot-password:hover {
+  color: var(--text);
+}
+
+/* Flash messages */
+.flash-messages {
+  list-style: none;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.flash-messages li {
+  padding: 12px 16px;
+  margin-bottom: 0.5rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.flash-messages li:last-child {
+  margin-bottom: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .index-container h1 {
+    font-size: 2.5rem;
+  }
+
+  .intro-text {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .index-container {
+    padding: var(--side);
+  }
+
+  .index-container h1 {
+    font-size: 2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .intro-text {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+  }
+
+  .index-container .login-link {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+  }
+
+  .login-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .container {
+    padding: 1.5rem 1rem;
+  }
+}
