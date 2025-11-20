@@ -1007,17 +1007,18 @@ button:active,
    ========================================================= */
 
 .food-detail-page {
-    padding: 0 var(--side) 24px;
+    padding: 0 var(--side) 16px;
+    padding-bottom: calc(var(--nav-h) + 80px);
 }
 
 /* 页面标题 */
 .food-detail-header {
-    padding: 16px 0;
-    margin-bottom: 16px;
+    padding: 8px 0;
+    margin-bottom: 12px;
 }
 
 .food-detail-title {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     margin: 0;
     color: var(--text);
@@ -1028,14 +1029,14 @@ button:active,
 .food-detail-card {
     background: var(--bg);
     border-radius: 16px;
-    padding: 24px;
-    margin-top: 16px;
+    padding: 16px;
+    margin-top: 8px;
 }
 
 /* 食物图片容器 */
 .food-detail-image-container {
     width: 100%;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1043,7 +1044,7 @@ button:active,
 
 .food-detail-image {
     width: 100%;
-    max-width: 300px;
+    max-width: 240px;
     height: auto;
     border-radius: 12px;
     object-fit: cover;
@@ -1053,14 +1054,14 @@ button:active,
 .food-detail-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 14px;
 }
 
 /* 表单字段 */
 .food-detail-field {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .food-detail-label {
@@ -1072,7 +1073,7 @@ button:active,
 .food-detail-input,
 .food-detail-textarea {
     width: 100%;
-    padding: 14px 16px;
+    padding: 10px 14px;
     border: 1px solid var(--muted);
     border-radius: 8px;
     font-size: 16px;
@@ -1090,22 +1091,22 @@ button:active,
 
 .food-detail-textarea {
     resize: vertical;
-    min-height: 100px;
+    min-height: 70px;
 }
 
 /* 按钮组 */
 .food-detail-actions {
     display: flex;
-    gap: 12px;
-    margin-top: 8px;
+    gap: 10px;
+    margin-top: 4px;
 }
 
 .food-detail-btn {
     flex: 1;
-    padding: 10px 16px;
+    padding: 12px 16px;
     border: 0;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -1135,12 +1136,12 @@ button:active,
 
 /* 成功消息横幅 */
 .food-detail-success-banner {
-    margin-top: 20px;
-    padding: 16px 20px;
+    margin-top: 12px;
+    padding: 12px 16px;
     background: var(--muted-2);
     border-radius: 8px;
     text-align: center;
-    font-size: 16px;
+    font-size: 14px;
     color: var(--text);
 }
 

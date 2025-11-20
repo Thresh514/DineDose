@@ -10,7 +10,7 @@
     <div class="food-detail-card" data-food-id="{{ food.id }}" data-user-id="{{ user_id }}">
         <!-- 食物图片 -->
         <div class="food-detail-image-container">
-            <img src="https://via.placeholder.com/300x300?text={{ food.description[:1] }}" 
+            <img src="{{ url_for('static', filename='public/food_example.png') }}" 
                  alt="{{ food.description }}" 
                  class="food-detail-image"
                  id="food-detail-image">
@@ -25,7 +25,7 @@
                        id="amount" 
                        name="amount" 
                        class="food-detail-input" 
-                       placeholder="1 piece">
+                       placeholder="300">
             </div>
 
             <!-- Unit 输入 -->
@@ -35,7 +35,7 @@
                        id="unit" 
                        name="unit" 
                        class="food-detail-input" 
-                       placeholder="500g">
+                       placeholder="gram">
             </div>
 
             <!-- Notes 输入 -->
@@ -44,7 +44,7 @@
                 <textarea id="notes" 
                           name="notes" 
                           class="food-detail-textarea" 
-                          rows="4" 
+                          rows="3" 
                           placeholder="Write notes here if needed!"></textarea>
             </div>
 
