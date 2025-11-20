@@ -51,3 +51,4 @@ def get_food_record_test():
         return jsonify({"error": f"No record found with id {record_id}"}), 404
 
     return jsonify(record.to_dict()), 200
+
