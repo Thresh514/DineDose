@@ -61,9 +61,9 @@ def update_food_record_handler():
 
     success = food_record_repo.update_food_record(
         record_id=record_id,
-        amount_numeric=10.0,
-        unit="mg",
-        amount_literal="10 milligrams",
+        amount_numeric=0.0,
+        unit="default_unit",
+        amount_literal="default_literal",
         notes=notes,
         status="TAKEN"
     )

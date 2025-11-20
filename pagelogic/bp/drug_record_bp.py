@@ -66,10 +66,10 @@ def update_drug_record():
     record_id = int(record_id)
 
     # Optional fields
-    dosage_numeric = "200"
-    unit = "mg"
+    dosage_numeric = "0.0"
+    unit = "default_unit"
     status = "TAKEN"          # TAKEN / ON_TIME / LATE / SKIPPED
-    notes = "this is a test update"
+    notes = "default notes"
 
 
     # Convert dosage if exists
@@ -94,23 +94,23 @@ def update_drug_record():
 
 # ----------------------------------------
 # GET TEST: create a simple drug_record
-# /create_drug_record_test?user_id=2&drug_id=1002
+# /create_drug_record_test?user_id=2&drug_id=1001
 # ----------------------------------------
 @drug_record_bp.route('/create_drug_record_test', methods=['GET'])
 def create_drug_record_test():
     user_id = int(request.args.get("user_id", 1))
-    drug_id = int(request.args.get("drug_id", 1002))
+    drug_id = int(request.args.get("drug_id", 1001))
 
     new_id = drug_record_repo.create_drug_record(
         user_id=user_id,
         drug_id=drug_id,
         taken_date=date.today(),
         taken_time=None,
-        dosage_numeric=100,
-        unit="mg",
+        dosage_numeric=0.0,
+        unit="default_unit",
         plan_item_id=None,
         status="LATE",
-        notes="this is test record"
+        notes="default test record"
     )
 
     return jsonify({"message": "Created test drug record", "id": new_id}), 200
