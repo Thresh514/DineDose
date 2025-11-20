@@ -93,5 +93,14 @@ def get_food_by_id_locally(id: int) -> Optional[food]:
             return f
     return None
 
+def get_foods_by_name_locally(name: str) -> Optional[food]:
+    print(name)
+    res = []
+    for f in foods:
+        if f.description == name:
+            res.append[f]
+    print(res)
+    return res
+
 def get_foods_by_ids_locally(ids: List[int]) -> List[food]:
     return [f for f in foods if f.id in ids]

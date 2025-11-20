@@ -3,8 +3,7 @@ from pagelogic.repo import plan_repo
 from flask import jsonify, render_template, Blueprint, request
 from datetime import time as dt_time
 
-from pagelogic.repo import drug_repo, plan_repo, food_repo
-from pagelogic.service import plan_service
+from pagelogic.repo import plan_repo
 from pagelogic.repo import food_record_repo
 
 
