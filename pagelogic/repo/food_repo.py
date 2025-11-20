@@ -94,11 +94,11 @@ def get_food_by_id_locally(id: int) -> Optional[food]:
     return None
 
 def get_foods_by_name_locally(name: str) -> Optional[food]:
-    print(name)
+    print("get_foods_by_name_locally: name = ", name)
     res = []
-    for f in foods:
-        if f.description == name:
-            res.append[f]
+    for food in foods:
+        if name in food.description:
+            res.append(food)
     print(res)
     return res
 

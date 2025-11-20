@@ -1,6 +1,6 @@
 from flask import jsonify, Blueprint, request
 
-from pagelogic.repo import drug_repo, food_repo
+from pagelogic.repo import food_repo
 
 food_bp = Blueprint('food_bp', __name__)
 
