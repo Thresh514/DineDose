@@ -110,26 +110,37 @@ def patient_reminder_page():
         
         # 格式化时间
         time_str = "No time"
+        time_obj_for_api = None
         if item.time:
             if isinstance(item.time, str):
                 try:
                     parts = item.time.split(':')
                     hour = int(parts[0])
                     minute = int(parts[1]) if len(parts) > 1 else 0
-                    time_obj = dt_time(hour, minute)
-                    time_str = time_obj.strftime('%I:%M %p')
+                    time_obj_for_api = dt_time(hour, minute)
+                    time_str = time_obj_for_api.strftime('%I:%M %p')
                 except (ValueError, IndexError):
                     time_str = item.time
             elif isinstance(item.time, dt_time):
+                time_obj_for_api = item.time
                 time_str = item.time.strftime('%I:%M %p')
+        
+        # 格式化日期为 ISO 格式（用于 API）
+        date_str = None
+        if item.date:
+            date_str = item.date.isoformat()
         
         return {
             'drug_name': item.drug_name or 'Unknown',
             'note': item.note or '',
             'time': time_str,
+            'time_iso': time_obj_for_api.isoformat() if time_obj_for_api else None,
             'date': item.date,
+            'date_iso': date_str,
             'dosage': item.dosage,
-            'unit': item.unit
+            'unit': item.unit,
+            'plan_item_id': item.id,
+            'drug_id': item.drug_id
         }
     
     current_reminder_formatted = format_reminder(current_reminder)
@@ -137,7 +148,8 @@ def patient_reminder_page():
     
     return render_template('patient_reminder.html', 
                          current_reminder=current_reminder_formatted, 
-                         upcoming_reminder=upcoming_reminder_formatted)
+                         upcoming_reminder=upcoming_reminder_formatted,
+                         user_id=user_id)
 
 
 @patient_home_bp.route('/patient/food', methods=['GET'])
