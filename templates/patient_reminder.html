@@ -6,15 +6,17 @@
         {% if current_reminder %}
         <div class="reminder-card-row">
             <span class="reminder-label">Task Name:</span>
-            <span class="reminder-value">{{ current_reminder.drug_name or 'Ibuprofen 100mg' }}</span>
+            <span class="reminder-value">{{ current_reminder.drug_name|default('Unknown') }}{% if current_reminder.dosage and current_reminder.unit %} {{ current_reminder.dosage }} {{ current_reminder.unit }}{% endif %}</span>
         </div>
+        {% if current_reminder.note %}
         <div class="reminder-card-row">
             <span class="reminder-label">Notes:</span>
-            <span class="reminder-value">{{ current_reminder.note or 'Take after breakfast' }}</span>
+            <span class="reminder-value">{{ current_reminder.note }}</span>
         </div>
+        {% endif %}
         <div class="reminder-card-row">
             <span class="reminder-label">Time:</span>
-            <span class="reminder-value">{{ current_reminder.time or '8:00 AM' }}</span>
+            <span class="reminder-value">{{ current_reminder.time|default('No time') }}</span>
         </div>
         {% else %}
         <!-- 占位数据，后端数据传入后会被替换 -->
@@ -34,14 +36,12 @@
     </div>
     
     <!-- 状态显示 -->
+    {% if current_reminder %}
     <div class="reminder-status">
         <span class="reminder-label">Status:</span>
-        {% if current_reminder and current_reminder.status == 'completed' %}
-        <span class="reminder-status-badge reminder-status-badge--completed">✅ Completed</span>
-        {% else %}
         <span class="reminder-status-badge reminder-status-badge--pending">⏳ Pending</span>
-        {% endif %}
     </div>
+    {% endif %}
     
     <!-- 完成按钮 -->
     <button class="reminder-complete-btn" aria-label="Mark as Completed">Mark as Completed</button>
@@ -55,15 +55,17 @@
         {% if upcoming_reminder %}
         <div class="reminder-card-row">
             <span class="reminder-label">Task Name:</span>
-            <span class="reminder-value">{{ upcoming_reminder.drug_name or 'Ibuprofen 100mg' }}</span>
+            <span class="reminder-value">{{ upcoming_reminder.drug_name|default('Unknown') }}{% if upcoming_reminder.dosage and upcoming_reminder.unit %} {{ upcoming_reminder.dosage }} {{ upcoming_reminder.unit }}{% endif %}</span>
         </div>
+        {% if upcoming_reminder.note %}
         <div class="reminder-card-row">
             <span class="reminder-label">Notes:</span>
-            <span class="reminder-value">{{ upcoming_reminder.note or 'Take after dinner' }}</span>
+            <span class="reminder-value">{{ upcoming_reminder.note }}</span>
         </div>
+        {% endif %}
         <div class="reminder-card-row">
             <span class="reminder-label">Time:</span>
-            <span class="reminder-value">{{ upcoming_reminder.time or '8:00 PM' }}</span>
+            <span class="reminder-value">{{ upcoming_reminder.time|default('No time') }}</span>
         </div>
         {% else %}
         <!-- 占位数据，后端数据传入后会被替换 -->

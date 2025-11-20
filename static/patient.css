@@ -371,6 +371,50 @@ button:active,
 }
 
 /* 星期导航 */
+/* 周导航控制 */
+.plan-week-controls{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px var(--side);
+  margin:0 0 8px;
+  border-bottom:1px solid var(--muted);
+}
+
+.week-nav-btn{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:transparent;
+  border:1px solid var(--muted);
+  border-radius:50%;
+  cursor:pointer;
+  color:var(--text);
+  transition:all 0.2s;
+}
+
+.week-nav-btn:hover{
+  background:var(--muted-2);
+  border-color:var(--muted-2);
+}
+
+.week-nav-btn:active{
+  opacity:0.7;
+}
+
+.week-range{
+  flex:1;
+  text-align:center;
+}
+
+.week-range-text{
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+}
+
 .plan-week-nav{
   display:flex;
   justify-content:space-around;
@@ -383,20 +427,22 @@ button:active,
 
 .week-day{
   flex:1;
-  padding:8px 4px;
-  font-size:18px;
+  padding:6px 4px;
+  font-size:16px;
   font-weight:500;
   color:var(--text);
   background:transparent;
   border:0;
   cursor:pointer;
-  transition:background-color 0.2s;
+  transition:all 0.2s;
   border-radius:50%;
-  min-width:36px;
-  height:36px;
+  min-width:40px;
+  height:auto;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
+  gap:2px;
 }
 
 .week-day:hover{
@@ -406,6 +452,25 @@ button:active,
 .week-day.active{
   background:var(--muted);
   font-weight:600;
+}
+
+.week-day.today .week-day-number{
+  color:#007AFF;
+  font-weight:600;
+}
+
+.week-day.active .week-day-number{
+  font-weight:700;
+}
+
+.week-day-letter{
+  font-size:12px;
+  line-height:1;
+}
+
+.week-day-number{
+  font-size:14px;
+  line-height:1.2;
 }
 
 /* 时间段部分容器 */
@@ -422,12 +487,13 @@ button:active,
 /* 时间段部分 */
 .time-section{
   position:relative;
-  padding:24px var(--side);
+  padding:40px var(--side);
   margin:0 calc(-1 * var(--side)) 0;
   border:2px dashed var(--muted);
   border-left:0;
   border-right:0;
   overflow:hidden;
+  min-height:180px;
 }
 
 .time-section:last-child{
@@ -552,6 +618,7 @@ button:active,
   .plan-item-avatar{width:44px;height:44px;font-size:18px}
   .plan-item-name{font-size:16px}
   .time-section-bg{width:160px;height:160px}
+  .time-section{min-height:160px;padding:32px var(--side)}
 }
 
 /* =========================================================
@@ -710,4 +777,226 @@ button:active,
   .reminder-card{padding:16px}
   .reminder-value{font-size:16px}
   .reminder-complete-btn{font-size:16px;padding:14px 20px}
+}
+
+/* =========================================================
+   Food History Page (patient_food_history.html) 专用
+   采用 .food-history-* 前缀避免影响其它页面
+   ========================================================= */
+
+.food-history-page{
+  padding:0 var(--side) 24px;
+}
+
+/* 页面标题 */
+.food-history-header{
+  padding:16px 0;
+  border-bottom:1px solid var(--muted);
+  margin-bottom:16px;
+}
+
+.food-history-title{
+  font-size:28px;
+  font-weight:700;
+  margin:0;
+  color:var(--text);
+  letter-spacing:0.2px;
+}
+
+/* 筛选按钮 */
+.food-history-filters{
+  display:flex;
+  gap:8px;
+  margin-bottom:20px;
+  overflow-x:auto;
+  padding-bottom:8px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.filter-btn{
+  padding:8px 16px;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  background:transparent;
+  border:1px solid var(--muted);
+  border-radius:20px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all 0.2s;
+}
+
+.filter-btn:hover{
+  background:var(--muted-2);
+}
+
+.filter-btn.active{
+  background:var(--text);
+  color:var(--bg);
+  border-color:var(--text);
+}
+
+/* 食物记录列表 */
+.food-history-list{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+/* 日期分组 */
+.food-history-date-group{
+  margin-bottom:8px;
+}
+
+.food-history-date-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+  padding:8px 0;
+}
+
+.date-label{
+  font-size:16px;
+  font-weight:600;
+  color:var(--text);
+}
+
+.date-weekday{
+  font-size:14px;
+  color:#666;
+  font-weight:400;
+}
+
+.food-history-items{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* 食物记录项 */
+.food-history-item{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  padding:16px;
+  background:var(--bg);
+  border:1px solid var(--muted);
+  border-radius:12px;
+  transition:all 0.2s;
+}
+
+.food-history-item:hover{
+  border-color:var(--muted-2);
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.food-history-item-avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:var(--muted-2);
+  display:grid;
+  place-items:center;
+  color:var(--text);
+  font-weight:700;
+  font-size:20px;
+  flex-shrink:0;
+}
+
+.food-history-item-content{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.food-history-item-name{
+  font-size:16px;
+  font-weight:600;
+  color:var(--text);
+  line-height:1.4;
+}
+
+.food-history-item-meta{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:14px;
+  color:#666;
+}
+
+.food-history-time{
+  font-weight:500;
+}
+
+.food-history-amount{
+  color:#666;
+}
+
+.food-history-notes{
+  font-size:14px;
+  color:#666;
+  line-height:1.4;
+  margin-top:4px;
+}
+
+.food-history-item-delete{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:transparent;
+  border:0;
+  color:#999;
+  cursor:pointer;
+  border-radius:50%;
+  transition:all 0.2s;
+  flex-shrink:0;
+}
+
+.food-history-item-delete:hover{
+  background:var(--muted-2);
+  color:#ef5757;
+}
+
+/* 空状态 */
+.food-history-empty{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:60px 20px;
+  text-align:center;
+}
+
+.food-history-empty-icon{
+  font-size:64px;
+  margin-bottom:16px;
+}
+
+.food-history-empty-text{
+  font-size:18px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:8px;
+}
+
+.food-history-empty-hint{
+  font-size:14px;
+  color:#666;
+}
+
+/* 小屏适配 */
+@media (max-width:360px){
+  .food-history-title{font-size:24px}
+  .food-history-item{padding:12px}
+  .food-history-item-avatar{width:40px;height:40px;font-size:18px}
+  .food-history-item-name{font-size:15px}
+  .food-history-item-meta{font-size:13px}
 }

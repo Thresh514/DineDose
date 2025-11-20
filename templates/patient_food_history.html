@@ -1,0 +1,110 @@
+{% extends 'patient_base.html' %}
+{% block content %}
+<div class="food-history-page">
+    <!-- 页面标题 -->
+    <div class="food-history-header">
+        <h1 class="food-history-title">Food History</h1>
+    </div>
+
+    <!-- 日期筛选（预留接口） -->
+    <div class="food-history-filters">
+        <button class="filter-btn active" data-period="all">All</button>
+        <button class="filter-btn" data-period="today">Today</button>
+        <button class="filter-btn" data-period="week">This Week</button>
+        <button class="filter-btn" data-period="month">This Month</button>
+    </div>
+
+    <!-- 食物记录列表 -->
+    <div class="food-history-list">
+        {% if food_records and food_records|length > 0 %}
+            <!-- 按日期分组显示 -->
+            {% for record in food_records %}
+                {% if loop.first or record.eaten_date != food_records[loop.index0 - 1].eaten_date %}
+                    {% if not loop.first %}
+                        </ul>
+                    {% endif %}
+                    <div class="food-history-date-group">
+                        <div class="food-history-date-header">
+                            <span class="date-label">{{ record.eaten_date.strftime('%B %d, %Y') }}</span>
+                            <span class="date-weekday">{{ record.eaten_date.strftime('%A') }}</span>
+                        </div>
+                        <ul class="food-history-items">
+                {% endif %}
+                
+                <li class="food-history-item" data-record-id="{{ record.id }}">
+                    <div class="food-history-item-avatar">
+                        {{ (record.food_name or '?')[:1]|upper }}
+                    </div>
+                    <div class="food-history-item-content">
+                        <div class="food-history-item-name">{{ record.food_name or 'Unknown Food' }}</div>
+                        <div class="food-history-item-meta">
+                            {% if record.eaten_time %}
+                                {% if record.eaten_time is string %}
+                                    <span class="food-history-time">{{ record.eaten_time }}</span>
+                                {% else %}
+                                    <span class="food-history-time">{{ record.eaten_time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
+                            {% endif %}
+                            {% if record.amount_numeric and record.unit %}
+                                <span class="food-history-amount">{{ record.amount_numeric }} {{ record.unit }}</span>
+                            {% elif record.amount_literal %}
+                                <span class="food-history-amount">{{ record.amount_literal }}</span>
+                            {% endif %}
+                        </div>
+                        {% if record.notes %}
+                        <div class="food-history-notes">{{ record.notes }}</div>
+                        {% endif %}
+                    </div>
+                    <button class="food-history-item-delete" aria-label="Delete record" data-record-id="{{ record.id }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </li>
+                
+                {% if loop.last %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <!-- 空状态 -->
+            <div class="food-history-empty">
+                <div class="food-history-empty-icon">🍽️</div>
+                <div class="food-history-empty-text">No food records yet</div>
+                <div class="food-history-empty-hint">Start adding foods to track your meals</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    // 日期筛选功能（预留接口）
+    var filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            filterButtons.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            var period = this.getAttribute('data-period');
+            // TODO: 调用后端接口获取对应时间段的数据
+            // fetchFoodRecords(period);
+        });
+    });
+
+    // 删除记录功能（预留接口）
+    var deleteButtons = document.querySelectorAll('.food-history-item-delete');
+    deleteButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var recordId = this.getAttribute('data-record-id');
+            if (confirm('Are you sure you want to delete this record?')) {
+                // TODO: 调用后端接口删除记录
+                // deleteFoodRecord(recordId);
+                console.log('Delete record:', recordId);
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}
+
