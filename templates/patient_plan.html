@@ -23,7 +23,7 @@
                 {% if morning_items %}
                     {% for item in morning_items %}
                     <li class="plan-item">
-                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}
@@ -74,7 +74,7 @@
                 {% if noon_items %}
                     {% for item in noon_items %}
                     <li class="plan-item">
-                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}
@@ -125,7 +125,7 @@
                 {% if evening_items %}
                     {% for item in evening_items %}
                     <li class="plan-item">
-                        <div class="plan-item-avatar">{{ item.drug_name[0]|upper if item.drug_name else 'A' }}</div>
+                        <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}

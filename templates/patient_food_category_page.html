@@ -6,20 +6,33 @@
     <title>Choose Foods</title>
     {% extends 'patient_base.html' %}
     {% block content %} 
-        <!-- Tabs -->
-        <div class="pfc-tabs" role="tablist" aria-label="类别切换">
-            <button class="pfc-tab" role="tab" aria-selected="true" aria-controls="pfc-panel-foods" id="pfc-tab-foods">Foods</button>
-            <button class="pfc-tab" role="tab" aria-selected="false" aria-controls="pfc-panel-drugs" id="pfc-tab-drugs">Drugs</button>
+        <div class="pfc-container">
+            <!-- Tabs -->
+            <div class="pfc-tabs" role="tablist" aria-label="类别切换">
+                <button class="pfc-tab" role="tab" aria-selected="true" aria-controls="pfc-panel-foods" id="pfc-tab-foods">Foods</button>
+                <button class="pfc-tab" role="tab" aria-selected="false" aria-controls="pfc-panel-drugs" id="pfc-tab-drugs">Drugs</button>
+            </div>
+
+            <!-- Search -->
+            <div class="pfc-search">
+                <div class="pfc-search-leading" aria-hidden="true">
+                    <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
+                </div>
+                <label for="pfc-search-input" class="sr-only">Search</label>
+                <div class="pfc-search-field">
+                    <input id="pfc-search-input" class="pfc-search-input" type="search" placeholder="Enter to search" />
+                </div>
+            </div>
         </div>
 
         <!-- Foods panel -->
-        <section id="pfc-panel-foods" role="tabpanel" aria-labelledby="pfc-tab-foods">
-            <ul class="pfc-list">
+        <section id="pfc-panel-foods" role="tabpanel" aria-labelledby="pfc-tab-foods" class="pfc-panel">
+            <ul class="pfc-list" id="pfc-list-foods">
                 {% if foods and foods|length > 0 %}
                 {% for food in foods %}
-                <li class="pfc-item" data-food-id="{{ food.id }}">
-                    <div class="pfc-avatar" aria-hidden="true">{{ (food.description|default('?'))[:1]|upper }}</div>
-                    <div class="pfc-title">{{ food.description|default('No name') }}</div>
+                <li class="pfc-item" data-food-id="{{ food.id }}" data-search-text="{{ (food.description or '')|lower }}">
+                    <div class="pfc-avatar" aria-hidden="true">{{ (food.description or '?')[:1]|upper }}</div>
+                    <div class="pfc-title">{{ food.description or 'No name' }}</div>
                 </li>
                 {% endfor %}
                 {% else %}
@@ -28,27 +41,16 @@
                 </li>
                 {% endif %}
             </ul>
-
-            <!-- Search -->
-            <div class="pfc-search">
-                <div class="pfc-search-leading" aria-hidden="true">
-                    <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
-                </div>
-                <label for="pfc-search-input" class="sr-only">Search Foods</label>
-                <div class="pfc-search-field">
-                    <input id="pfc-search-input" class="pfc-search-input" type="search" placeholder="Enter to search foods" />
-                </div>
-            </div>
         </section>
 
         <!-- Drugs panel -->
-        <section id="pfc-panel-drugs" role="tabpanel" aria-labelledby="pfc-tab-drugs" hidden>
-            <ul class="pfc-list">
+        <section id="pfc-panel-drugs" role="tabpanel" aria-labelledby="pfc-tab-drugs" hidden class="pfc-panel">
+            <ul class="pfc-list" id="pfc-list-drugs">
                 {% if drugs and drugs|length > 0 %}
                 {% for drug in drugs %}
-                <li class="pfc-item" data-drug-ndc="{{ drug.product_ndc }}">
-                    <div class="pfc-avatar" aria-hidden="true">{{ ((drug.brand_name or drug.generic_name)|default('?'))[:1]|upper }}</div>
-                    <div class="pfc-title">{{ (drug.brand_name or drug.generic_name)|default('No name') }}</div>
+                <li class="pfc-item" data-drug-ndc="{{ drug.product_ndc }}" data-drug-id="{{ drug.id }}" data-search-text="{{ ((drug.brand_name or drug.generic_name) or '')|lower }}">
+                    <div class="pfc-avatar" aria-hidden="true">{{ ((drug.brand_name or drug.generic_name) or '?')[:1]|upper }}</div>
+                    <div class="pfc-title">{{ (drug.brand_name or drug.generic_name) or 'No name' }}</div>
                 </li>
                 {% endfor %}
                 {% else %}
@@ -57,37 +59,62 @@
                 </li>
                 {% endif %}
             </ul>
-
-            <div class="pfc-search">
-                <div class="pfc-search-leading" aria-hidden="true">
-                    <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
-                </div>
-                <label for="pfc-search-input" class="sr-only">Search Drugs</label>
-                <div class="pfc-search-field">
-                    <input id="pfc-search-input" class="pfc-search-input" type="search" placeholder="Enter to search drugs" />
-                </div>
-            </div>
         </section>
     <script>
-        // 简单的 tab 切换（无依赖）
+        // Tab 切换和搜索功能
         (function(){
             const tabFoods = document.getElementById('pfc-tab-foods');
             const tabDrugs = document.getElementById('pfc-tab-drugs');
             const panelFoods = document.getElementById('pfc-panel-foods');
             const panelDrugs = document.getElementById('pfc-panel-drugs');
+            const listFoods = document.getElementById('pfc-list-foods');
+            const listDrugs = document.getElementById('pfc-list-drugs');
+            const searchInput = document.getElementById('pfc-search-input');
+
+            let currentTab = 'foods'; // 'foods' 或 'drugs'
 
             function activate(tab){
                 const isFoods = tab === tabFoods;
+                currentTab = isFoods ? 'foods' : 'drugs';
                 tabFoods.classList.toggle('is-active', isFoods);
                 tabDrugs.classList.toggle('is-active', !isFoods);
                 tabFoods.setAttribute('aria-selected', String(isFoods));
                 tabDrugs.setAttribute('aria-selected', String(!isFoods));
                 panelFoods.hidden = !isFoods;
                 panelDrugs.hidden = isFoods;
+                // 切换tab时重新应用搜索
+                performSearch();
+            }
+
+            function performSearch(){
+                const searchTerm = (searchInput.value || '').trim().toLowerCase();
+                const targetList = currentTab === 'foods' ? listFoods : listDrugs;
+                const items = targetList.querySelectorAll('.pfc-item:not(.pfc-empty)');
+                let hasVisibleItems = false;
+
+                items.forEach(item => {
+                    const searchText = item.getAttribute('data-search-text') || '';
+                    const matches = searchText.includes(searchTerm);
+                    item.style.display = matches ? '' : 'none';
+                    if (matches) hasVisibleItems = true;
+                });
+
+                // 如果没有可见项，显示空状态
+                const emptyItem = targetList.querySelector('.pfc-empty');
+                if (emptyItem) {
+                    emptyItem.style.display = hasVisibleItems ? 'none' : '';
+                } else if (!hasVisibleItems && items.length > 0) {
+                    // 如果没有空状态项，创建一个
+                    const emptyLi = document.createElement('li');
+                    emptyLi.className = 'pfc-item pfc-empty';
+                    emptyLi.innerHTML = '<div class="pfc-title">No results found</div>';
+                    targetList.appendChild(emptyLi);
+                }
             }
 
             tabFoods.addEventListener('click', () => activate(tabFoods));
             tabDrugs.addEventListener('click', () => activate(tabDrugs));
+            searchInput.addEventListener('input', performSearch);
         })();
     </script>
     {% endblock %}
