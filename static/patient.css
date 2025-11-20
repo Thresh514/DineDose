@@ -577,6 +577,11 @@ button:active,
   color:#666;
 }
 
+.plan-item-time{
+  font-size:14px;
+  color:#666;
+}
+
 /* 复选框按钮 */
 .plan-item-checkbox{
   width:32px;
@@ -920,6 +925,10 @@ button:active,
   font-weight:600;
   color:var(--text);
   line-height:1.4;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  max-width:100%;
 }
 
 .food-history-item-meta{
@@ -932,6 +941,19 @@ button:active,
 
 .food-history-time{
   font-weight:500;
+  color:#666;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+.food-history-created{
+  font-weight:400;
+  color:#999;
+  font-size:13px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
 }
 
 .food-history-amount{

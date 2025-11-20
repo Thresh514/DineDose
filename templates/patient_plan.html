@@ -64,6 +64,13 @@
                             {% if item.dosage and item.unit %}
                             <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
                             {% endif %}
+                            {% if item.time %}
+                                {% if item.time is string %}
+                                    <span class="plan-item-time">{{ item.time }}</span>
+                                {% else %}
+                                    <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
+                            {% endif %}
                         </div>
                         <button class="plan-item-checkbox" aria-label="Mark as completed">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,6 +122,13 @@
                             {% if item.dosage and item.unit %}
                             <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
                             {% endif %}
+                            {% if item.time %}
+                                {% if item.time is string %}
+                                    <span class="plan-item-time">{{ item.time }}</span>
+                                {% else %}
+                                    <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
+                            {% endif %}
                         </div>
                         <button class="plan-item-checkbox" aria-label="Mark as completed">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -165,6 +179,13 @@
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
                             {% if item.dosage and item.unit %}
                             <span class="plan-item-dosage">{{ item.dosage }} {{ item.unit }}</span>
+                            {% endif %}
+                            {% if item.time %}
+                                {% if item.time is string %}
+                                    <span class="plan-item-time">{{ item.time }}</span>
+                                {% else %}
+                                    <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
+                                {% endif %}
                             {% endif %}
                         </div>
                         <button class="plan-item-checkbox" aria-label="Mark as completed">

@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, request, session
 from datetime import date, datetime, time as dt_time, timedelta
-from pagelogic.repo import food_repo, drug_repo
+from pagelogic.repo import food_repo, drug_repo, food_record_repo
 from pagelogic.service import plan_service
 
 patient_home_bp = Blueprint('patient_home', __name__)
@@ -168,32 +168,55 @@ def patient_food_detail_page(food_id):
 def patient_food_history_page():
     """
     食物历史记录页面
-    前端页面，后端接口预留：
-    - GET /patient/food/history?period=all|today|week|month 获取食物记录列表
-    - DELETE /patient/food/history/<record_id> 删除食物记录
-    
-    数据格式：
-    food_records = [
-        {
-            'id': int,
-            'food_name': str,  # 需要关联food表获取
-            'eaten_date': date,
-            'eaten_time': time,
-            'amount_numeric': float,
-            'unit': str,
-            'amount_literal': str,
-            'notes': str,
-            'created_at': datetime
-        }
-    ]
+    支持筛选：GET /patient/food/history?period=all|today|week|month
     """
-    # TODO: 后端接口实现
-    # user_id = session.get('user_id')
-    # period = request.args.get('period', 'all')
-    # food_records = get_food_records_by_user_and_period(user_id, period)
+    # 获取当前用户ID
+    user_id = session.get('user_id')
+    if not user_id:
+        return render_template('patient_food_history.html', food_records=[])
     
-    # 暂时返回空数据，前端已做好空状态处理
-    return render_template('patient_food_history.html', food_records=[])
+    # 获取筛选时间段
+    period = request.args.get('period', 'all')
+    
+    # 获取所有食物记录
+    records = food_record_repo.get_food_records_by_user_id(user_id)
+    
+    # 根据时间段筛选
+    today = date.today()
+    if period == 'today':
+        records = [r for r in records if r.eaten_date == today]
+    elif period == 'week':
+        week_start = today - timedelta(days=today.weekday())
+        records = [r for r in records if r.eaten_date >= week_start and r.eaten_date <= today]
+    elif period == 'month':
+        month_start = date(today.year, today.month, 1)
+        records = [r for r in records if r.eaten_date >= month_start and r.eaten_date <= today]
+    # period == 'all' 时不需要筛选
+    
+    # 关联food表获取food_name，构建适合模板的数据结构
+    food_records_with_name = []
+    for record in records:
+        food = food_repo.get_food_by_id_locally(record.food_id)
+        # 直接使用record对象的属性，保持date和time对象的原始类型
+        record_dict = {
+            'id': record.id,
+            'food_id': record.food_id,
+            'food_name': food.description if food else 'Unknown Food',
+            'eaten_date': record.eaten_date,  # date对象
+            'eaten_time': record.eaten_time,  # time对象或None
+            'amount_numeric': record.amount_numeric,
+            'unit': record.unit,
+            'amount_literal': record.amount_literal,
+            'notes': record.notes,
+            'created_at': record.created_at,
+            'status': record.status
+        }
+        food_records_with_name.append(record_dict)
+    
+    return render_template('patient_food_history.html', 
+                          food_records=food_records_with_name, 
+                          user_id=user_id,
+                          current_period=period)
 
 
 @patient_home_bp.route('/patient/plan', methods=['GET'])

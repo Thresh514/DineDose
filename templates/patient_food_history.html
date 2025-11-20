@@ -6,12 +6,12 @@
         <h1 class="food-history-title">Food History</h1>
     </div>
 
-    <!-- 日期筛选（预留接口） -->
+    <!-- 日期筛选 -->
     <div class="food-history-filters">
-        <button class="filter-btn active" data-period="all">All</button>
-        <button class="filter-btn" data-period="today">Today</button>
-        <button class="filter-btn" data-period="week">This Week</button>
-        <button class="filter-btn" data-period="month">This Month</button>
+        <button class="filter-btn {% if current_period == 'all' %}active{% endif %}" data-period="all">All</button>
+        <button class="filter-btn {% if current_period == 'today' %}active{% endif %}" data-period="today">Today</button>
+        <button class="filter-btn {% if current_period == 'week' %}active{% endif %}" data-period="week">This Week</button>
+        <button class="filter-btn {% if current_period == 'month' %}active{% endif %}" data-period="month">This Month</button>
     </div>
 
     <!-- 食物记录列表 -->
@@ -19,7 +19,8 @@
         {% if food_records and food_records|length > 0 %}
             <!-- 按日期分组显示 -->
             {% for record in food_records %}
-                {% if loop.first or record.eaten_date != food_records[loop.index0 - 1].eaten_date %}
+                {% set prev_date = food_records[loop.index0 - 1].eaten_date if not loop.first else None %}
+                {% if loop.first or record.eaten_date != prev_date %}
                     {% if not loop.first %}
                         </ul>
                     {% endif %}
@@ -36,13 +37,15 @@
                         {{ (record.food_name or '?')[:1]|upper }}
                     </div>
                     <div class="food-history-item-content">
-                        <div class="food-history-item-name">{{ record.food_name or 'Unknown Food' }}</div>
+                        <div class="food-history-item-name" title="{{ record.food_name or 'Unknown Food' }}">
+                            {{ (record.food_name or 'Unknown Food')|truncate(30, True, '...') }}
+                        </div>
                         <div class="food-history-item-meta">
-                            {% if record.eaten_time %}
-                                {% if record.eaten_time is string %}
-                                    <span class="food-history-time">{{ record.eaten_time }}</span>
+                            {% if record.created_at %}
+                                {% if record.created_at is string %}
+                                    <span class="food-history-created" title="Created at {{ record.created_at }}">{{ record.created_at }}</span>
                                 {% else %}
-                                    <span class="food-history-time">{{ record.eaten_time.strftime('%I:%M %p') }}</span>
+                                    <span class="food-history-created" title="Created at {{ record.created_at.strftime('%B %d, %Y %I:%M %p') }}">{{ record.created_at.strftime('%I:%M %p') }}</span>
                                 {% endif %}
                             {% endif %}
                             {% if record.amount_numeric and record.unit %}
@@ -79,28 +82,52 @@
 
 <script>
 (function() {
-    // 日期筛选功能（预留接口）
+    // 日期筛选功能
     var filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(function(btn) {
         btn.addEventListener('click', function() {
-            filterButtons.forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
             var period = this.getAttribute('data-period');
-            // TODO: 调用后端接口获取对应时间段的数据
-            // fetchFoodRecords(period);
+            // 重新加载页面并带上period参数
+            var url = new URL(window.location.href);
+            url.searchParams.set('period', period);
+            window.location.href = url.toString();
         });
     });
 
-    // 删除记录功能（预留接口）
+    // 删除记录功能
     var deleteButtons = document.querySelectorAll('.food-history-item-delete');
     deleteButtons.forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             var recordId = this.getAttribute('data-record-id');
+            var recordItem = this.closest('.food-history-item');
+            
             if (confirm('Are you sure you want to delete this record?')) {
-                // TODO: 调用后端接口删除记录
-                // deleteFoodRecord(recordId);
-                console.log('Delete record:', recordId);
+                // 调用后端接口删除记录
+                fetch('/delete_food_record?id=' + recordId, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(function(response) {
+                    if (response.ok) {
+                        // 删除成功，从DOM中移除该记录
+                        recordItem.remove();
+                        
+                        // 检查是否还有记录，如果没有则显示空状态
+                        var remainingItems = document.querySelectorAll('.food-history-item');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // 重新加载页面以显示空状态
+                        }
+                    } else {
+                        alert('Failed to delete record. Please try again.');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error deleting record:', error);
+                    alert('An error occurred while deleting the record.');
+                });
             }
         });
     });
