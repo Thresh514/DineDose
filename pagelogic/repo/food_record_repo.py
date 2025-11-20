@@ -17,6 +17,7 @@ class food_record:
     plan_item_id: Optional[int]
     notes: Optional[str]
     created_at: Optional[datetime]
+    status: Optional[str]  # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
 
     def to_dict(self):
         def serialize(obj):
@@ -46,6 +47,7 @@ def _row_to_food_record(cur, row) -> food_record:
         plan_item_id=rd["plan_item_id"],
         notes=rd["notes"],
         created_at=rd["created_at"],
+        status=rd["status"],
     )
 
 # ---- CREATE ----
@@ -60,6 +62,7 @@ def create_food_record(
     source: str = "manual",
     plan_item_id: Optional[int] = None,
     notes: Optional[str] = None,
+    status: Optional[str] = None,
 ) -> int:
     conn = mydb()
     cur = conn.cursor()
@@ -68,9 +71,9 @@ def create_food_record(
     INSERT INTO food_records (
         user_id, food_id, eaten_date, eaten_time,
         amount_numeric, unit, amount_literal,
-        source, plan_item_id, notes
+        source, plan_item_id, notes, status
     )
-    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     RETURNING id;
     """
 
@@ -79,7 +82,7 @@ def create_food_record(
         (
             user_id, food_id, eaten_date, eaten_time,
             amount_numeric, unit, amount_literal,
-            source, plan_item_id, notes
+            source, plan_item_id, notes, status
         )
     )
 
@@ -182,10 +185,11 @@ def delete_food_record(record_id: int) -> bool:
 # ---- UPDATE (optional) ----
 def update_food_record(
     record_id: int,
-    amount_numeric: Optional[float] = None,
-    unit: Optional[str] = None,
-    amount_literal: Optional[str] = None,
-    notes: Optional[str] = None
+    amount_numeric: Optional[float],
+    unit: Optional[str],
+    amount_literal: Optional[str],
+    notes: Optional[str],
+    status: Optional[str],
 ) -> bool:
     conn = mydb()
     cur = conn.cursor()
@@ -195,13 +199,14 @@ def update_food_record(
         SET amount_numeric = %s,
             unit = %s,
             amount_literal = %s,
-            notes = %s
+            notes = %s,
+            status = %s
         WHERE id = %s
     """
 
     cur.execute(
         query,
-        (amount_numeric, unit, amount_literal, notes, record_id)
+        (amount_numeric, unit, amount_literal, notes, status, record_id)
     )
 
     updated = cur.rowcount > 0

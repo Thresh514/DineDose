@@ -66,11 +66,11 @@ def update_drug_record():
     record_id = int(record_id)
 
     # Optional fields
-    dosage_numeric = request.args.get("dosage_numeric")
-    unit = request.args.get("unit")
-    amount_literal = request.args.get("amount_literal")
-    status = request.args.get("status")          # TAKEN / ON_TIME / LATE / SKIPPED
-    notes = request.args.get("notes")
+    dosage_numeric = "200"
+    unit = "mg"
+    status = "TAKEN"          # TAKEN / ON_TIME / LATE / SKIPPED
+    notes = "this is a test update"
+
 
     # Convert dosage if exists
     if dosage_numeric is not None:
@@ -81,10 +81,9 @@ def update_drug_record():
 
     success = drug_record_repo.update_drug_record(
         record_id=record_id,
+        status=status,
         dosage_numeric=dosage_numeric,
         unit=unit,
-        amount_literal=amount_literal,
-        status=status,
         notes=notes
     )
 
@@ -110,7 +109,7 @@ def create_drug_record_test():
         dosage_numeric=100,
         unit="mg",
         plan_item_id=None,
-        status="TAKEN",
+        status="LATE",
         notes="this is test record"
     )
 
