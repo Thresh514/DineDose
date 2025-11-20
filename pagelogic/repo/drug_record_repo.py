@@ -72,7 +72,7 @@ def create_drug_record(
     dosage_numeric: Optional[float] = None,
     unit: Optional[str] = None,
     plan_item_id: Optional[int] = None,
-    status: str = "TAKEN",      
+    status: Optional[str] = None,      
     notes: Optional[str] = None
 ) -> int:
 
@@ -190,11 +190,10 @@ def delete_drug_record(record_id: int) -> bool:
 # ---------- UPDATE ----------
 def update_drug_record(
     record_id: int,
-    dosage_numeric: Optional[float] = None,
-    unit: Optional[str] = None,
-    amount_literal: Optional[str] = None,
-    status: Optional[str] = None,   # ⭐ 现在可以更新状态了
-    notes: Optional[str] = None
+    status: str,
+    dosage_numeric: Optional[float],
+    unit: Optional[str],
+    notes: Optional[str]
 ) -> bool:
 
     conn = mydb()
@@ -204,14 +203,13 @@ def update_drug_record(
         UPDATE drug_records
         SET dosage_numeric = %s,
             unit = %s,
-            amount_literal = %s,
             status = %s,
             notes = %s
         WHERE id = %s
     """
 
     cur.execute(query, (
-        dosage_numeric, unit, amount_literal,
+        dosage_numeric, unit,
         status, notes,
         record_id
     ))
