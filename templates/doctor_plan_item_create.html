@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Plan Item</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 16px;
+        }
+
+        .form-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 720px;
+            background: #fafafa;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .field-row label {
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .field-row input,
+        .field-row select,
+        .field-row textarea {
+            font-size: 14px;
+            padding: 4px 6px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #999;
+            font-size: 11px;
+            cursor: default;
+            color: #555;
+            background: #fff;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .days-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .days-group label {
+            min-width: auto;
+        }
+
+        .actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            border-color: #1976d2;
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .message {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .message.error {
+            color: #b71c1c;
+        }
+
+        .message.success {
+            color: #1b5e20;
+        }
+    </style>
+</head>
+<body>
+
+<h2>
+    Create Plan Item (Patient {{ patient_id }})
+</h2>
+
+<div class="form-card">
+    <!-- 如果你在后端已经计算好 plan_id，可以直接填在这里 -->
+    <input type="hidden" id="plan-id" value="{{ plan_id if plan_id is defined else '' }}">
+    <input type="hidden" id="patient-id" value="{{ patient_id }}">
+
+    <!-- ========== BASIC INFO ========== -->
+    <div class="section-title">
+        Basic Information
+    </div>
+
+    <div class="field-row">
+        <label for="drug-id">
+            Drug ID
+            <span class="help-icon" title="Internal drug identifier used by the system.">?</span>
+        </label>
+        <input type="number" id="drug-id" placeholder="e.g. 1001">
+    </div>
+
+    <div class="field-row">
+        <label for="dosage">
+            Dosage
+            <span class="help-icon" title="Numeric dosage amount, for example 500.">?</span>
+        </label>
+        <input type="number" id="dosage" placeholder="e.g. 500">
+        <label for="unit">
+            Unit
+            <span class="help-icon" title="Unit of the dosage, for example mg or ml.">?</span>
+        </label>
+        <input type="text" id="unit" placeholder="e.g. mg" style="width: 80px;">
+    </div>
+
+    <div class="field-row">
+        <label for="amount-literal">
+            Amount text
+            <span class="help-icon" title="Human-readable description, such as '1 tablet'.">?</span>
+        </label>
+        <input type="text" id="amount-literal" placeholder="e.g. 1 tablet" style="flex: 1;">
+    </div>
+
+    <div class="field-row">
+        <label for="note">
+            Note
+            <span class="help-icon" title="Any additional instructions for this medication.">?</span>
+        </label>
+    </div>
+    <div class="field-row">
+        <textarea id="note" placeholder="Optional note for the patient"></textarea>
+    </div>
+
+    <!-- ========== RULE (ONLY ONE) ========== -->
+    <div class="section-title">
+        Schedule Rule
+        <span class="help-icon" title="Defines when and how often the patient should take this medication.">?</span>
+    </div>
+
+    <div class="field-row">
+        <label for="start-date">
+            Start date
+            <span class="help-icon" title="The first date when this plan becomes active.">?</span>
+        </label>
+        <input type="date" id="start-date">
+
+        <label for="end-date">
+            End date
+            <span class="help-icon" title="The last date when this plan is active. Leave empty for open-ended.">?</span>
+        </label>
+        <input type="date" id="end-date">
+    </div>
+
+    <div class="field-row">
+        <label for="repeat-type">
+            Repeat
+            <span class="help-icon" title="ONCE: single dose; DAILY: every day; WEEKLY: specific days; PRN: as needed.">?</span>
+        </label>
+        <select id="repeat-type">
+            <option value="ONCE">ONCE</option>
+            <option value="DAILY">DAILY</option>
+            <option value="WEEKLY">WEEKLY</option>
+            <option value="PRN">PRN (as needed)</option>
+        </select>
+    </div>
+
+    <!-- WEEKLY: Days -->
+    <div class="field-row hidden" id="days-row">
+        <label>
+            Days
+            <span class="help-icon" title="For WEEKLY repeat, select which days of the week the patient should take this medication.">?</span>
+        </label>
+        <div class="days-group">
+            <label><input type="checkbox" id="day-mon"> Mon</label>
+            <label><input type="checkbox" id="day-tue"> Tue</label>
+            <label><input type="checkbox" id="day-wed"> Wed</label>
+            <label><input type="checkbox" id="day-thu"> Thu</label>
+            <label><input type="checkbox" id="day-fri"> Fri</label>
+            <label><input type="checkbox" id="day-sat"> Sat</label>
+            <label><input type="checkbox" id="day-sun"> Sun</label>
+        </div>
+    </div>
+
+    <!-- NON-PRN: Times -->
+    <div class="field-row" id="times-row">
+        <label for="times-input">
+            Times
+            <span class="help-icon" title="Specific times in a day, separated by commas, such as '08:00, 12:00, 18:00'.">?</span>
+        </label>
+        <input type="text" id="times-input" placeholder="e.g. 08:00, 12:00, 18:00" style="flex: 1;">
+    </div>
+
+    <!-- PRN: Interval only -->
+    <div class="field-row hidden" id="interval-row">
+        <label for="interval-value">
+            Interval (hours)
+            <span class="help-icon" title="For PRN (as needed): minimum number of hours between two doses.">?</span>
+        </label>
+        <input type="number" id="interval-value" placeholder="e.g. 6">
+    </div>
+
+    <!-- ========== ACTIONS ========== -->
+    <div class="actions">
+        <button class="btn btn-primary" id="btn-save">Save</button>
+        <button class="btn" type="button" onclick="history.back();">Back</button>
+    </div>
+
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    const repeatTypeSelect = document.getElementById("repeat-type");
+    const daysRow          = document.getElementById("days-row");
+    const timesRow         = document.getElementById("times-row");
+    const intervalRow      = document.getElementById("interval-row");
+    const messageEl        = document.getElementById("message");
+
+    function updateRuleVisibility() {
+        const val = repeatTypeSelect.value;
+
+        // Default: hide all special sections
+        daysRow.classList.add("hidden");
+        intervalRow.classList.add("hidden");
+        timesRow.classList.remove("hidden"); // times is default visible
+
+        if (val === "WEEKLY") {
+            // Weekly: show days + times, hide interval
+            daysRow.classList.remove("hidden");
+            intervalRow.classList.add("hidden");
+        } else if (val === "PRN") {
+            // PRN: show interval, hide times and days
+            intervalRow.classList.remove("hidden");
+            timesRow.classList.add("hidden");
+            daysRow.classList.add("hidden");
+        } else {
+            // ONCE / DAILY: only times
+            daysRow.classList.add("hidden");
+            intervalRow.classList.add("hidden");
+            timesRow.classList.remove("hidden");
+        }
+    }
+
+    repeatTypeSelect.addEventListener("change", updateRuleVisibility);
+    updateRuleVisibility();
+
+    // Helper: show message
+    function showMessage(text, isError) {
+        messageEl.textContent = text;
+        if (isError) {
+            messageEl.classList.add("error");
+            messageEl.classList.remove("success");
+        } else {
+            messageEl.classList.remove("error");
+            messageEl.classList.add("success");
+        }
+    }
+
+    // Save button
+    document.getElementById("btn-save").addEventListener("click", async function () {
+        const planId       = document.getElementById("plan-id").value;
+        const drugId       = document.getElementById("drug-id").value;
+        const dosage       = document.getElementById("dosage").value;
+        const unit         = document.getElementById("unit").value;
+        const amountLiteral= document.getElementById("amount-literal").value;
+        const note         = document.getElementById("note").value;
+
+        const startDate    = document.getElementById("start-date").value;
+        const endDate      = document.getElementById("end-date").value;
+        const repeatType   = repeatTypeSelect.value;
+
+        const timesInput   = document.getElementById("times-input").value;
+        const intervalVal  = document.getElementById("interval-value").value;
+
+        // Basic validation
+        if (!planId) {
+            showMessage("Missing plan_id. Please check backend template logic.", true);
+            return;
+        }
+        if (!drugId || !dosage || !unit) {
+            showMessage("Drug ID, dosage and unit are required.", true);
+            return;
+        }
+        if (!startDate) {
+            showMessage("Start date is required.", true);
+            return;
+        }
+
+        // Build rule (single rule only)
+        const rule = {
+            start_date: startDate,
+            end_date: endDate || null,
+            repeat_type: repeatType,
+            interval_value: null,
+            mon: false,
+            tue: false,
+            wed: false,
+            thu: false,
+            fri: false,
+            sat: false,
+            sun: false,
+            times: []
+        };
+
+        if (repeatType === "WEEKLY") {
+            // Days
+            rule.mon = document.getElementById("day-mon").checked;
+            rule.tue = document.getElementById("day-tue").checked;
+            rule.wed = document.getElementById("day-wed").checked;
+            rule.thu = document.getElementById("day-thu").checked;
+            rule.fri = document.getElementById("day-fri").checked;
+            rule.sat = document.getElementById("day-sat").checked;
+            rule.sun = document.getElementById("day-sun").checked;
+
+            // Times
+            if (timesInput.trim()) {
+                rule.times = timesInput
+                    .split(",")
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+            }
+        } else if (repeatType === "PRN") {
+            // PRN: interval only
+            if (!intervalVal) {
+                showMessage("Interval is required for PRN schedule.", true);
+                return;
+            }
+            rule.interval_value = parseInt(intervalVal, 10);
+            if (Number.isNaN(rule.interval_value) || rule.interval_value <= 0) {
+                showMessage("Interval must be a positive number of hours.", true);
+                return;
+            }
+            // times stays empty
+        } else {
+            // ONCE / DAILY: times only
+            if (timesInput.trim()) {
+                rule.times = timesInput
+                    .split(",")
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+            }
+        }
+
+        const payload = {
+            plan_id: parseInt(planId, 10),
+            drug_id: parseInt(drugId, 10),
+            dosage: parseInt(dosage, 10),
+            unit: unit,
+            amount_literal: amountLiteral || null,
+            note: note || null,
+            rules: [rule]   // single rule
+        };
+
+        try {
+            const resp = await fetch("/plan_item", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                showMessage("Failed to create plan item: " + (data.error || "Unknown error"), true);
+                return;
+            }
+
+            showMessage("Plan item created successfully. ID: " + data.plan_item_id, false);
+        } catch (err) {
+            console.error(err);
+            showMessage("Network or server error when creating plan item.", true);
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plan Editor</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 20px;
+        }
+
+        .item-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .rule-box {
+            margin-left: 20px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 6px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            background: #1976d2;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .btn-danger {
+            background: #d32f2f;
+        }
+
+        .info-icon {
+            display: inline-block;
+            margin-left: 8px;
+            cursor: pointer;
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 420px;
+        }
+
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Plan Editor (Patient {{ patient_id }})</h2>
+
+<!-- Add New -->
+<div style="margin: 20px 0;">
+    <a class="btn" href="/doctor/plan_item_create?patient_id={{ patient_id }}">
+        ➕ Add New Plan Item
+    </a>
+</div>
+
+<hr>
+
+<!-- Existing Plan Items -->
+{% for item in plan.plan_items %}
+<div class="item-box">
+    <h3>
+        {{ item.drug_name }} {{ item.dosage }} {{ item.unit }}
+        <span class="info-icon" onclick="showDrugInfo({{ item.drug_id }})">ℹ️</span>
+    </h3>
+
+    <p><b>Note:</b> {{ item.note }}</p>
+
+    <h4>Rule</h4>
+
+    {% if item.plan_item_rule %}
+        <div class="rule-box">
+            <b>Start:</b> {{ item.plan_item_rule.start_date }} <br>
+            <b>End:</b> {{ item.plan_item_rule.end_date }} <br>
+            <b>Repeat:</b> {{ item.plan_item_rule.repeat_type }}
+
+            {% if item.plan_item_rule.repeat_type == "PRN" and item.plan_item_rule.interval_value %}
+                ({{ item.plan_item_rule.interval_value }} h)
+            {% endif %}
+            <br>
+
+            {% if item.plan_item_rule.repeat_type == "WEEKLY" %}
+                <b>Days:</b>
+                {{ item.plan_item_rule.mon and 'Mon ' or '' }}
+                {{ item.plan_item_rule.tue and 'Tue ' or '' }}
+                {{ item.plan_item_rule.wed and 'Wed ' or '' }}
+                {{ item.plan_item_rule.thu and 'Thu ' or '' }}
+                {{ item.plan_item_rule.fri and 'Fri ' or '' }}
+                {{ item.plan_item_rule.sat and 'Sat ' or '' }}
+                {{ item.plan_item_rule.sun and 'Sun ' or '' }}
+                <br>
+            {% endif %}
+
+            {% if item.plan_item_rule.repeat_type != "PRN" and item.plan_item_rule.times %}
+                <b>Times:</b>
+                {% for t in item.plan_item_rule.times %}
+                    {{ t }}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% else %}
+        <p>No rule</p>
+    {% endif %}
+
+    <div style="margin-top: 10px;">
+        <a href="/doctor/plan_item_edit?item_id={{ item.id }}&patient_id={{ patient_id }}" class="btn">
+            ✏ Edit
+        </a>
+        <a href="#" onclick="deleteItem({{ item.id }})" class="btn btn-danger">
+            🗑 Delete
+        </a>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ====== MODAL FOR DRUG INFO ====== -->
+<div class="modal" id="drug-modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">✖</span>
+        <h3>Drug Information</h3>
+        <pre id="drug-info" style="white-space: pre-wrap;"></pre>
+    </div>
+</div>
+
+<script>
+function deleteItem(item_id) {
+    if (!confirm("Delete this plan_item?")) return;
+
+    fetch(`/plan_item/${item_id}`, { method: "DELETE" })
+    .then(r => r.json())
+    .then(() => location.reload());
+}
+
+async function showDrugInfo(drugId) {
+    try {
+        const resp = await fetch(`/get_drug?id=${drugId}`);
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            alert("Failed to load drug info");
+            return;
+        }
+
+        // 渲染信息
+        let text = "";
+        for (let key in data) {
+            text += `${key}: ${data[key]}\n`;
+        }
+
+        document.getElementById("drug-info").textContent = text;
+        document.getElementById("drug-modal").style.display = "flex";
+
+    } catch (err) {
+        console.error(err);
+        alert("Network error while loading drug info");
+    }
+}
+
+function closeModal() {
+    document.getElementById("drug-modal").style.display = "none";
+}
+</script>
+
+</body>
+</html>
