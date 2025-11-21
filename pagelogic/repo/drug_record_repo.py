@@ -66,7 +66,7 @@ def _row_to_drug_record(cur, row) -> drug_record:
 def create_drug_record(
     user_id: int,
     drug_id: int,
-    taken_date: date,
+    expected_date: date,
     expected_time: Optional[dt_time] = None,
     dosage_numeric: Optional[float] = None,
     unit: Optional[str] = None,
