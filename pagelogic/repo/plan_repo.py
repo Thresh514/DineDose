@@ -220,6 +220,7 @@ def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
 
     cur.close()
     conn.close()
+    print("[DEBUG] get_all_plan_items_by_plan_id:", len(items))
     return items
 
 
@@ -293,3 +294,215 @@ def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rul
         item_id_to_rules.setdefault(item_id, []).append(rule_obj)
 
     return item_id_to_rules
+
+
+from typing import Any
+
+# ====== 内部工具：解析 time 字符串 ======
+def _parse_time_str(t: str) -> dt_time:
+    parts = t.split(":")
+    hour = int(parts[0])
+    minute = int(parts[1]) if len(parts) > 1 else 0
+    second = int(parts[2]) if len(parts) > 2 else 0
+    return dt_time(hour, minute, second)
+
+
+# ====== CREATE: 新建 plan_item + 对应的 rules ======
+def create_plan_item_with_rules(
+    plan_id: int,
+    drug_id: int,
+    dosage: int,
+    unit: str,
+    amount_literal: Optional[str],
+    note: Optional[str],
+    rules: List[Dict[str, Any]],
+) -> int:
+    """
+    创建一个 plan_item，并一次性插入对应的 plan_item_rule 列表。
+    rules 里每个元素应该是：
+    {
+        "start_date": date,
+        "end_date": Optional[date],
+        "repeat_type": str,
+        "interval_value": Optional[int],
+        "mon": bool, ..., "sun": bool,
+        "times": List[dt_time]
+    }
+    """
+    conn = mydb()
+    cur = conn.cursor()
+
+    try:
+        # 1) 先插入 plan_item
+        insert_item_sql = """
+            INSERT INTO plan_item (plan_id, drug_id, dosage, unit, amount_literal, note)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id;
+        """
+        cur.execute(
+            insert_item_sql,
+            (plan_id, drug_id, dosage, unit, amount_literal, note),
+        )
+        new_item_id = cur.fetchone()[0]
+
+        # 2) 插入对应的 rule
+        insert_rule_sql = """
+            INSERT INTO plan_item_rule (
+                plan_item_id,
+                start_date, end_date,
+                repeat_type, interval_value,
+                mon, tue, wed, thu, fri, sat, sun,
+                times
+            )
+            VALUES (
+                %s,
+                %s, %s,
+                %s, %s,
+                %s, %s, %s, %s, %s, %s, %s,
+                %s
+            )
+        """
+
+        for r in rules:
+            times_list = r.get("times") or []
+            # times_list 已经是 dt_time 列表，如果你在 bp 里解析了的话
+            cur.execute(
+                insert_rule_sql,
+                (
+                    new_item_id,
+                    r["start_date"],
+                    r.get("end_date"),
+                    r["repeat_type"],
+                    r.get("interval_value"),
+                    r.get("mon", False),
+                    r.get("tue", False),
+                    r.get("wed", False),
+                    r.get("thu", False),
+                    r.get("fri", False),
+                    r.get("sat", False),
+                    r.get("sun", False),
+                    times_list,
+                ),
+            )
+
+        conn.commit()
+        return new_item_id
+    except Exception as e:
+        conn.rollback()
+        print("create_plan_item_with_rules ERROR:", e)
+        raise
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ====== UPDATE: 修改 plan_item + 整体替换 rules ======
+def update_plan_item_with_rules(
+    item_id: int,
+    plan_id: int,
+    drug_id: int,
+    dosage: int,
+    unit: str,
+    amount_literal: Optional[str],
+    note: Optional[str],
+    rules: List[Dict[str, Any]],
+) -> bool:
+    """
+    修改 plan_item 的基本信息，并 **删除原有所有 rule，再插入新的 rule 列表**。
+    """
+    conn = mydb()
+    cur = conn.cursor()
+
+    try:
+        # 1) 更新 plan_item
+        update_item_sql = """
+            UPDATE plan_item
+            SET plan_id = %s,
+                drug_id = %s,
+                dosage = %s,
+                unit = %s,
+                amount_literal = %s,
+                note = %s
+            WHERE id = %s
+        """
+        cur.execute(
+            update_item_sql,
+            (plan_id, drug_id, dosage, unit, amount_literal, note, item_id),
+        )
+
+        if cur.rowcount == 0:
+            conn.rollback()
+            return False
+
+        # 2) 删掉原来的 rule
+        cur.execute("DELETE FROM plan_item_rule WHERE plan_item_id = %s", (item_id,))
+
+        # 3) 插入新的 rule
+        insert_rule_sql = """
+            INSERT INTO plan_item_rule (
+                plan_item_id,
+                start_date, end_date,
+                repeat_type, interval_value,
+                mon, tue, wed, thu, fri, sat, sun,
+                times
+            )
+            VALUES (
+                %s,
+                %s, %s,
+                %s, %s,
+                %s, %s, %s, %s, %s, %s, %s,
+                %s
+            )
+        """
+
+        for r in rules:
+            times_list = r.get("times") or []
+            cur.execute(
+                insert_rule_sql,
+                (
+                    item_id,
+                    r["start_date"],
+                    r.get("end_date"),
+                    r["repeat_type"],
+                    r.get("interval_value"),
+                    r.get("mon", False),
+                    r.get("tue", False),
+                    r.get("wed", False),
+                    r.get("thu", False),
+                    r.get("fri", False),
+                    r.get("sat", False),
+                    r.get("sun", False),
+                    times_list,
+                ),
+            )
+
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        print("update_plan_item_with_rules ERROR:", e)
+        raise
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ====== DELETE: 删除 plan_item + 对应 rules ======
+def delete_plan_item_and_rules(item_id: int) -> bool:
+    conn = mydb()
+    cur = conn.cursor()
+    try:
+        # 先删 rule
+        cur.execute("DELETE FROM plan_item_rule WHERE plan_item_id = %s", (item_id,))
+        # 再删 item
+        cur.execute("DELETE FROM plan_item WHERE id = %s", (item_id,))
+        deleted = cur.rowcount > 0
+        conn.commit()
+        return deleted
+    except Exception as e:
+        conn.rollback()
+        print("delete_plan_item_and_rules ERROR:", e)
+        raise
+    finally:
+        cur.close()
+        conn.close()

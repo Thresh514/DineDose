@@ -2,6 +2,39 @@
 #return plan, 以方便前端直接显示
 from pagelogic.repo import drug_repo, plan_repo
 from datetime import datetime, date, time as dt_time, timedelta
+from pagelogic.repo import drug_repo, plan_repo
+
+def get_raw_plan(user_id: int):
+    """
+    医生编辑用：不展开 schedule，只拿原始 plan + items + rules，
+    并补全 drug_name。
+    """
+    plan = plan_repo.get_plan_by_user_id(user_id)
+    if not plan:
+        return None
+
+    items = plan_repo.get_all_plan_items_by_plan_id(plan.id)
+    rules_map = plan_repo.get_plan_item_rules_by_plan_id(plan.id)
+
+    # ------- 补全 drug_name -------
+    drug_ids = [it.drug_id for it in items]
+    drugs = drug_repo.get_drugs_by_ids_locally(drug_ids)
+    drug_map = {d.id: d.generic_name for d in drugs}
+
+    for it in items:
+        # 绑定第一条规则（如果有）
+        item_rules = rules_map.get(it.id, [])
+        if isinstance(item_rules, (list, tuple)) and item_rules:
+            it.plan_item_rule = item_rules[0]
+        else:
+            it.plan_item_rule = None
+
+        # 补全药名
+        it.drug_name = drug_map.get(it.drug_id)
+
+    plan.plan_items = items
+    return plan
+
 
 def get_user_plan(
             id, #获取谁的Plan
