@@ -11,8 +11,8 @@ class drug_record:
     user_id: int
     drug_id: int
 
-    taken_date: date
-    taken_time: Optional[dt_time]
+    expected_date: date
+    expected_time: Optional[dt_time]
 
     dosage_numeric: Optional[float]
     unit: Optional[str]
@@ -22,7 +22,7 @@ class drug_record:
     status: str             # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     notes: Optional[str]
 
-    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
     def to_dict(self):
         """Serialize to JSON-friendly dict"""
@@ -46,7 +46,7 @@ def _row_to_drug_record(cur, row) -> drug_record:
         drug_id=rd["drug_id"],
 
         taken_date=rd["taken_date"],
-        taken_time=rd["taken_time"],
+        expected_time=rd["expected_time"],
 
         dosage_numeric=rd["dosage_numeric"],
         unit=rd["unit"],
@@ -57,7 +57,7 @@ def _row_to_drug_record(cur, row) -> drug_record:
         status=rd["status"],          # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         notes=rd["notes"],
 
-        created_at=rd["created_at"]
+        updated_at=rd["updated_at"]
     )
 
 
@@ -68,7 +68,7 @@ def create_drug_record(
     user_id: int,
     drug_id: int,
     taken_date: date,
-    taken_time: Optional[dt_time] = None,
+    expected_time: Optional[dt_time] = None,
     dosage_numeric: Optional[float] = None,
     unit: Optional[str] = None,
     plan_item_id: Optional[int] = None,
@@ -81,7 +81,7 @@ def create_drug_record(
 
     query = """
         INSERT INTO drug_records (
-            user_id, drug_id, taken_date, taken_time,
+            user_id, drug_id, taken_date, expected_time,
             dosage_numeric, unit,
             plan_item_id, status, notes
         )
@@ -91,7 +91,7 @@ def create_drug_record(
 
     cur.execute(query, (
         user_id, drug_id,
-        taken_date, taken_time,
+        taken_date, expected_time,
         dosage_numeric, unit,
         plan_item_id, status, notes # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     ))
@@ -133,7 +133,7 @@ def get_drug_records_by_user_id(user_id: int) -> List[drug_record]:
     query = """
         SELECT * FROM drug_records
         WHERE user_id = %s
-        ORDER BY taken_date DESC, taken_time DESC
+        ORDER BY taken_date DESC, expected_time DESC
     """
     cur.execute(query, (user_id,))
     rows = cur.fetchall()
@@ -159,7 +159,7 @@ def get_drug_records_by_date_range(
         SELECT * FROM drug_records
         WHERE user_id = %s
         AND taken_date BETWEEN %s AND %s
-        ORDER BY taken_date, taken_time
+        ORDER BY taken_date, expected_time
     """
 
     cur.execute(query, (user_id, start, end))
