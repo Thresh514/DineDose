@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, request, session
 from datetime import date, datetime, time as dt_time, timedelta
-from pagelogic.repo import food_repo, drug_repo, food_record_repo
+from pagelogic.repo import food_repo, drug_repo, food_record_repo, drug_record_repo
 from pagelogic.service import plan_service
 
 patient_home_bp = Blueprint('patient_home', __name__)
@@ -233,10 +233,10 @@ def patient_food_history_page():
 
 @patient_home_bp.route('/patient/plan', methods=['GET'])
 def patient_plan_page():
-    # 获取当前用户ID
+    # 从 session 获取当前用户ID
     user_id = session.get('user_id')
-    
-    # 获取选中的日期（从请求参数，默认今天）
+
+    # 获取选中的日期（默认今天）
     selected_date_str = request.args.get('date')
     if selected_date_str:
         try:
@@ -247,11 +247,11 @@ def patient_plan_page():
         selected_date = date.today()
     
     # 计算选中日期所在周的开始日期（周日）和结束日期（周六）
-    days_since_sunday = (selected_date.weekday() + 1) % 7  # 转换为：0=Sunday, 6=Saturday
+    days_since_sunday = (selected_date.weekday() + 1) % 7  # 0=Sunday, 6=Saturday
     week_start = selected_date - timedelta(days=days_since_sunday)
     week_end = week_start + timedelta(days=6)
     
-    # 生成一周的日期列表（周日到周六）
+    # 一周日期列表
     week_dates = []
     for i in range(7):
         week_date = week_start + timedelta(days=i)
@@ -262,49 +262,102 @@ def patient_plan_page():
             'is_selected': week_date == selected_date
         })
     
+    # 未登录：空数据
     if not user_id:
-        # 如果没有登录，返回空数据
-        return render_template('patient_plan.html', 
-                             morning_items=[], 
-                             noon_items=[], 
-                             evening_items=[],
-                             selected_date=selected_date,
-                             week_dates=week_dates,
-                             week_start=week_start,
-                             week_end=week_end)
+        return render_template(
+            'patient_plan.html',
+            user_id=None,
+            morning_items=[], 
+            noon_items=[], 
+            evening_items=[],
+            completed_map={},
+            selected_date=selected_date,
+            week_dates=week_dates,
+            week_start=week_start,
+            week_end=week_end
+        )
     
-    # 获取该日期所在周的所有数据
     from_when = week_start
     to_when = week_end
     
-    # 调用服务获取计划
     try:
         plan = plan_service.get_user_plan(user_id, from_when, to_when)
         if plan is None:
-            # 如果没有计划，返回空数据
-            return render_template('patient_plan.html', 
-                                 morning_items=[], 
-                                 noon_items=[], 
-                                 evening_items=[],
-                                 selected_date=selected_date,
-                                 week_dates=week_dates,
-                                 week_start=week_start,
-                                 week_end=week_end)
+            return render_template(
+                'patient_plan.html',
+                user_id=user_id,
+                morning_items=[], 
+                noon_items=[], 
+                evening_items=[],
+                completed_map={},
+                selected_date=selected_date,
+                week_dates=week_dates,
+                week_start=week_start,
+                week_end=week_end
+            )
     except Exception as e:
-        # 如果获取计划出错（比如用户没有计划），返回空数据
         print(f"Error getting plan: {e}")
-        return render_template('patient_plan.html', 
-                             morning_items=[], 
-                             noon_items=[], 
-                             evening_items=[],
-                             selected_date=selected_date,
-                             week_dates=week_dates,
-                             week_start=week_start,
-                             week_end=week_end)
+        return render_template(
+            'patient_plan.html',
+            user_id=user_id,
+            morning_items=[], 
+            noon_items=[], 
+            evening_items=[],
+            completed_map={},
+            selected_date=selected_date,
+            week_dates=week_dates,
+            week_start=week_start,
+            week_end=week_end
+        )
+    
+    # ====== 关键：查这一周内已经记录过的 drug_records，构建 completed_map ======
+    # ====== 查这一周内已经记录过的 drug_records，构建 completed_map ======
+    records = drug_record_repo.get_drug_records_by_date_range(
+        user_id=user_id,
+        start=week_start,
+        end=week_end
+    )
+
+    completed_map = {}
+    for r in records:
+        # 必须要挂在某个 plan_item 上，且有 expected_date
+        if r.plan_item_id is None or r.expected_date is None:
+            continue
+
+        key = f"{r.plan_item_id}_{r.expected_date.isoformat()}_{r.expected_time.isoformat() if r.expected_time else ''}"
+
+        # 用 expected_date + expected_time 和 updated_at 来判断 EARLY / LATE / ON_TIME
+        timing_status = "ON_TIME"
+        if r.updated_at and r.expected_time:
+            if r.expected_time:
+                expected_dt = datetime.combine(r.expected_date, r.expected_time)
+            else:
+                expected_dt = datetime.combine(r.expected_date, dt_time.min)
+
+            # updated_at 是 aware，取它的 tzinfo
+            tz = r.updated_at.tzinfo
+            expected_dt = expected_dt.replace(tzinfo=tz)
+
+            diff_hours = (r.updated_at - expected_dt).total_seconds() / 3600.0
+            abs_diff = abs(diff_hours)
+
+            if abs_diff < 1:
+                timing_status = "ON_TIME"
+            elif diff_hours > 0:
+                timing_status = "LATE"
+            else:
+                timing_status = "EARLY"
+
+        # 记录下实际记录时间（HH:MM）
+        taken_time_str = r.updated_at.isoformat() if r.updated_at else None
+        # e.g. "2025-11-20T22:16:52.843000"
+        completed_map[key] = {
+            "status": timing_status,
+            "taken_time": taken_time_str,
+        }
     
     # 过滤出选中日期的 plan_items
-    day_items = [item for item in plan.plan_items 
-                 if item.date == selected_date]
+    day_items = [item for item in plan.plan_items if item.date == selected_date]
     
     # 根据时间分组
     morning_items = []
@@ -313,14 +366,11 @@ def patient_plan_page():
     
     for item in day_items:
         if item.time is None:
-            # 如果没有时间，默认放到中午
             noon_items.append(item)
             continue
         
-        # 将 time 转换为可比较的格式
         if isinstance(item.time, str):
             try:
-                # 处理字符串格式的时间，如 "08:00:00"
                 parts = item.time.split(':')
                 hour = int(parts[0])
             except (ValueError, IndexError):
@@ -332,7 +382,6 @@ def patient_plan_page():
             noon_items.append(item)
             continue
         
-        # 分组：morning (6-12), noon (12-17), evening (17-24)
         if 6 <= hour < 12:
             morning_items.append(item)
         elif 12 <= hour < 17:
@@ -340,14 +389,17 @@ def patient_plan_page():
         elif 17 <= hour < 24:
             evening_items.append(item)
         else:
-            # 0-6 点也归为早晨
             morning_items.append(item)
     
-    return render_template('patient_plan.html', 
-                         morning_items=morning_items,
-                         noon_items=noon_items,
-                         evening_items=evening_items,
-                         selected_date=selected_date,
-                         week_dates=week_dates,
-                         week_start=week_start,
-                         week_end=week_end)
+    return render_template(
+        'patient_plan.html', 
+        user_id=user_id,
+        morning_items=morning_items,
+        noon_items=noon_items,
+        evening_items=evening_items,
+        completed_map=completed_map,
+        selected_date=selected_date,
+        week_dates=week_dates,
+        week_start=week_start,
+        week_end=week_end
+    )

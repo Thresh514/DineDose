@@ -2,8 +2,9 @@
 {% block content %}
 <div class="plan-page h-screen" 
      data-plan-url="{{ url_for('patient_home.patient_plan_page') }}"
+     data-user-id="{{ user_id }}"
      {% if selected_date %}data-selected-date="{{ selected_date.isoformat() }}"{% endif %}>
-    <!-- 周导航控制 -->
+    <!-- Week controls -->
     <div class="plan-week-controls">
         <button class="week-nav-btn" id="prev-week-btn" aria-label="Previous week">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,7 +25,7 @@
         </button>
     </div>
     
-    <!-- 星期导航 -->
+    <!-- Week day nav -->
     <div class="plan-week-nav">
         {% if week_dates %}
             {% for day_info in week_dates %}
@@ -36,7 +37,6 @@
             </button>
             {% endfor %}
         {% else %}
-            <!-- 默认显示（如果没有数据） -->
             <button class="week-day active" data-day="0">S</button>
             <button class="week-day" data-day="1">M</button>
             <button class="week-day" data-day="2">T</button>
@@ -47,9 +47,9 @@
         {% endif %}
     </div>
     
-    <!-- 时间段列表 -->
+    <!-- Sections -->
     <div class="plan-sections">
-        <!-- 早晨部分 -->
+        <!-- ===== Morning ===== -->
         <section class="time-section time-section--morning">
             <div class="time-section-bg">
                 <img src="{{ url_for('static', filename='public/Sunrise.png') }}" alt="Morning" class="time-icon" aria-hidden="true">
@@ -57,7 +57,18 @@
             <ul class="plan-item-list">
                 {% if morning_items %}
                     {% for item in morning_items %}
-                    <li class="plan-item">
+                        {% set key = item.id|string + '_' + (item.date.isoformat() if item.date else '') + '_' + (item.time.isoformat() if item.time else '') %}
+                        {% set rec = completed_map.get(key) %}
+                        {% set rec_status = rec.status if rec else (rec['status'] if rec is not none and 'status' in rec else None) %}
+                        {% set rec_time = rec.taken_time if rec else (rec['taken_time'] if rec is not none and 'taken_time' in rec else None) %}
+                    <li class="plan-item{% if rec_status %} plan-item--completed{% endif %}"
+                        data-plan-item-id="{{ item.id }}"
+                        data-drug-id="{{ item.drug_id }}"
+                        data-expected-date="{{ item.date.isoformat() if item.date else '' }}"
+                        data-expected-time="{{ item.time.isoformat() if item.time else '' }}"
+                        data-completed="{% if rec_status %}1{% else %}0{% endif %}"
+                        data-completion-status="{{ rec_status or '' }}"
+                        data-completion-time="{{ rec_time or '' }}">
                         <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
@@ -71,27 +82,27 @@
                                     <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
                                 {% endif %}
                             {% endif %}
+                            <span class="plan-item-status">
+                                {% if rec_status == 'ON_TIME' %}
+                                    Completed on time
+                                {% elif rec_status == 'LATE' %}
+                                    Completed late
+                                {% elif rec_status == 'EARLY' %}
+                                    Completed early
+                                {% endif %}
+                            </span>
                         </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                        {% if not rec_status %}
+                        <button class="plan-item-checkbox"
+                                aria-label="Mark as completed">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 6L9 17l-5-5"/>
                             </svg>
                         </button>
+                        {% endif %}
                     </li>
                     {% endfor %}
                 {% else %}
-                    <!-- 占位数据，后端数据传入后会被替换 -->
-                    <li class="plan-item">
-                        <div class="plan-item-avatar">A</div>
-                        <div class="plan-item-content">
-                            <span class="plan-item-name">List item</span>
-                        </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                        </button>
-                    </li>
                     <li class="plan-item">
                         <div class="plan-item-avatar">A</div>
                         <div class="plan-item-content">
@@ -107,7 +118,7 @@
             </ul>
         </section>
         
-        <!-- 中午部分 -->
+        <!-- ===== Noon ===== -->
         <section class="time-section time-section--noon">
             <div class="time-section-bg">
                 <img src="{{ url_for('static', filename='public/Sun.png') }}" alt="Noon" class="time-icon" aria-hidden="true">
@@ -115,7 +126,18 @@
             <ul class="plan-item-list">
                 {% if noon_items %}
                     {% for item in noon_items %}
-                    <li class="plan-item">
+                        {% set key = item.id|string + '_' + (item.date.isoformat() if item.date else '') + '_' + (item.time.isoformat() if item.time else '') %}
+                        {% set rec = completed_map.get(key) %}
+                        {% set rec_status = rec.status if rec else (rec['status'] if rec is not none and 'status' in rec else None) %}
+                        {% set rec_time = rec.taken_time if rec else (rec['taken_time'] if rec is not none and 'taken_time' in rec else None) %}
+                    <li class="plan-item{% if rec_status %} plan-item--completed{% endif %}"
+                        data-plan-item-id="{{ item.id }}"
+                        data-drug-id="{{ item.drug_id }}"
+                        data-expected-date="{{ item.date.isoformat() if item.date else '' }}"
+                        data-expected-time="{{ item.time.isoformat() if item.time else '' }}"
+                        data-completed="{% if rec_status %}1{% else %}0{% endif %}"
+                        data-completion-status="{{ rec_status or '' }}"
+                        data-completion-time="{{ rec_time or '' }}">
                         <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
@@ -129,43 +151,31 @@
                                     <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
                                 {% endif %}
                             {% endif %}
+                            <span class="plan-item-status">
+                                {% if rec_status == 'ON_TIME' %}
+                                    Completed on time
+                                {% elif rec_status == 'LATE' %}
+                                    Completed late
+                                {% elif rec_status == 'EARLY' %}
+                                    Completed early
+                                {% endif %}
+                            </span>
                         </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                        {% if not rec_status %}
+                        <button class="plan-item-checkbox"
+                                aria-label="Mark as completed">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 6L9 17l-5-5"/>
                             </svg>
                         </button>
+                        {% endif %}
                     </li>
                     {% endfor %}
-                {% else %}
-                    <!-- 占位数据，后端数据传入后会被替换 -->
-                    <li class="plan-item">
-                        <div class="plan-item-avatar">A</div>
-                        <div class="plan-item-content">
-                            <span class="plan-item-name">List item</span>
-                        </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                        </button>
-                    </li>
-                    <li class="plan-item">
-                        <div class="plan-item-avatar">A</div>
-                        <div class="plan-item-content">
-                            <span class="plan-item-name">List item</span>
-                        </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                        </button>
-                    </li>
                 {% endif %}
             </ul>
         </section>
         
-        <!-- 晚上部分 -->
+        <!-- ===== Evening ===== -->
         <section class="time-section time-section--evening">
             <div class="time-section-bg">
                 <img src="{{ url_for('static', filename='public/Sunset.png') }}" alt="Evening" class="time-icon" aria-hidden="true">
@@ -173,7 +183,18 @@
             <ul class="plan-item-list">
                 {% if evening_items %}
                     {% for item in evening_items %}
-                    <li class="plan-item">
+                        {% set key = item.id|string + '_' + (item.date.isoformat() if item.date else '') + '_' + (item.time.isoformat() if item.time else '') %}
+                        {% set rec = completed_map.get(key) %}
+                        {% set rec_status = rec.status if rec else (rec['status'] if rec is not none and 'status' in rec else None) %}
+                        {% set rec_time = rec.taken_time if rec else (rec['taken_time'] if rec is not none and 'taken_time' in rec else None) %}
+                    <li class="plan-item{% if rec_status %} plan-item--completed{% endif %}"
+                        data-plan-item-id="{{ item.id }}"
+                        data-drug-id="{{ item.drug_id }}"
+                        data-expected-date="{{ item.date.isoformat() if item.date else '' }}"
+                        data-expected-time="{{ item.time.isoformat() if item.time else '' }}"
+                        data-completed="{% if rec_status %}1{% else %}0{% endif %}"
+                        data-completion-status="{{ rec_status or '' }}"
+                        data-completion-time="{{ rec_time or '' }}">
                         <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
@@ -187,38 +208,26 @@
                                     <span class="plan-item-time">{{ item.time.strftime('%I:%M %p') }}</span>
                                 {% endif %}
                             {% endif %}
+                            <span class="plan-item-status">
+                                {% if rec_status == 'ON_TIME' %}
+                                    Completed on time
+                                {% elif rec_status == 'LATE' %}
+                                    Completed late
+                                {% elif rec_status == 'EARLY' %}
+                                    Completed early
+                                {% endif %}
+                            </span>
                         </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
+                        {% if not rec_status %}
+                        <button class="plan-item-checkbox"
+                                aria-label="Mark as completed">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 6L9 17l-5-5"/>
                             </svg>
                         </button>
+                        {% endif %}
                     </li>
                     {% endfor %}
-                {% else %}
-                    <!-- 占位数据，后端数据传入后会被替换 -->
-                    <li class="plan-item">
-                        <div class="plan-item-avatar">A</div>
-                        <div class="plan-item-content">
-                            <span class="plan-item-name">List item</span>
-                        </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                        </button>
-                    </li>
-                    <li class="plan-item">
-                        <div class="plan-item-avatar">A</div>
-                        <div class="plan-item-content">
-                            <span class="plan-item-name">List item</span>
-                        </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                        </button>
-                    </li>
                 {% endif %}
             </ul>
         </section>
@@ -236,8 +245,9 @@
     
     var planPageUrl = planPage.getAttribute('data-plan-url') || '';
     var currentDateStr = planPage.getAttribute('data-selected-date');
-    
-    // 周切换功能
+    var currentUserId = planPage.getAttribute('data-user-id');
+
+    // ---------- Week navigation ----------
     function navigateWeek(direction) {
         if (!currentDateStr) return;
         
@@ -246,7 +256,6 @@
         var newDate = new Date(currentDate);
         newDate.setDate(currentDate.getDate() + daysToAdd);
         
-        // 重定向到新日期的页面
         var year = newDate.getFullYear();
         var month = String(newDate.getMonth() + 1).padStart(2, '0');
         var day = String(newDate.getDate()).padStart(2, '0');
@@ -254,12 +263,10 @@
         window.location.href = planPageUrl + '?date=' + dateStr;
     }
     
-    // 日期选择功能
     function selectDate(dateStr) {
         window.location.href = planPageUrl + '?date=' + dateStr;
     }
     
-    // 绑定事件
     if (prevWeekBtn) {
         prevWeekBtn.addEventListener('click', function() { navigateWeek('prev'); });
     }
@@ -276,6 +283,188 @@
             }
         });
     });
+
+    // ---------- classify ----------
+    function classifyTaking(expectedDt, nowDt) {
+        var diffMs = nowDt.getTime() - expectedDt.getTime();
+        var diffHours = diffMs / (1000 * 60 * 60);
+        var absDiff = Math.abs(diffHours);
+
+        if (diffHours >= 24) {
+            return { canComplete: false, status: "TOO_LATE", flag: null,
+                     message: "Too late! can't complete" };
+        }
+        if (diffHours <= -24) {
+            return { canComplete: false, status: "TOO_EARLY", flag: null,
+                     message: "Too early! can't complete" };
+        }
+        if (absDiff < 1) {
+            return { canComplete: true, status: "ON_TIME", flag: null, message: "" };
+        }
+        if (diffHours > 0) {
+            return { canComplete: true, status: "LATE", flag: "LATE",
+                     message: "A little bit late, your completion will be marked with late flag" };
+        }
+        return { canComplete: true, status: "EARLY", flag: "EARLY",
+                 message: "A little bit early, your completion will be marked with early flag" };
+    }
+
+    function buildExpectedDate(li) {
+        var dateStr = li.getAttribute('data-expected-date');
+        var timeStr = li.getAttribute('data-expected-time');
+
+        if (!dateStr) return null;
+
+        if (timeStr && timeStr.length > 0) {
+            return new Date(dateStr + "T" + timeStr);
+        }
+        return null;
+    }
+
+    function formatTimeHHMM(dt) {
+        var h = String(dt.getHours()).padStart(2, '0');
+        var m = String(dt.getMinutes()).padStart(2, '0');
+        return h + ":" + m;
+    }
+
+    function formatLocalHHMM(isoString) {
+        if (!isoString) return "";
+        var dt = new Date(isoString);   // 自动按浏览器本地时区解析
+        if (isNaN(dt.getTime())) return "";
+        var h = String(dt.getHours()).padStart(2, '0');
+        var m = String(dt.getMinutes()).padStart(2, '0');
+        return h + ":" + m;
+    }
+
+    async function markDrugTaken(li, btn, result, nowDt) {
+        if (!currentUserId) {
+            alert("Missing user id");
+            return;
+        }
+
+        var planItemId = li.getAttribute('data-plan-item-id');
+        var drugId = li.getAttribute('data-drug-id');
+        var expectedDate = li.getAttribute('data-expected-date');
+        var expectedTime = li.getAttribute('data-expected-time') || null;
+
+        var payload = {
+            user_id: Number(currentUserId),
+            drug_id: Number(drugId),
+            plan_item_id: Number(planItemId),
+            expected_date: expectedDate,
+            expected_time: expectedTime,
+            status: result.status,
+            timing_flag: result.flag,
+            taken_at: nowDt.toISOString()
+        };
+
+        try {
+            const resp = await fetch("/mark_drug_taken", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok || data.error) {
+                alert(data.error || "Failed to mark drug as taken");
+                return;
+            }
+
+            if (result.message) {
+                alert(result.message + " (saved)");
+            } else {
+                alert("Recorded as taken");
+            }
+
+            li.classList.add("plan-item--completed");
+            li.setAttribute("data-completed", "1");
+            li.setAttribute("data-completion-status", result.status);
+            li.setAttribute("data-completion-time", nowDt.toISOString());
+
+            if (btn && btn.parentNode) {
+                btn.parentNode.removeChild(btn);
+            }
+
+            var statusSpan = li.querySelector(".plan-item-status");
+            if (statusSpan) {
+                var timeStr = formatTimeHHMM(nowDt);
+                if (result.status === "ON_TIME") {
+                    statusSpan.textContent = "Completed on time at " + timeStr;
+                } else if (result.status === "LATE") {
+                    statusSpan.textContent = "Completed late at " + timeStr;
+                } else if (result.status === "EARLY") {
+                    statusSpan.textContent = "Completed early at " + timeStr;
+                }
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert("Network error while marking drug as taken");
+        }
+    }
+
+    // ---------- click handlers ----------
+    var checkboxes = document.querySelectorAll('.plan-item-checkbox');
+    checkboxes.forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            var li = btn.closest('.plan-item');
+            if (!li) return;
+
+            var completed = li.getAttribute("data-completed");
+            if (completed === "1") {
+                alert("This dose has already been recorded.");
+                return;
+            }
+
+            var expectedDt = buildExpectedDate(li);
+            if (!expectedDt) {
+                alert("This item has no valid expected time; cannot complete.");
+                return;
+            }
+
+            var nowDt = new Date();
+            var result = classifyTaking(expectedDt, nowDt);
+
+            if (!result.canComplete) {
+                alert(result.message);
+                return;
+            }
+
+            if (result.message) {
+                alert(result.message);
+            }
+
+            await markDrugTaken(li, btn, result, nowDt);
+        });
+    });
+
+    // ---------- 初次加载时，把已完成项的时间改成本地 HH:MM ----------
+    document.querySelectorAll('.plan-item').forEach(function(li) {
+        var completed = li.getAttribute('data-completed') === '1';
+        if (!completed) return;
+
+        var status = li.getAttribute('data-completion-status');
+        var takenIso = li.getAttribute('data-completion-time');
+        if (!status || !takenIso) return;
+
+        var hhmm = formatLocalHHMM(takenIso);
+        if (!hhmm) return;
+
+        var span = li.querySelector('.plan-item-status');
+        if (!span) return;
+
+        if (status === 'ON_TIME') {
+            span.textContent = "Completed on time at " + hhmm;
+        } else if (status === 'LATE') {
+            span.textContent = "Completed late at " + hhmm;
+        } else if (status === 'EARLY') {
+            span.textContent = "Completed early at " + hhmm;
+        }
+    });
+
 })();
 </script>
 {% endblock %}

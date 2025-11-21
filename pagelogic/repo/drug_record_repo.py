@@ -11,8 +11,8 @@ class drug_record:
     user_id: int
     drug_id: int
 
-    taken_date: date
-    taken_time: Optional[dt_time]
+    expected_date: date
+    expected_time: Optional[dt_time]
 
     dosage_numeric: Optional[float]
     unit: Optional[str]
@@ -22,7 +22,7 @@ class drug_record:
     status: str             # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     notes: Optional[str]
 
-    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
     def to_dict(self):
         """Serialize to JSON-friendly dict"""
@@ -45,19 +45,18 @@ def _row_to_drug_record(cur, row) -> drug_record:
         user_id=rd["user_id"],
         drug_id=rd["drug_id"],
 
-        taken_date=rd["taken_date"],
-        taken_time=rd["taken_time"],
+        expected_date=rd["expected_date"],
+        expected_time=rd["expected_time"],
 
         dosage_numeric=rd["dosage_numeric"],
         unit=rd["unit"],
 
-
         plan_item_id=rd["plan_item_id"],
 
-        status=rd["status"],          
+        status=rd["status"],          # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         notes=rd["notes"],
 
-        created_at=rd["created_at"]
+        updated_at=rd["updated_at"]
     )
 
 
@@ -67,12 +66,12 @@ def _row_to_drug_record(cur, row) -> drug_record:
 def create_drug_record(
     user_id: int,
     drug_id: int,
-    taken_date: date,
-    taken_time: Optional[dt_time] = None,
+    expected_date: date,
+    expected_time: Optional[dt_time] = None,
     dosage_numeric: Optional[float] = None,
     unit: Optional[str] = None,
     plan_item_id: Optional[int] = None,
-    status: Optional[str] = None,      
+    status: Optional[str] = None,      # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     notes: Optional[str] = None
 ) -> int:
 
@@ -81,7 +80,7 @@ def create_drug_record(
 
     query = """
         INSERT INTO drug_records (
-            user_id, drug_id, taken_date, taken_time,
+            user_id, drug_id, expected_date, expected_time,
             dosage_numeric, unit,
             plan_item_id, status, notes
         )
@@ -91,7 +90,7 @@ def create_drug_record(
 
     cur.execute(query, (
         user_id, drug_id,
-        taken_date, taken_time,
+        expected_date, expected_time,
         dosage_numeric, unit,
         plan_item_id, status, notes
     ))
@@ -133,7 +132,7 @@ def get_drug_records_by_user_id(user_id: int) -> List[drug_record]:
     query = """
         SELECT * FROM drug_records
         WHERE user_id = %s
-        ORDER BY taken_date DESC, taken_time DESC
+        ORDER BY expected_date DESC, expected_time DESC
     """
     cur.execute(query, (user_id,))
     rows = cur.fetchall()
@@ -158,8 +157,8 @@ def get_drug_records_by_date_range(
     query = """
         SELECT * FROM drug_records
         WHERE user_id = %s
-        AND taken_date BETWEEN %s AND %s
-        ORDER BY taken_date, taken_time
+        AND expected_date BETWEEN %s AND %s
+        ORDER BY expected_date, expected_time
     """
 
     cur.execute(query, (user_id, start, end))
@@ -190,7 +189,7 @@ def delete_drug_record(record_id: int) -> bool:
 # ---------- UPDATE ----------
 def update_drug_record(
     record_id: int,
-    status: str,
+    status: str, # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     dosage_numeric: Optional[float],
     unit: Optional[str],
     notes: Optional[str]
@@ -204,7 +203,8 @@ def update_drug_record(
         SET dosage_numeric = %s,
             unit = %s,
             status = %s,
-            notes = %s
+            notes = %s,
+            updated_at = NOW()
         WHERE id = %s
     """
 
@@ -221,3 +221,91 @@ def update_drug_record(
     conn.close()
 
     return updated
+
+
+# ---------- GET by unique key (user + plan_item + date + time) ----------
+def get_drug_record_by_unique_key(
+    user_id: int,
+    plan_item_id: int,
+    expected_date: date,
+    expected_time: Optional[dt_time]
+) -> Optional[drug_record]:
+    """
+    用于 /mark_drug_taken：
+    按 (user_id, plan_item_id, expected_date, expected_time) 找唯一记录。
+    """
+    conn = mydb()
+    cur = conn.cursor()
+
+    query = """
+        SELECT *
+        FROM drug_records
+        WHERE user_id = %s
+          AND plan_item_id = %s
+          AND expected_date = %s
+          AND (
+                (expected_time IS NULL AND %s IS NULL)
+             OR (expected_time = %s)
+          )
+        LIMIT 1
+    """
+    cur.execute(query, (user_id, plan_item_id, expected_date, expected_time, expected_time))
+    row = cur.fetchone()
+
+    if not row:
+        cur.close()
+        conn.close()
+        return None
+
+    record = _row_to_drug_record(cur, row)
+
+    cur.close()
+    conn.close()
+
+    return record
+
+
+def get_drug_record_by_unique(
+    user_id: int,
+    plan_item_id: int,
+    expected_date: date,
+    expected_time: Optional[dt_time]
+) -> Optional[drug_record]:
+    """
+    查是否已经有同一个 user / plan_item / expected_date / expected_time 的记录。
+    用于防止重复打勾。
+    """
+    conn = mydb()
+    cur = conn.cursor()
+
+    if expected_time is None:
+        query = """
+            SELECT * FROM drug_records
+            WHERE user_id = %s
+              AND plan_item_id = %s
+              AND expected_date = %s
+              AND expected_time IS NULL
+            LIMIT 1
+        """
+        cur.execute(query, (user_id, plan_item_id, expected_date))
+    else:
+        query = """
+            SELECT * FROM drug_records
+            WHERE user_id = %s
+              AND plan_item_id = %s
+              AND expected_date = %s
+              AND expected_time = %s
+            LIMIT 1
+        """
+        cur.execute(query, (user_id, plan_item_id, expected_date, expected_time))
+
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return None
+
+    record = _row_to_drug_record(cur, row)
+    cur.close()
+    conn.close()
+    return record
