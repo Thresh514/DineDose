@@ -47,7 +47,7 @@ def _row_to_food_record(cur, row) -> food_record:
         plan_item_id=rd["plan_item_id"],
         notes=rd["notes"],
         created_at=rd["created_at"],
-        status=rd["status"],
+        status=rd["status"], # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     )
 
 # ---- CREATE ----
@@ -62,7 +62,7 @@ def create_food_record(
     source: str = "manual",
     plan_item_id: Optional[int] = None,
     notes: Optional[str] = None,
-    status: Optional[str] = None,
+    status: Optional[str] = None, # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
 ) -> int:
     conn = mydb()
     cur = conn.cursor()
@@ -82,7 +82,7 @@ def create_food_record(
         (
             user_id, food_id, eaten_date, eaten_time,
             amount_numeric, unit, amount_literal,
-            source, plan_item_id, notes, status
+            source, plan_item_id, notes, status # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         )
     )
 
@@ -189,7 +189,7 @@ def update_food_record(
     unit: Optional[str],
     amount_literal: Optional[str],
     notes: Optional[str],
-    status: Optional[str],
+    status: Optional[str], # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
 ) -> bool:
     conn = mydb()
     cur = conn.cursor()
