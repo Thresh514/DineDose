@@ -1,3 +1,4 @@
+import datetime
 from flask import jsonify, Blueprint, request
 from datetime import date, time as dt_time
 from pagelogic.repo import drug_record_repo
@@ -158,8 +159,8 @@ def create_drug_record():
     new_id = drug_record_repo.create_drug_record(
         user_id=user_id,
         drug_id=drug_id,
-        taken_date=taken_date,
-        taken_time=taken_time,
+        expected_date=taken_date,
+        expected_time=taken_time,
         dosage_numeric=data.get("dosage_numeric"),
         unit=data.get("unit"),
         plan_item_id=data.get("plan_item_id"),
@@ -168,3 +169,83 @@ def create_drug_record():
     )
     
     return jsonify({"message": "Drug record created", "id": new_id}), 200
+
+
+
+
+@drug_record_bp.route('/mark_drug_taken', methods=['POST'])
+def mark_drug_taken():
+    data = request.get_json() or {}
+
+    user_id = data.get("user_id")
+    drug_id = data.get("drug_id")
+    plan_item_id = data.get("plan_item_id")
+    expected_date_str = data.get("expected_date")
+    expected_time_str = data.get("expected_time")  # 可能为 None
+    status = data.get("status")       # ON_TIME / EARLY / LATE（业务状态）
+    timing_flag = data.get("timing_flag")  # EARLY / LATE / None
+    taken_at_str = data.get("taken_at")    # ISO string，用于日志/调试
+
+    # 基本校验
+    if not user_id or not drug_id or not plan_item_id or not expected_date_str:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    try:
+        user_id = int(user_id)
+        drug_id = int(drug_id)
+        plan_item_id = int(plan_item_id)
+    except ValueError:
+        return jsonify({"error": "Invalid id"}), 400
+
+    try:
+        expected_date = date.fromisoformat(expected_date_str)
+    except ValueError:
+        return jsonify({"error": "Invalid expected_date"}), 400
+
+    expected_time = None
+    if expected_time_str:
+        try:
+            parts = expected_time_str.split(':')
+            hour = int(parts[0])
+            minute = int(parts[1]) if len(parts) > 1 else 0
+            second = int(parts[2]) if len(parts) > 2 else 0
+            expected_time = dt_time(hour, minute, second)
+        except (ValueError, IndexError):
+            return jsonify({"error": "Invalid expected_time"}), 400
+
+    # 业务状态校验：只允许 ON_TIME / EARLY / LATE
+    if status not in ("ON_TIME", "EARLY", "LATE"):
+        return jsonify({"error": "Invalid status"}), 400
+
+    # ====== 查重：同一个 plan_item + expected_date + expected_time 不允许重复记录 ======
+    existing = drug_record_repo.get_drug_record_by_unique(
+        user_id=user_id,
+        plan_item_id=plan_item_id,
+        expected_date=expected_date,
+        expected_time=expected_time
+    )
+    if existing:
+        return jsonify({"error": "This dose has already been recorded"}), 400
+
+    # ====== 插入记录 ======
+    # 注意：这里写入数据库的 status 统一用 TAKEN（避免 EARLY 不在 enum 里导致报错）
+    db_status = "TAKEN"
+
+    new_id = drug_record_repo.create_drug_record(
+        user_id=user_id,
+        drug_id=drug_id,
+        expected_date=expected_date,   # 这里改成 expected_date
+        expected_time=expected_time,
+        dosage_numeric=None,
+        unit=None,
+        plan_item_id=plan_item_id,
+        status=db_status,              # DB 里存 TAKEN
+        notes=None
+    )
+
+    return jsonify({
+        "message": "Recorded",
+        "id": new_id,
+        "status": status,
+        "timing_flag": timing_flag
+    }), 200
