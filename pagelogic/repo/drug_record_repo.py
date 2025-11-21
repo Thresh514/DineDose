@@ -66,7 +66,7 @@ def _row_to_drug_record(cur, row) -> drug_record:
 def create_drug_record(
     user_id: int,
     drug_id: int,
-    expected_date: date,
+    taken_date: date,
     expected_time: Optional[dt_time] = None,
     dosage_numeric: Optional[float] = None,
     unit: Optional[str] = None,
@@ -92,7 +92,7 @@ def create_drug_record(
         user_id, drug_id,
         expected_date, expected_time,
         dosage_numeric, unit,
-        plan_item_id, status, notes
+        plan_item_id, status, notes # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     ))
 
     new_id = cur.fetchone()[0]
@@ -210,7 +210,7 @@ def update_drug_record(
 
     cur.execute(query, (
         dosage_numeric, unit,
-        status, notes,
+        status, notes, # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         record_id
     ))
 

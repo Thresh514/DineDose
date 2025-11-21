@@ -122,7 +122,7 @@ def update_food_record_handler():
         unit="default_unit",
         amount_literal="default_literal",
         notes=notes,
-        status="TAKEN"
+        status="TAKEN" # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     )
 
     if not success:
