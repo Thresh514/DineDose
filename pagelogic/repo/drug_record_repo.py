@@ -54,7 +54,7 @@ def _row_to_drug_record(cur, row) -> drug_record:
 
         plan_item_id=rd["plan_item_id"],
 
-        status=rd["status"],          
+        status=rd["status"],          # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         notes=rd["notes"],
 
         created_at=rd["created_at"]
@@ -72,7 +72,7 @@ def create_drug_record(
     dosage_numeric: Optional[float] = None,
     unit: Optional[str] = None,
     plan_item_id: Optional[int] = None,
-    status: Optional[str] = None,      
+    status: Optional[str] = None,      # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     notes: Optional[str] = None
 ) -> int:
 
@@ -93,7 +93,7 @@ def create_drug_record(
         user_id, drug_id,
         taken_date, taken_time,
         dosage_numeric, unit,
-        plan_item_id, status, notes
+        plan_item_id, status, notes # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     ))
 
     new_id = cur.fetchone()[0]
@@ -190,7 +190,7 @@ def delete_drug_record(record_id: int) -> bool:
 # ---------- UPDATE ----------
 def update_drug_record(
     record_id: int,
-    status: str,
+    status: str, # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
     dosage_numeric: Optional[float],
     unit: Optional[str],
     notes: Optional[str]
@@ -210,7 +210,7 @@ def update_drug_record(
 
     cur.execute(query, (
         dosage_numeric, unit,
-        status, notes,
+        status, notes, # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         record_id
     ))
 

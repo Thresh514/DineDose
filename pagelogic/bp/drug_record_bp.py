@@ -81,7 +81,7 @@ def update_drug_record():
 
     success = drug_record_repo.update_drug_record(
         record_id=record_id,
-        status=status,
+        status=status, # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         dosage_numeric=dosage_numeric,
         unit=unit,
         notes=notes
@@ -109,7 +109,7 @@ def create_drug_record_test():
         dosage_numeric=0.0,
         unit="default_unit",
         plan_item_id=None,
-        status="LATE",
+        status="LATE", # e.g., 'TAKEN', 'ON_TIME', 'LATE', 'SKIPPED'
         notes="default test record"
     )
 
