@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, session
+from pagelogic.repo import user_repo
 from pagelogic.service import plan_service
 
 doctor_page_bp = Blueprint("doctor_page_bp", __name__)
@@ -32,11 +33,15 @@ def doctor_plan_editor():
     plan = plan_service.get_raw_plan(int(patient_id))
     if not plan:
         return "No plan found for this patient", 404
+    
+    patient = user_repo.get_user_by_id(patient_id)
+    patient_name = patient.username if patient else f"Patient {patient_id}"
 
     return render_template(
         "doctor_plan_editor.html",
         patient_id=patient_id,
-        plan=plan.to_dict()  # Jinja 用 plan.plan_items 也没问题
+        plan=plan.to_dict(),
+        patient_name=patient_name,
     )
 
 
@@ -51,11 +56,14 @@ def doctor_plan_item_create():
     plan = plan_service.get_user_plan(int(patient_id), None, None)
     if not plan:
         return "No plan found for this patient", 404
-
+    
+    patient = user_repo.get_user_by_id(patient_id)
+    patient_name = patient.username if patient else f"Patient {patient_id}"
     return render_template(
         "doctor_plan_item_create.html",
         patient_id=patient_id,
         plan_id=plan.id,
+        patient_name=patient_name,
     )
 
 
@@ -73,6 +81,9 @@ def doctor_plan_item_edit():
     if not plan:
         return "No plan found for this patient", 404
 
+    patient = user_repo.get_user_by_id(patient_id)
+    patient_name = patient.username if patient else f"Patient {patient_id}"
+
     target = None
     for it in plan.plan_items:
         if it.id == int(item_id):
@@ -86,5 +97,6 @@ def doctor_plan_item_edit():
         "doctor_plan_item_edit.html",
         patient_id=patient_id,
         plan_id=plan.id,
-        item=target.to_dict()
+        item=target.to_dict(),
+        patient_name=patient_name,
     )
