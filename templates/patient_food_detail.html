@@ -16,6 +16,16 @@
                  id="food-detail-image">
         </div>
 
+        <!-- 错误消息横幅 -->
+        <div id="error-banner" class="food-detail-error-banner" style="display: none;">
+            <!-- error text fill by JS -->
+        </div>
+
+        <!-- 成功消息横幅 -->
+        <div id="success-banner" class="food-detail-success-banner" style="display: none;">
+            Meal added successfully
+        </div>
+
         <!-- 表单 -->
         <form id="food-detail-form" class="food-detail-form">
             <!-- Amount 输入 -->
@@ -25,7 +35,7 @@
                        id="amount" 
                        name="amount" 
                        class="food-detail-input" 
-                       placeholder="300">
+                       placeholder="e.g. 300">
             </div>
 
             <!-- Unit 输入 -->
@@ -62,22 +72,51 @@
                 </button>
             </div>
         </form>
-
-        <!-- 成功消息横幅 -->
-        <div id="success-banner" class="food-detail-success-banner" style="display: none;">
-            Meal added successfully
-        </div>
     </div>
 </div>
+
+<style>
+/* 简单给 error / success 一个样式 */
+.food-detail-error-banner {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: #ffebee;
+    color: #c62828;
+    font-size: 14px;
+}
+
+.food-detail-success-banner {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 14px;
+}
+</style>
 
 <script>
 (function() {
     const form = document.getElementById('food-detail-form');
     const cancelBtn = document.getElementById('cancel-btn');
     const successBanner = document.getElementById('success-banner');
+    const errorBanner = document.getElementById('error-banner');
     const card = document.querySelector('.food-detail-card');
     const foodId = parseInt(card.getAttribute('data-food-id'), 10);
     const userId = parseInt(card.getAttribute('data-user-id'), 10);
+
+    function showError(msg) {
+        errorBanner.textContent = msg;
+        errorBanner.style.display = 'block';
+        successBanner.style.display = 'none';
+        console.error('Validation failed:', msg);
+    }
+
+    function clearError() {
+        errorBanner.style.display = 'none';
+        errorBanner.textContent = '';
+    }
 
     // Cancel 按钮 - 返回上一页
     cancelBtn.addEventListener('click', function() {
@@ -88,31 +127,41 @@
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const amount = document.getElementById('amount').value.trim();
+        const amountStr = document.getElementById('amount').value.trim();
         const unit = document.getElementById('unit').value.trim();
         const notes = document.getElementById('notes').value.trim();
 
-        // 构建请求数据
+        // ====== 前端校验（满足 Test Case 18/19/20） ======
+
+        // 1) 必填：amount + unit
+        if (!amountStr || !unit) {
+            showError('Amount and unit are required.');
+            return;
+        }
+
+        // 2) must be num
+        const amountNum = Number(amountStr);
+        if (Number.isNaN(amountNum)) {
+            showError('Amount must be a number.');
+            return;
+        }
+
+        // 3) must be positive
+        if (amountNum <= 0) {
+            showError('Amount must be positive');
+            return;
+        }
+
+        // clear previous error
+        clearError();
+
         const data = {
             user_id: userId,
             food_id: foodId,
+            amount_numeric: amountNum,
+            unit: unit,
             notes: notes || null
         };
-
-        // 如果有 amount，尝试解析为数字
-        if (amount) {
-            const amountNum = parseFloat(amount);
-            if (!isNaN(amountNum)) {
-                data.amount_numeric = amountNum;
-            } else {
-                data.amount_literal = amount;
-            }
-        }
-
-        // 如果有 unit
-        if (unit) {
-            data.unit = unit;
-        }
 
         try {
             const response = await fetch('/create_food_record', {
@@ -126,22 +175,20 @@
             const result = await response.json();
 
             if (response.ok) {
-                // 显示成功消息
                 successBanner.style.display = 'block';
-                
-                // 3秒后返回上一页或跳转到历史页面
+
+
                 setTimeout(() => {
                     window.location.href = '/patient/food/history';
                 }, 2000);
             } else {
-                alert('Failed to save meal: ' + (result.error || 'Unknown error'));
+                showError('Failed to save meal: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Failed to save meal. Please try again.');
+            showError('Failed to save meal. Please try again.');
         }
     });
 })();
 </script>
 {% endblock %}
-
