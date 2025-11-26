@@ -236,22 +236,21 @@ def patient_plan_page():
     # 从 session 获取当前用户ID
     user_id = session.get('user_id')
 
-    # 获取选中的日期（默认今天）
     selected_date_str = request.args.get('date')
+    today_date = date.today()
+    yesterday_date = today_date - timedelta(days=1)
     if selected_date_str:
         try:
             selected_date = date.fromisoformat(selected_date_str)
         except ValueError:
-            selected_date = date.today()
+            selected_date = today_date
     else:
-        selected_date = date.today()
+        selected_date = today_date
     
-    # 计算选中日期所在周的开始日期（周日）和结束日期（周六）
     days_since_sunday = (selected_date.weekday() + 1) % 7  # 0=Sunday, 6=Saturday
     week_start = selected_date - timedelta(days=days_since_sunday)
     week_end = week_start + timedelta(days=6)
     
-    # 一周日期列表
     week_dates = []
     for i in range(7):
         week_date = week_start + timedelta(days=i)
@@ -262,7 +261,6 @@ def patient_plan_page():
             'is_selected': week_date == selected_date
         })
     
-    # 未登录：空数据
     if not user_id:
         return render_template(
             'patient_plan.html',
@@ -272,6 +270,8 @@ def patient_plan_page():
             evening_items=[],
             completed_map={},
             selected_date=selected_date,
+            today_date=today_date,
+            yesterday_date=yesterday_date,
             week_dates=week_dates,
             week_start=week_start,
             week_end=week_end
@@ -291,6 +291,8 @@ def patient_plan_page():
                 evening_items=[],
                 completed_map={},
                 selected_date=selected_date,
+                today_date=today_date,
+                yesterday_date=yesterday_date,
                 week_dates=week_dates,
                 week_start=week_start,
                 week_end=week_end
@@ -305,6 +307,8 @@ def patient_plan_page():
             evening_items=[],
             completed_map={},
             selected_date=selected_date,
+            today_date=today_date,
+            yesterday_date=yesterday_date,
             week_dates=week_dates,
             week_start=week_start,
             week_end=week_end
@@ -399,6 +403,8 @@ def patient_plan_page():
         evening_items=evening_items,
         completed_map=completed_map,
         selected_date=selected_date,
+        today_date=today_date,
+        yesterday_date=yesterday_date,
         week_dates=week_dates,
         week_start=week_start,
         week_end=week_end

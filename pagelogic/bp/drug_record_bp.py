@@ -213,21 +213,31 @@ def mark_drug_taken():
         except (ValueError, IndexError):
             return jsonify({"error": "Invalid expected_time"}), 400
 
-    # 业务状态校验：只允许 ON_TIME / EARLY / LATE
-    if status not in ("ON_TIME", "EARLY", "LATE"):
-        return jsonify({"error": "Invalid status"}), 400
-
-    # ====== 查重：同一个 plan_item + expected_date + expected_time 不允许重复记录 ======
+    # ====== 查重：同一个 plan_item + expected_date + expected_time ======
     existing = drug_record_repo.get_drug_record_by_unique(
         user_id=user_id,
         plan_item_id=plan_item_id,
         expected_date=expected_date,
         expected_time=expected_time
     )
+    
+    # 如果记录已存在，则删除它（toggle功能）
     if existing:
-        return jsonify({"error": "This dose has already been recorded"}), 400
+        success = drug_record_repo.delete_drug_record(existing.id)
+        if not success:
+            return jsonify({"error": "Failed to delete existing record"}), 500
+        
+        return jsonify({
+            "message": "Record deleted",
+            "id": existing.id,
+            "action": "deleted"
+        }), 200
 
-    # ====== 插入记录 ======
+    # ====== 插入新记录 ======
+    # 业务状态校验：创建新记录时需要status字段
+    if not status or status not in ("ON_TIME", "EARLY", "LATE"):
+        return jsonify({"error": "Invalid status (required for creating new record)"}), 400
+
     # 注意：这里写入数据库的 status 统一用 TAKEN（避免 EARLY 不在 enum 里导致报错）
     db_status = "TAKEN"
 
@@ -247,5 +257,6 @@ def mark_drug_taken():
         "message": "Recorded",
         "id": new_id,
         "status": status,
-        "timing_flag": timing_flag
+        "timing_flag": timing_flag,
+        "action": "created"
     }), 200
