@@ -2,19 +2,11 @@
 LLM API Integration Script
 Supports different types of context and prompt inputs
 """
-import os
 import requests
 import json
 from typing import Dict, Optional
-from dotenv import load_dotenv
 import traceback
-
-load_dotenv()
-
-# Load LLM API configuration from environment variables
-LLM_API_URL = os.getenv("LLM_API_URL", "https://api.openai.com/v1/chat/completions")
-LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
+import config
 
 
 # Define different types of Context
@@ -108,22 +100,21 @@ def call_llm_api(
     
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {LLM_API_KEY}"
+        "Authorization": f"Bearer {config.LLM_API_KEY}"
     }
     
     payload = {
-        "model": LLM_MODEL,
-        "messages": messages,
-        "temperature": temperature
+        "model": config.LLM_MODEL,
+        "messages": messages
     }
     
     if max_tokens:
-        payload["max_tokens"] = max_tokens
+        payload["max_completion_tokens"] = max_tokens
     
     try:
         # Send request
         response = requests.post(
-            LLM_API_URL,
+            config.LLM_API_URL,
             headers=headers,
             json=payload,
             timeout=30

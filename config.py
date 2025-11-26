@@ -30,6 +30,11 @@ OAUTH_CREDENTIALS = {
     }
 }
 
+# LLM API configuration
+LLM_API_URL = os.getenv("LLM_API_URL", "https://api.openai.com/v1/chat/completions")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_MODEL = "gpt-5-mini"
+
 # def mydb():
 #     return pymysql.connect(
 #         host='dinedose.cds2osi82wxl.us-east-1.rds.amazonaws.com',

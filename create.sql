@@ -57,3 +57,13 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS doctor_feedbacks (
+    id BIGSERIAL PRIMARY KEY,
+    patient_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    doctor_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    feedback_date DATE NOT NULL,
+    feedback TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(patient_id, feedback_date)
+);

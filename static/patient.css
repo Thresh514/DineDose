@@ -771,6 +771,53 @@ button:active,
   opacity:0.8;
 }
 
+/* 医生反馈卡片 */
+.doctor-feedback-card{
+  background:linear-gradient(135deg, #e8f2ff 0%, #f0f7ff 100%);
+  border:2px solid #1976d2;
+  border-radius:12px;
+  padding:20px;
+  margin:16px 0 24px;
+  box-shadow:0 2px 8px rgba(25,118,210,0.1);
+}
+
+.doctor-feedback-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.doctor-feedback-icon{
+  font-size:20px;
+}
+
+.doctor-feedback-title{
+  font-size:16px;
+  font-weight:600;
+  color:#1976d2;
+}
+
+.doctor-feedback-content{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.doctor-feedback-text{
+  font-size:15px;
+  color:var(--text);
+  line-height:1.6;
+  margin:0;
+  white-space:pre-wrap;
+}
+
+.doctor-feedback-date{
+  font-size:12px;
+  color:#666;
+  margin-top:4px;
+}
+
 /* 小屏优化 */
 @media (max-width:360px){
   .plan-title{font-size:28px}
@@ -779,6 +826,8 @@ button:active,
   .plan-item-name{font-size:16px}
   .time-section-bg{width:160px;height:160px}
   .time-section{min-height:160px;padding:32px var(--side)}
+  .doctor-feedback-card{padding:16px}
+  .doctor-feedback-text{font-size:14px}
 }
 
 /* =========================================================

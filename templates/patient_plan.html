@@ -280,7 +280,7 @@
     
     if (!planPage) return;
 
-    // ---------- Dialog组件 ----------
+    // ---------- Dialog ----------
     var dialog = document.getElementById('plan-dialog');
     var dialogMessage = document.getElementById('dialog-message');
     var dialogConfirm = document.getElementById('dialog-confirm');
@@ -296,7 +296,6 @@
         }
         dialog.classList.add('show');
         
-        // 聚焦到确认按钮
         if (dialogConfirm) {
             setTimeout(function() {
                 dialogConfirm.focus();
@@ -310,7 +309,6 @@
         }
     }
 
-    // 绑定关闭事件
     if (dialogConfirm) {
         dialogConfirm.addEventListener('click', hideDialog);
     }
@@ -321,7 +319,6 @@
         dialogOverlay.addEventListener('click', hideDialog);
     }
     
-    // ESC键关闭
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && dialog && dialog.classList.contains('show')) {
             hideDialog();
@@ -414,7 +411,7 @@
 
     function formatLocalHHMM(isoString) {
         if (!isoString) return "";
-        var dt = new Date(isoString);   // 自动按浏览器本地时区解析
+        var dt = new Date(isoString);
         if (isNaN(dt.getTime())) return "";
         var h = String(dt.getHours()).padStart(2, '0');
         var m = String(dt.getMinutes()).padStart(2, '0');
@@ -433,7 +430,6 @@
         var expectedTime = li.getAttribute('data-expected-time') || null;
         var isCompleted = li.getAttribute("data-completed") === "1";
 
-        // 如果是已完成的记录，准备删除（不需要status等信息）
         var payload = {
             user_id: Number(currentUserId),
             drug_id: Number(drugId),
@@ -442,7 +438,6 @@
             expected_time: expectedTime
         };
 
-        // 如果是未完成的记录，需要添加status等信息
         if (!isCompleted) {
             payload.status = result.status;
             payload.timing_flag = result.flag;
@@ -463,9 +458,7 @@
                 return;
             }
 
-            // 根据action更新UI
             if (data.action === "deleted") {
-                // 删除记录：恢复为未完成状态
                 showDialog("Record deleted", "Success");
                 
                 li.classList.remove("plan-item--completed");
@@ -473,24 +466,20 @@
                 li.setAttribute("data-completion-status", "");
                 li.setAttribute("data-completion-time", "");
 
-                // 恢复checkbox为未勾选状态
                 if (btn) {
                     btn.classList.remove("checked");
                     btn.removeAttribute("disabled");
                     btn.setAttribute("aria-label", "Mark as completed");
-                    // 替换SVG为空方框图标
                     btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>';
                 }
 
-                // 清空状态文本
                 var statusSpan = li.querySelector(".plan-item-status");
                 if (statusSpan) {
                     statusSpan.textContent = "";
                 }
             } else if (data.action === "created") {
-                // 创建记录：标记为已完成
                 if (result && result.message) {
-                    showDialog(result.message + " (saved)", "Success");
+                    showDialog(result.message, "Success");
                 } else {
                     showDialog("Recorded as taken", "Success");
                 }
