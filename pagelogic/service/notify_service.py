@@ -1,162 +1,273 @@
-from datetime import datetime, timezone, timezone
-from pagelogic.repo import user_notification_repo, user_repo
-from pagelogic.repo.drug_record_repo import drug_record
-from pagelogic.repo.user_repo import User
+import logging
+from dataclasses import dataclass
+from datetime import date, datetime, time as dt_time, timedelta, timezone
+from typing import List, Optional, Tuple, Set
+
+from pagelogic.service import plan_service
+from pagelogic.repo import drug_record_repo
+import pagelogic.repo.plan_repo as plan_repo
+import pagelogic.repo.user_repo as user_repo
+import pagelogic.repo.user_notification_repo as user_notification_repo
 from utils.emailsender import send_email_ses
 
-def get_plan_items_expiring_within(days: int) -> list:
 
-    #get all users' id
-    #for each user id:
-        #plan_service.get_user_plan(id, now, now + days)
+# =========================
+# Data model for scheduler
+# =========================
+
+@dataclass
+class ScheduledDose:
+    """ A single expanded medication event with concrete date/time. """
+    user_id: int
+    plan_item_id: int
+    expected_date: date
+    expected_time: Optional[dt_time]
+
+    drug_name: Optional[str]
+    dosage: Optional[int]
+    unit: Optional[str]
+
+
+# =========================
+# Step 1: collect scheduled doses
+# =========================
+NOW = datetime.now()
+#datetime.now(timezone.utc) 才是utc+0时间
+
+def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
+    print("\n==================== STEP 1: Collect scheduled doses ====================")
+    NOW = datetime.now()
     
-    #聚合所有plan_items
+    window_start = NOW
+    window_end = NOW + timedelta(days=days)
 
-    plan_items = []
-    start_date = date.today()
-    end_date = start_date + timedelta(days=days)
-    user_ids = user_repo.get_all_users_ids()
-    for user_id in user_ids:
-        user_plan_items = plan_service.get_user_plan_items_by_date_range(
-            user_id=user_id,
-            start=start_date,
-            end=end_date
+    print(f"[STEP1] Time window: {window_start}  →  {window_end}")
+
+    # 1) Fetch all users
+    users = user_repo.get_all_users()
+    user_ids = [user.id for user in users]
+
+    print(f"[STEP1] Total users found: {len(users)}")
+    print(f"[STEP1] User IDs: {user_ids}")
+
+    # 2) Get plans for users
+    plans = plan_repo.get_plans_by_user_ids(user_ids)
+
+    print(f"[STEP1] Total plans found: {len(plans)}")
+    print(f"[STEP1] Plans belong to users: {list(plans.keys())}")
+
+    # Filter users with a plan
+    users_with_plans = [u for u in users if u.id in plans]
+    print(f"[STEP1] Users with a plan: {[u.id for u in users_with_plans]}")
+
+    scheduled: List[ScheduledDose] = []
+
+    # 3) Expand plan items into concrete doses
+    for user in users_with_plans:
+        print(f"\n[STEP1] Expanding plan for user_id={user.id}")
+
+        plan = plan_service.get_user_plan(
+            id=user.id,
+            from_when=window_start,
+            to_when=window_end,
         )
-        plan_items.extend(user_plan_items)
 
-    return plan_items
+        if not plan:
+            print(f"[STEP1]   No plan returned for user {user.id}")
+            continue
+        if not plan.plan_items:
+            print(f"[STEP1]   Plan has no items for user {user.id}")
+            continue
 
-    
+        print(f"[STEP1]   Expanded plan_items count={len(plan.plan_items)}")
+
+        for item in plan.plan_items:
+            if item.date is None:
+                print(f"[STEP1]   Skipping PRN/no-date item: plan_item_id={item.id}")
+                continue
+
+            sd = ScheduledDose(
+                user_id=user.id,
+                plan_item_id=item.id,
+                expected_date=item.date,
+                expected_time=item.time,
+                drug_name=getattr(item, "drug_name", None),
+                dosage=getattr(item, "dosage", None),
+                unit=getattr(item, "unit", None),
+            )
+            print(f"[STEP1]   Added ScheduledDose: {sd}")
+            scheduled.append(sd)
+
+    print(f"\n[STEP1] TOTAL scheduled doses collected: {len(scheduled)}")
+    return scheduled
 
 
-def notify_jobs():
-    plan_items = get_plan_items_expiring_within(1)
-    logging.info(f"Found {len(plan_items)} plan items expiring within 1 day.")
-    #[]drug_records<-获取plan item对应records情况;
-    #要在repo.drug_record_repo.py写一个get_recent_completed_records(days) -> list[drug_record]的函数
-    #根据expected time和expected date判断
+# =========================
+# Step 2: diff scheduled vs completed
+# =========================
+
+def find_missed_doses(
+    scheduled: List[ScheduledDose],
+    recent_records: List[drug_record_repo.drug_record],
+) -> List[ScheduledDose]:
+
+    print("\n==================== STEP 2: Compare scheduled vs completed ====================")
+    print(f"[STEP2] Scheduled count: {len(scheduled)}")
+    print(f"[STEP2] Completed records count: {len(recent_records)}")
+
+    completed_keys = set()
+
+    for record in recent_records:
+        key = (
+            record.user_id,
+            record.plan_item_id,
+            record.expected_date,
+            record.expected_time,
+        )
+        completed_keys.add(key)
+        print(f"[STEP2] Completed record: {key}")
+
+    missed = []
+
+    for dose in scheduled:
+        key = (
+            dose.user_id,
+            dose.plan_item_id,
+            dose.expected_date,
+            dose.expected_time,
+        )
+        if key not in completed_keys:
+            print(f"[STEP2] MISSED dose: {key}")
+            missed.append(dose)
+        else:
+            print(f"[STEP2] OK dose (taken): {key}")
+
+    print(f"\n[STEP2] TOTAL missed doses: {len(missed)}")
+    return missed
 
 
-    not_found_drug_records = []
-    recent_drug_records = drug_record_repo.get_recent_completed_drug_records(7)
-    for plan_item in plan_items:
-        #check if there's a drug_record matching this plan_item in recent_drug_records
-        found = False
-        for record in recent_drug_records:
-            if (record.plan_item_id == plan_item.id and
-                record.expected_date == plan_item.expected_date and
-                record.expected_time == plan_item.expected_time):
-                found = True
-                break
-        if not found:
-            not_found_drug_records.append(plan_item)
-    logging.info(f"Found {len(not_found_drug_records)} missed plan items needing notification.")
-    send_notifications(not_found_drug_records)
+# =========================
+# Step 3: main entry
+# =========================
+
+def notify_jobs(days: int = 1, interval: int = 5*60) -> None:
+    print("\n==================== NOTIFY JOB START ====================")
+    print(f"[MAIN] Running notify_jobs(days={days})")
+
+    # Step 1
+    scheduled_doses = get_scheduled_doses_within(days)
+    print(f"[MAIN] Scheduled doses count: {len(scheduled_doses)}")
+
+    # Step 2
+    recent_records = drug_record_repo.get_recent_completed_drug_records(days)
+    print(f"[MAIN] Completed drug records count: {len(recent_records)}")
+
+    # Step 3
+    missed_doses = find_missed_doses(scheduled_doses, recent_records)
+    print(f"[MAIN] Missed doses count: {len(missed_doses)}")
+
+    # Step 4
+    print(f"[MAIN] Sending notifications ...")
+    send_notifications(missed_doses, interval)
+
+    print("==================== NOTIFY JOB END ====================\n")
 
 
-def send_notifications(missed_plan_items: List[drug_record]) -> None:
-    """
-    Iterate through all missed drug plan items and send email notifications
-    based on each user's notification settings.
-    """
-    if not missed_plan_items:
+# =========================
+# Step 4: send notifications
+# =========================
+#interval: seconds between checks
+def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None:
+    print("\n==================== STEP 4: Sending notifications ====================")
+
+    if not missed_doses:
+        print("[STEP4] No missed doses, skipping email.")
         return
 
-    # 1. Collect user IDs involved in these missed items
-    user_ids = {item.user_id for item in missed_plan_items}
+    user_ids = {dose.user_id for dose in missed_doses}
+    print(f"[STEP4] Users with missed doses: {user_ids}")
 
-    # 2. Fetch user profiles (email / name)
     users = user_repo.get_users_by_ids(list(user_ids))
-    user_id_to_email = {user.id: user.email for user in users}
+    user_id_to_email = {u.id: u.email for u in users}
+    user_id_to_name = {u.id: u.username for u in users}
 
-    # Prefer 'name', fallback to 'username', fallback to ""
-    user_id_to_name = {
-        user.id: user.username
-        for user in users
-    }
+    print("[STEP4] Loaded user profiles:")
+    for uid in user_id_to_email:
+        print(f"  user_id={uid}, email={user_id_to_email[uid]}")
 
-    # 3. Fetch notification settings for all users
-    # Expected format: { user_id: NotificationConfig }
     user_id_to_config = user_notification_repo.get_notification_configs_by_user_ids(
         list(user_ids)
     )
+    print("[STEP4] Loaded notification configs:")
+    for uid, cfg in user_id_to_config.items():
+        print(f"  user_id={uid}, notify_minutes={cfg.notify_minutes}, enabled={cfg.enabled}")
 
-    # Current timestamp for calculating time offset
-    now_utc = datetime.now(timezone.utc)
+    now_utc = NOW
 
-    # 4. Evaluate each missed item
-    for missed_item in missed_plan_items:
-        cfg = user_id_to_config.get(missed_item.user_id)
-        if cfg is None:
+
+    for dose in missed_doses:
+        print(f"\n[STEP4] Evaluating dose → {dose}")
+
+        cfg = user_id_to_config.get(dose.user_id)
+        if not cfg:
+            print("[STEP4]   No notification config, skipping")
             continue
-
-        # Skip if notifications or email notifications are disabled
         if not cfg.enabled or not cfg.email_enabled:
+            print("[STEP4]   Notification disabled, skipping")
             continue
 
-        # Determine the time difference (in minutes)
-        plan_time = missed_item.plan_time  # should be datetime
+        # Construct datetime
+        scheduled_time = dose.expected_time or dt_time(9, 0)
+        scheduled_dt = datetime.combine(dose.expected_date, scheduled_time)
 
-        if plan_time.tzinfo is None:
-            # naive datetime -> compare using naive current time
+        if scheduled_dt.tzinfo is None:
             diff_minutes = round(
-                (plan_time - now_utc.replace(tzinfo=None)).total_seconds() / 60
+                (scheduled_dt - now_utc.replace(tzinfo=None)).total_seconds() / interval
             )
         else:
-            diff_minutes = round(
-                (plan_time - now_utc).total_seconds() / 60
-            )
+            diff_minutes = round((scheduled_dt - now_utc).total_seconds() / interval)
 
-        # Trigger notification if the offset matches user settings
+        print(f"[STEP4]   Time diff (minutes): {diff_minutes}, now_utc={now_utc}")
+
         if diff_minutes not in cfg.notify_minutes:
+            print("[STEP4]   Time does not match notify_minutes, skipping")
             continue
 
-        # Send the e-mail
-        email = user_id_to_email.get(missed_item.user_id)
+        email = user_id_to_email.get(dose.user_id)
         if not email:
+            print("[STEP4]   Cannot send email (email missing)")
             continue
 
-        user_name = user_id_to_name.get(missed_item.user_id, "")
+        user_name = user_id_to_name.get(dose.user_id, "")
         subject = "DineDose Medication Reminder"
+        body = build_email_body(dose, user_name)
 
-        body = build_email_body(missed_item, user_name)
+        print(f"[STEP4]   Sending email to {email}")
         send_email_ses(email, subject, body)
 
-    return
 
+# =========================
+# Email body
+# =========================
 
-def build_email_body(missed_item: drug_record, user_name: str) -> str:
-    """
-    Build the email content for the medication reminder.
-    """
+def build_email_body(dose: ScheduledDose, user_name: str) -> str:
+    scheduled_time = dose.expected_time or dt_time(9, 0)
+    scheduled_dt = datetime.combine(dose.expected_date, scheduled_time)
+    scheduled_str = scheduled_dt.strftime("%Y-%m-%d %H:%M")
 
-    # Format time nicely
-    if missed_item.plan_time.tzinfo:
-        plan_time_str = missed_item.plan_time.astimezone().strftime("%Y-%m-%d %H:%M")
-    else:
-        plan_time_str = missed_item.plan_time.strftime("%Y-%m-%d %H:%M")
-
-    # Handle dosage field (if exists)
-    dosage = getattr(missed_item, "dosage", None)
-    dosage_part = f" (Dosage: {dosage})" if dosage else ""
-
-    # Determine drug name field (adapt based on your actual drug_record model)
-    drug_name = getattr(missed_item, "drug_name", None)
-    if drug_name is None:
-        drug_name = getattr(missed_item, "generic_name", "Unknown medication")
-
+    drug_name = dose.drug_name or "Your medication"
     display_name = user_name or "User"
 
-    body = (
+    dosage_part = ""
+    if dose.dosage and dose.unit:
+        dosage_part = f" (Dosage: {dose.dosage} {dose.unit})"
+
+    return (
         f"Hello {display_name},\n\n"
         f"This is a medication reminder from DineDose:\n"
         f"- Medication: {drug_name}{dosage_part}\n"
-        f"- Scheduled time: {plan_time_str}\n\n"
-        f"Please confirm whether you have taken this medication as instructed.\n"
-        f"If you have already taken it, you can safely ignore this email.\n\n"
-        f"To adjust or disable medication reminders, please visit your "
-        f"DineDose Notification Settings.\n\n"
+        f"- Scheduled time: {scheduled_str}\n\n"
+        f"Please confirm whether you have taken this medication.\n"
+        f"If you have already taken it, you can ignore this email.\n\n"
         f"— DineDose Team"
     )
-
-    return body

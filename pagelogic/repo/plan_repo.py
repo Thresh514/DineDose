@@ -146,6 +146,44 @@ def get_plan_by_user_id(user_id: int) -> Optional[plan]:
         patient_name=row_dict.get("patient_name"),
     )
 
+def get_plans_by_user_ids(user_ids: List[int]) -> List[plan]:
+    """
+    根据一组 patient_id 获取对应的 plan 列表。
+    """
+    if not user_ids:
+        return []
+
+    conn = mydb()
+    cur = conn.cursor()
+
+    placeholders = ",".join(["%s"] * len(user_ids))
+    query = f"""
+        SELECT id, patient_id, doctor_id, name, description,
+               doctor_name, patient_name
+        FROM plan
+        WHERE patient_id IN ({placeholders})
+    """
+    cur.execute(query, tuple(user_ids))
+    rows = cur.fetchall()
+
+    plans = dict()
+    for row in rows:
+        rd = _row_to_dict(cur, row)
+        p = plan(
+            id=rd["id"],
+            patient_id=rd["patient_id"],
+            doctor_id=rd["doctor_id"],
+            name=rd["name"],
+            description=rd.get("description"),
+            doctor_name=rd.get("doctor_name"),
+            patient_name=rd.get("patient_name"),
+        )
+        plans[rd["patient_id"]] = p
+
+    cur.close()
+    conn.close()
+    return plans
+
 
 def get_plan_by_id(plan_id: int) -> Optional[plan]:
     """

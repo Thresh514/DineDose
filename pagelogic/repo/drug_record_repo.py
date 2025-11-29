@@ -310,6 +310,8 @@ def get_drug_record_by_unique(
     conn.close()
     return record
 
+#get recent completed drug records within given days
+#return the list of drug_record
 def get_recent_completed_drug_records(
     days: int
 ) -> List[drug_record]:

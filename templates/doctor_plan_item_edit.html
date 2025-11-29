@@ -120,6 +120,33 @@
         .message.success {
             color: #1b5e20;
         }
+
+        /* ===== time chips 样式 ===== */
+        .times-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 22px;
+        }
+
+        .time-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 12px;
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            font-size: 13px;
+            gap: 4px;
+        }
+
+        .time-chip button {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -227,13 +254,19 @@
         </div>
     </div>
 
-    <!-- NON-PRN: Times -->
+    <!-- NON-PRN: Times（改成 time picker + chips） -->
     <div class="field-row" id="times-row">
-        <label for="times-input">
+        <label>
             Times
-            <span class="help-icon" title="Specific times in a day, separated by commas, such as '08:00, 12:00, 18:00'.">?</span>
+            <span class="help-icon" title="Choose one or more times in a day (local time).">?</span>
         </label>
-        <input type="text" id="times-input" placeholder="e.g. 08:00, 12:00, 18:00" style="flex: 1;">
+        <div style="flex: 1;">
+            <div class="field-row" style="gap: 8px; margin-bottom: 4px;">
+                <input type="time" id="time-picker" step="60">
+                <button type="button" class="btn" id="btn-add-time">Add</button>
+            </div>
+            <div id="times-chips" class="times-chips"></div>
+        </div>
     </div>
 
     <!-- PRN: Interval -->
@@ -265,6 +298,9 @@
     const intervalRow      = document.getElementById("interval-row");
     const messageEl        = document.getElementById("message");
 
+    // 用数组保存所有时间（"HH:MM"）
+    let timesState = [];
+
     function updateRuleVisibility() {
         const val = repeatTypeSelect.value;
 
@@ -279,6 +315,11 @@
             intervalRow.classList.remove("hidden");
             timesRow.classList.add("hidden");
             daysRow.classList.add("hidden");
+        } else {
+            // ONCE / DAILY
+            daysRow.classList.add("hidden");
+            intervalRow.classList.add("hidden");
+            timesRow.classList.remove("hidden");
         }
     }
 
@@ -293,12 +334,64 @@
         }
     }
 
+    // ===== 渲染 chips =====
+    function renderTimesChips() {
+        const container = document.getElementById("times-chips");
+        container.innerHTML = "";
+
+        if (!timesState.length) {
+            const span = document.createElement("span");
+            span.style.fontSize = "12px";
+            span.style.color = "#777";
+            span.textContent = "No times added yet.";
+            container.appendChild(span);
+            return;
+        }
+
+        timesState.forEach((t) => {
+            const chip = document.createElement("span");
+            chip.className = "time-chip";
+
+            const label = document.createElement("span");
+            label.textContent = t;
+
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = "×";
+            btn.title = "Remove";
+            btn.addEventListener("click", () => {
+                timesState = timesState.filter((x) => x !== t);
+                renderTimesChips();
+            });
+
+            chip.appendChild(label);
+            chip.appendChild(btn);
+            container.appendChild(chip);
+        });
+    }
+
+    // Add 按钮：从 <input type="time"> 里读 "HH:MM"
+    document.getElementById("btn-add-time").addEventListener("click", () => {
+        const picker = document.getElementById("time-picker");
+        const value = picker.value;   // "HH:MM"
+
+        if (!value) {
+            showMessage("Please choose a time before adding.", true);
+            return;
+        }
+
+        if (!timesState.includes(value)) {
+            timesState.push(value);
+            timesState.sort();
+            renderTimesChips();
+        }
+    });
+
     // ====== 公用：从表单构造 rule 对象 ======
     function buildRuleFromForm() {
         const startDate    = document.getElementById("start-date").value;
         const endDate      = document.getElementById("end-date").value;
         const repeatType   = repeatTypeSelect.value;
-        const timesInput   = document.getElementById("times-input").value;
         const intervalVal  = document.getElementById("interval-value").value;
 
         if (!startDate) {
@@ -330,12 +423,7 @@
             rule.sat = document.getElementById("day-sat").checked;
             rule.sun = document.getElementById("day-sun").checked;
 
-            if (timesInput.trim()) {
-                rule.times = timesInput
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-            }
+            rule.times = [...timesState]; // 直接存 HH:MM，后端照旧解析
         } else if (repeatType === "PRN") {
             if (!intervalVal) {
                 showMessage("Interval is required for PRN schedule.", true);
@@ -348,18 +436,20 @@
             }
         } else {
             // ONCE / DAILY
-            if (timesInput.trim()) {
-                rule.times = timesInput
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
-            }
+            rule.times = [...timesState];
         }
 
         return rule;
     }
 
-    // ====== 公用：把 itemData 填回表单 ======
+    // ====== 把后端 itemData 填回表单 ======
+    function extractHHMMFromAny(str) {
+        if (typeof str !== "string") return str;
+        const m = str.match(/(\d{2}:\d{2})/);  // 从 "08:00:00" 截出 "08:00"
+        if (m) return m[1];
+        return str.length >= 5 ? str.slice(0, 5) : str;
+    }
+
     function fillFormFromItem(item) {
         const drugIdInput      = document.getElementById("drug-id");
         const dosageInput      = document.getElementById("dosage");
@@ -368,7 +458,6 @@
         const noteInput        = document.getElementById("note");
         const startDateInput   = document.getElementById("start-date");
         const endDateInput     = document.getElementById("end-date");
-        const timesInput       = document.getElementById("times-input");
         const intervalInput    = document.getElementById("interval-value");
 
         // Basic info
@@ -378,7 +467,7 @@
         amountInput.value  = item.amount_literal || "";
         noteInput.value    = item.note || "";
 
-        // 规则：你现在约定一个 plan_item 只有一个 rule
+        // rule：一个 plan_item 只有一个 rule
         let rule = {};
         if (Array.isArray(item.plan_item_rule)) {
             rule = item.plan_item_rule[0] || {};
@@ -409,10 +498,14 @@
             document.getElementById("day-sun").checked = !!rule.sun;
         }
 
-        // Times（非 PRN）
+        // timesState：把后端给的 time[]（一般是 "HH:MM:SS"）转成 "HH:MM"
+        timesState = [];
         if (rule.repeat_type !== "PRN" && Array.isArray(rule.times) && rule.times.length > 0) {
-            timesInput.value = rule.times.join(", ");
+            timesState = rule.times.map(extractHHMMFromAny);
+            timesState = Array.from(new Set(timesState));
+            timesState.sort();
         }
+        renderTimesChips();
 
         // PRN: interval
         if (rule.repeat_type === "PRN" && rule.interval_value != null) {
@@ -450,7 +543,6 @@
 
         const rule = buildRuleFromForm();
         if (!rule) {
-            // buildRuleFromForm 已经显示错误信息
             return;
         }
 
