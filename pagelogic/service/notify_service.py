@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 import logging
 from datetime import date, timedelta
 from pagelogic.service import plan_service
 from pagelogic.repo import drug_record_repo
 import pagelogic.repo.plan_repo as plan_repo
 import pagelogic.repo.user_repo as user_repo
+=======
+from datetime import datetime, timezone, timezone
+from pagelogic.repo import user_notification_repo, user_repo
+from pagelogic.repo.drug_record_repo import drug_record
+from pagelogic.repo.user_repo import User
+from utils.emailsender import send_email_ses
+>>>>>>> 7b12c94f4e43197467b86f34169c17fcd4c67e29
 
 def get_plan_items_expiring_within(days: int) -> list:
 
