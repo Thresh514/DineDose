@@ -11,7 +11,8 @@ from pagelogic.service.notify_service import notify_jobs
 
 
 def notify_cronjob():
-    print("hello wolrd: test cronjob")
+    print("Starting notification cron job...")
+    notify_jobs()
 
 def create_app():
     app = Flask(__name__)
@@ -32,7 +33,7 @@ def create_app():
     )
 
     #启动cronjob
-    interval = 5 * 60
+    interval = 60 * 5
     scheduler = BackgroundScheduler()
     scheduler.add_job(notify_jobs,'interval', seconds=interval)
     scheduler.start()
