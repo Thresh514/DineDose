@@ -5,14 +5,13 @@ from pagelogic.login import login_bp
 from pagelogic.bp import doctor_page_bp
 from pagelogic.repo import drug_repo
 from pagelogic.repo import food_repo
-from pagelogic.bp import drug_record_bp
 from apscheduler.schedulers.background import BackgroundScheduler
 from pagelogic.service.notify_service import notify_jobs
 
-
+notify_interval = 30
 def notify_cronjob():
     print("Starting notification cron job...")
-    notify_jobs()
+    notify_jobs(1, notify_interval)
 
 def create_app():
     app = Flask(__name__)
@@ -31,12 +30,6 @@ def create_app():
         client_secret=config.OAUTH_CREDENTIALS['google']['client_secret'],
         client_kwargs={'scope': 'openid email profile'}
     )
-
-    #启动cronjob
-    interval = 60 * 5
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(notify_jobs,'interval', seconds=interval)
-    scheduler.start()
 
     # 注册 Blueprints
     from pagelogic.index import index_bp
@@ -65,6 +58,12 @@ def create_app():
 
     food_repo.get_foods()#预热food db入server
     food_repo.foods
+
+
+    #启动cronjob
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(notify_jobs,'interval', seconds=notify_interval)
+    scheduler.start()
 
     print(app.url_map)
     return app

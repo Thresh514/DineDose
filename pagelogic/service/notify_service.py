@@ -36,7 +36,8 @@ NOW = datetime.now()
 
 def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
     print("\n==================== STEP 1: Collect scheduled doses ====================")
-
+    NOW = datetime.now()
+    
     window_start = NOW
     window_end = NOW + timedelta(days=days)
 
@@ -149,7 +150,7 @@ def find_missed_doses(
 # Step 3: main entry
 # =========================
 
-def notify_jobs(days: int = 1) -> None:
+def notify_jobs(days: int = 1, interval: int = 5*60) -> None:
     print("\n==================== NOTIFY JOB START ====================")
     print(f"[MAIN] Running notify_jobs(days={days})")
 
@@ -167,7 +168,7 @@ def notify_jobs(days: int = 1) -> None:
 
     # Step 4
     print(f"[MAIN] Sending notifications ...")
-    send_notifications(missed_doses)
+    send_notifications(missed_doses, interval)
 
     print("==================== NOTIFY JOB END ====================\n")
 
@@ -175,8 +176,8 @@ def notify_jobs(days: int = 1) -> None:
 # =========================
 # Step 4: send notifications
 # =========================
-
-def send_notifications(missed_doses: List[ScheduledDose]) -> None:
+#interval: seconds between checks
+def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None:
     print("\n==================== STEP 4: Sending notifications ====================")
 
     if not missed_doses:
@@ -221,10 +222,10 @@ def send_notifications(missed_doses: List[ScheduledDose]) -> None:
 
         if scheduled_dt.tzinfo is None:
             diff_minutes = round(
-                (scheduled_dt - now_utc.replace(tzinfo=None)).total_seconds() / 60
+                (scheduled_dt - now_utc.replace(tzinfo=None)).total_seconds() / interval
             )
         else:
-            diff_minutes = round((scheduled_dt - now_utc).total_seconds() / 60)
+            diff_minutes = round((scheduled_dt - now_utc).total_seconds() / interval)
 
         print(f"[STEP4]   Time diff (minutes): {diff_minutes}, now_utc={now_utc}")
 
