@@ -7,7 +7,6 @@ from pagelogic.repo import drug_repo
 from pagelogic.repo import food_repo
 from pagelogic.bp import drug_record_bp
 from apscheduler.schedulers.background import BackgroundScheduler
-
 from service.notify_service import notify_jobs
 
 
