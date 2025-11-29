@@ -45,7 +45,7 @@ def _row_to_drug_record(cur, row) -> drug_record:
         user_id=rd["user_id"],
         drug_id=rd["drug_id"],
 
-        taken_date=rd["taken_date"],
+        expected_date=rd["expected_date"],
         expected_time=rd["expected_time"],
 
         dosage_numeric=rd["dosage_numeric"],
@@ -133,7 +133,7 @@ def get_drug_records_by_user_id(user_id: int) -> List[drug_record]:
     query = """
         SELECT * FROM drug_records
         WHERE user_id = %s
-        ORDER BY taken_date DESC, expected_time DESC
+        ORDER BY expected_date DESC, expected_time DESC
     """
     cur.execute(query, (user_id,))
     rows = cur.fetchall()
