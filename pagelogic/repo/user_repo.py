@@ -75,6 +75,24 @@ def get_user_by_id(user_id: int) -> Optional[User]:
     conn.close()
     return user
 
+def get_all_users() -> List[User]:
+    conn = mydb()
+    cur = conn.cursor()
+
+    query = """
+        SELECT id, username, email, google_id, avatar_url,
+               role, is_verified, created_at
+        FROM "users"
+        ORDER BY created_at ASC
+    """
+    cur.execute(query)
+    rows = cur.fetchall()
+
+    users: List[User] = [_row_to_user(cur, row) for row in rows]
+
+    cur.close()
+    conn.close()
+    return users
 
 def get_user_by_email(email: str) -> Optional[User]:
     conn = mydb()

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 from typing import Optional, List
-from datetime import date, datetime, time as dt_time
+from datetime import date, datetime, time as dt_time, timedelta
 from config import mydb
 
 # ===================== dataclass model =====================
@@ -311,25 +311,21 @@ def get_drug_record_by_unique(
     return record
 
 def get_recent_completed_drug_records(
-    user_id: int,
-    limit: int = 10
+    days: int
 ) -> List[drug_record]:
-    """
-    获取用户最近完成的药物记录，按时间降序排列。
-    """
     conn = mydb()
     cur = conn.cursor()
 
     query = """
         SELECT *
         FROM drug_records
-        WHERE user_id = %s
-          AND status = 'TAKEN'
+        WHERE status = 'TAKEN'
+          AND expected_date >= %s
         ORDER BY expected_date DESC, expected_time DESC
-        LIMIT %s
     """
 
-    cur.execute(query, (user_id, limit))
+    start_date = date.today() - timedelta(days=days)
+    cur.execute(query, (start_date,))
     rows = cur.fetchall()
 
     records = [_row_to_drug_record(cur, row) for row in rows]

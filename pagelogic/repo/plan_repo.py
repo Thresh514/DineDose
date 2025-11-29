@@ -223,6 +223,41 @@ def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
     print("[DEBUG] get_all_plan_items_by_plan_id:", len(items))
     return items
 
+def get_all_plan_items() -> List[plan_item]:
+    conn = mydb()
+    cur = conn.cursor()
+
+    query = """
+        SELECT id, plan_id, drug_id, dosage, unit,
+               amount_literal, note
+        FROM plan_item
+    """
+    cur.execute(query)
+    rows = cur.fetchall()
+
+    items: List[plan_item] = []
+    for row in rows:
+        rd = _row_to_dict(cur, row)
+        item = plan_item(
+            id=rd["id"],
+            plan_id=rd["plan_id"],
+            drug_id=rd["drug_id"],
+            drug_name=None,                     
+            dosage=rd["dosage"],
+            unit=rd["unit"],
+            amount_literal=rd.get("amount_literal"),
+            note=rd.get("note"),
+            date=None,
+            time=None,
+            plan_item_rule=None,
+        )
+        items.append(item)
+
+    cur.close()
+    conn.close()
+    print("[DEBUG] get_all_plan_items:", len(items))
+    return items
+
 
 def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rule]]:
     """
