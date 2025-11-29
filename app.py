@@ -8,7 +8,7 @@ from pagelogic.repo import food_repo
 from apscheduler.schedulers.background import BackgroundScheduler
 from pagelogic.service.notify_service import notify_jobs
 
-notify_interval = 30
+notify_interval = 5*60
 def notify_cronjob():
     print("Starting notification cron job...")
     notify_jobs(1, notify_interval)
