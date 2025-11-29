@@ -302,3 +302,31 @@ def get_patients_by_doctor_id(doctor_id: int) -> List[User]:
     cur.close()
     conn.close()
     return patients
+
+
+def get_users_by_ids(user_ids: List[int]) -> List[User]:
+    """
+    批量查一组 user_id，返回对应的 User 列表。
+    """
+    if not user_ids:
+        return []
+
+    conn = mydb()
+    cur = conn.cursor()
+
+    placeholders = ",".join(["%s"] * len(user_ids))
+    query = f"""
+        SELECT id, username, email, google_id, avatar_url,
+               role, is_verified, created_at
+        FROM "users"
+        WHERE id IN ({placeholders})
+    """
+
+    cur.execute(query, tuple(user_ids))
+    rows = cur.fetchall()
+
+    users: List[User] = [_row_to_user(cur, row) for row in rows]
+
+    cur.close()
+    conn.close()
+    return users

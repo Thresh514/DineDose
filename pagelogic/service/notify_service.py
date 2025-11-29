@@ -1,9 +1,8 @@
-import logging
-from datetime import date, timedelta
-from pagelogic.service import plan_service
-from pagelogic.repo import drug_record_repo
-import pagelogic.repo.plan_repo as plan_repo
-import pagelogic.repo.user_repo as user_repo
+from datetime import datetime, timezone, timezone
+from pagelogic.repo import user_notification_repo, user_repo
+from pagelogic.repo.drug_record_repo import drug_record
+from pagelogic.repo.user_repo import User
+from utils.emailsender import send_email_ses
 
 def get_plan_items_expiring_within(days: int) -> list:
 
@@ -54,6 +53,110 @@ def notify_jobs():
     logging.info(f"Found {len(not_found_drug_records)} missed plan items needing notification.")
     send_notifications(not_found_drug_records)
 
-def send_notifications(missed_plan_items: list):
-    #给每个用户发邮件，告诉他有哪些plan items没完成
-    pass
+
+def send_notifications(missed_plan_items: List[drug_record]) -> None:
+    """
+    Iterate through all missed drug plan items and send email notifications
+    based on each user's notification settings.
+    """
+    if not missed_plan_items:
+        return
+
+    # 1. Collect user IDs involved in these missed items
+    user_ids = {item.user_id for item in missed_plan_items}
+
+    # 2. Fetch user profiles (email / name)
+    users = user_repo.get_users_by_ids(list(user_ids))
+    user_id_to_email = {user.id: user.email for user in users}
+
+    # Prefer 'name', fallback to 'username', fallback to ""
+    user_id_to_name = {
+        user.id: user.username
+        for user in users
+    }
+
+    # 3. Fetch notification settings for all users
+    # Expected format: { user_id: NotificationConfig }
+    user_id_to_config = user_notification_repo.get_notification_configs_by_user_ids(
+        list(user_ids)
+    )
+
+    # Current timestamp for calculating time offset
+    now_utc = datetime.now(timezone.utc)
+
+    # 4. Evaluate each missed item
+    for missed_item in missed_plan_items:
+        cfg = user_id_to_config.get(missed_item.user_id)
+        if cfg is None:
+            continue
+
+        # Skip if notifications or email notifications are disabled
+        if not cfg.enabled or not cfg.email_enabled:
+            continue
+
+        # Determine the time difference (in minutes)
+        plan_time = missed_item.plan_time  # should be datetime
+
+        if plan_time.tzinfo is None:
+            # naive datetime -> compare using naive current time
+            diff_minutes = round(
+                (plan_time - now_utc.replace(tzinfo=None)).total_seconds() / 60
+            )
+        else:
+            diff_minutes = round(
+                (plan_time - now_utc).total_seconds() / 60
+            )
+
+        # Trigger notification if the offset matches user settings
+        if diff_minutes not in cfg.notify_minutes:
+            continue
+
+        # Send the e-mail
+        email = user_id_to_email.get(missed_item.user_id)
+        if not email:
+            continue
+
+        user_name = user_id_to_name.get(missed_item.user_id, "")
+        subject = "DineDose Medication Reminder"
+
+        body = build_email_body(missed_item, user_name)
+        send_email_ses(email, subject, body)
+
+    return
+
+
+def build_email_body(missed_item: drug_record, user_name: str) -> str:
+    """
+    Build the email content for the medication reminder.
+    """
+
+    # Format time nicely
+    if missed_item.plan_time.tzinfo:
+        plan_time_str = missed_item.plan_time.astimezone().strftime("%Y-%m-%d %H:%M")
+    else:
+        plan_time_str = missed_item.plan_time.strftime("%Y-%m-%d %H:%M")
+
+    # Handle dosage field (if exists)
+    dosage = getattr(missed_item, "dosage", None)
+    dosage_part = f" (Dosage: {dosage})" if dosage else ""
+
+    # Determine drug name field (adapt based on your actual drug_record model)
+    drug_name = getattr(missed_item, "drug_name", None)
+    if drug_name is None:
+        drug_name = getattr(missed_item, "generic_name", "Unknown medication")
+
+    display_name = user_name or "User"
+
+    body = (
+        f"Hello {display_name},\n\n"
+        f"This is a medication reminder from DineDose:\n"
+        f"- Medication: {drug_name}{dosage_part}\n"
+        f"- Scheduled time: {plan_time_str}\n\n"
+        f"Please confirm whether you have taken this medication as instructed.\n"
+        f"If you have already taken it, you can safely ignore this email.\n\n"
+        f"To adjust or disable medication reminders, please visit your "
+        f"DineDose Notification Settings.\n\n"
+        f"— DineDose Team"
+    )
+
+    return body
