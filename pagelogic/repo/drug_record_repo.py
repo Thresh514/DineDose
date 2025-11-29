@@ -309,3 +309,31 @@ def get_drug_record_by_unique(
     cur.close()
     conn.close()
     return record
+
+def get_recent_completed_drug_records(
+    user_id: int,
+    limit: int = 10
+) -> List[drug_record]:
+    """
+    获取用户最近完成的药物记录，按时间降序排列。
+    """
+    conn = mydb()
+    cur = conn.cursor()
+
+    query = """
+        SELECT *
+        FROM drug_records
+        WHERE user_id = %s
+          AND status = 'TAKEN'
+        ORDER BY expected_date DESC, expected_time DESC
+        LIMIT %s
+    """
+
+    cur.execute(query, (user_id, limit))
+    rows = cur.fetchall()
+
+    records = [_row_to_drug_record(cur, row) for row in rows]
+
+    cur.close()
+    conn.close()
+    return records
