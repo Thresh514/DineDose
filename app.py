@@ -2,12 +2,12 @@ from flask import Flask
 from extensions import mail, oauth
 from pagelogic import test_bp
 from pagelogic.login import login_bp
-from pagelogic.bp import doctor_page_bp, notify_bp
+from pagelogic.bp import doctor_page_bp
 from pagelogic.repo import drug_repo
 from pagelogic.repo import food_repo
 from pagelogic.bp import drug_record_bp
 from apscheduler.schedulers.background import BackgroundScheduler
-from service.notify_service import notify_jobs
+from pagelogic.service.notify_service import notify_jobs
 
 
 def notify_cronjob():

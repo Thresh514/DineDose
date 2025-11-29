@@ -1,0 +1,192 @@
+{% extends 'patient_base.html' %}
+{% block content %}
+<div class="feedback-page">
+    <!-- 页面标题 -->
+    <div class="feedback-header">
+        <h1 class="feedback-title">Doctor's Feedback</h1>
+    </div>
+
+    <!-- 反馈列表 -->
+    <div class="feedback-list">
+        {% if feedbacks and feedbacks|length > 0 %}
+            {% set prev_date = "" %}
+            {% for feedback in feedbacks %}
+                {% set fb_date = feedback.feedback_date if feedback.feedback_date else "" %}
+                {% if prev_date != fb_date %}
+                    {% if not loop.first %}
+                        </div>
+                        </div>
+                    {% endif %}
+                    <div class="feedback-date-group">
+                        <div class="feedback-date-header">
+                            <span class="date-label">{{ feedback.feedback_date_display if feedback.feedback_date_display else "Unknown Date" }}</span>
+                            {% if feedback.feedback_date_weekday %}
+                            <span class="date-weekday">{{ feedback.feedback_date_weekday }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="feedback-items">
+                    {% set prev_date = fb_date %}
+                {% endif %}
+                
+                <div class="feedback-item">
+                    <div class="feedback-item-icon">💬</div>
+                    <div class="feedback-item-content">
+                        <div class="feedback-item-text">{{ feedback.feedback if feedback.feedback else "No feedback text" }}</div>
+                        {% if feedback.created_at_display %}
+                            <div class="feedback-item-time">{{ feedback.created_at_display }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if loop.last %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <!-- 空状态 -->
+            <div class="feedback-empty">
+                <div class="feedback-empty-icon">💬</div>
+                <div class="feedback-empty-text">No feedback yet</div>
+                <div class="feedback-empty-hint">Your doctor will provide feedback here</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.feedback-page {
+    padding: 0 var(--side) 24px;
+    min-height: calc(100vh - 120px);
+}
+
+.feedback-header {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--muted);
+    margin-bottom: 16px;
+}
+
+.feedback-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+    letter-spacing: 0.2px;
+}
+
+.feedback-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.feedback-date-group {
+    margin-bottom: 24px;
+}
+
+.feedback-date-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--muted);
+}
+
+.date-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.date-weekday {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+}
+
+.feedback-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.feedback-item {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, #e8f2ff 0%, #f0f7ff 100%);
+    border: 2px solid #1976d2;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+.feedback-item-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.feedback-item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feedback-item-text {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.feedback-item-time {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.feedback-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px var(--side);
+    text-align: center;
+}
+
+.feedback-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.feedback-empty-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.feedback-empty-hint {
+    font-size: 14px;
+    color: #999;
+}
+
+/* 小屏优化 */
+@media (max-width: 360px) {
+    .feedback-title {
+        font-size: 24px;
+    }
+    .feedback-item {
+        padding: 12px;
+    }
+    .feedback-item-text {
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
+

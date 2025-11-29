@@ -49,6 +49,12 @@
     
     <!-- Sections -->
     <div class="plan-sections">
+        {% if not morning_items and not noon_items and not evening_items %}
+        <!-- Empty state -->
+        <div class="plan-empty-state">
+            <p class="plan-empty-text">No active plan today!</p>
+        </div>
+        {% else %}
         <!-- ===== Morning ===== -->
         <section class="time-section time-section--morning">
             <div class="time-section-bg">
@@ -61,6 +67,7 @@
                         {% set rec = completed_map.get(key) %}
                         {% set rec_status = rec.status if rec else (rec['status'] if rec is not none and 'status' in rec else None) %}
                         {% set rec_time = rec.taken_time if rec else (rec['taken_time'] if rec is not none and 'taken_time' in rec else None) %}
+                        {% set is_past_date = item.date and yesterday_date and item.date < yesterday_date %}
                     <li class="plan-item{% if rec_status %} plan-item--completed{% endif %}"
                         data-plan-item-id="{{ item.id }}"
                         data-drug-id="{{ item.drug_id }}"
@@ -68,7 +75,8 @@
                         data-expected-time="{{ item.time.isoformat() if item.time else '' }}"
                         data-completed="{% if rec_status %}1{% else %}0{% endif %}"
                         data-completion-status="{{ rec_status or '' }}"
-                        data-completion-time="{{ rec_time or '' }}">
+                        data-completion-time="{{ rec_time or '' }}"
+                        data-is-past-date="{% if is_past_date %}1{% else %}0{% endif %}">
                         <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
@@ -92,28 +100,21 @@
                                 {% endif %}
                             </span>
                         </div>
-                        {% if not rec_status %}
-                        <button class="plan-item-checkbox"
-                                aria-label="Mark as completed">
+                        <button class="plan-item-checkbox{% if rec_status %} checked{% endif %}{% if is_past_date %} disabled{% endif %}"
+                                aria-label="{% if rec_status %}Already completed{% elif is_past_date %}Cannot modify past dates{% else %}Mark as completed{% endif %}"
+                                {% if is_past_date %}disabled{% endif %}>
+                            {% if rec_status %}
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 6L9 17l-5-5"/>
                             </svg>
+                            {% else %}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            </svg>
+                            {% endif %}
                         </button>
-                        {% endif %}
                     </li>
                     {% endfor %}
-                {% else %}
-                    <li class="plan-item">
-                        <div class="plan-item-avatar">A</div>
-                        <div class="plan-item-content">
-                            <span class="plan-item-name">List item</span>
-                        </div>
-                        <button class="plan-item-checkbox" aria-label="Mark as completed">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 6L9 17l-5-5"/>
-                            </svg>
-                        </button>
-                    </li>
                 {% endif %}
             </ul>
         </section>
@@ -130,6 +131,7 @@
                         {% set rec = completed_map.get(key) %}
                         {% set rec_status = rec.status if rec else (rec['status'] if rec is not none and 'status' in rec else None) %}
                         {% set rec_time = rec.taken_time if rec else (rec['taken_time'] if rec is not none and 'taken_time' in rec else None) %}
+                        {% set is_past_date = item.date and yesterday_date and item.date < yesterday_date %}
                     <li class="plan-item{% if rec_status %} plan-item--completed{% endif %}"
                         data-plan-item-id="{{ item.id }}"
                         data-drug-id="{{ item.drug_id }}"
@@ -137,7 +139,8 @@
                         data-expected-time="{{ item.time.isoformat() if item.time else '' }}"
                         data-completed="{% if rec_status %}1{% else %}0{% endif %}"
                         data-completion-status="{{ rec_status or '' }}"
-                        data-completion-time="{{ rec_time or '' }}">
+                        data-completion-time="{{ rec_time or '' }}"
+                        data-is-past-date="{% if is_past_date %}1{% else %}0{% endif %}">
                         <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
@@ -161,14 +164,19 @@
                                 {% endif %}
                             </span>
                         </div>
-                        {% if not rec_status %}
-                        <button class="plan-item-checkbox"
-                                aria-label="Mark as completed">
+                        <button class="plan-item-checkbox{% if rec_status %} checked{% endif %}{% if is_past_date %} disabled{% endif %}"
+                                aria-label="{% if rec_status %}Already completed{% elif is_past_date %}Cannot modify past dates{% else %}Mark as completed{% endif %}"
+                                {% if is_past_date %}disabled{% endif %}>
+                            {% if rec_status %}
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 6L9 17l-5-5"/>
                             </svg>
+                            {% else %}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            </svg>
+                            {% endif %}
                         </button>
-                        {% endif %}
                     </li>
                     {% endfor %}
                 {% endif %}
@@ -187,6 +195,7 @@
                         {% set rec = completed_map.get(key) %}
                         {% set rec_status = rec.status if rec else (rec['status'] if rec is not none and 'status' in rec else None) %}
                         {% set rec_time = rec.taken_time if rec else (rec['taken_time'] if rec is not none and 'taken_time' in rec else None) %}
+                        {% set is_past_date = item.date and yesterday_date and item.date < yesterday_date %}
                     <li class="plan-item{% if rec_status %} plan-item--completed{% endif %}"
                         data-plan-item-id="{{ item.id }}"
                         data-drug-id="{{ item.drug_id }}"
@@ -194,7 +203,8 @@
                         data-expected-time="{{ item.time.isoformat() if item.time else '' }}"
                         data-completed="{% if rec_status %}1{% else %}0{% endif %}"
                         data-completion-status="{{ rec_status or '' }}"
-                        data-completion-time="{{ rec_time or '' }}">
+                        data-completion-time="{{ rec_time or '' }}"
+                        data-is-past-date="{% if is_past_date %}1{% else %}0{% endif %}">
                         <div class="plan-item-avatar">{{ (item.drug_name or 'A')[:1]|upper }}</div>
                         <div class="plan-item-content">
                             <span class="plan-item-name">{{ item.drug_name or 'List item' }}</span>
@@ -218,19 +228,46 @@
                                 {% endif %}
                             </span>
                         </div>
-                        {% if not rec_status %}
-                        <button class="plan-item-checkbox"
-                                aria-label="Mark as completed">
+                        <button class="plan-item-checkbox{% if rec_status %} checked{% endif %}{% if is_past_date %} disabled{% endif %}"
+                                aria-label="{% if rec_status %}Already completed{% elif is_past_date %}Cannot modify past dates{% else %}Mark as completed{% endif %}"
+                                {% if is_past_date %}disabled{% endif %}>
+                            {% if rec_status %}
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20 6L9 17l-5-5"/>
                             </svg>
+                            {% else %}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            </svg>
+                            {% endif %}
                         </button>
-                        {% endif %}
                     </li>
                     {% endfor %}
                 {% endif %}
             </ul>
         </section>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Dialog Component -->
+<div id="plan-dialog" class="plan-dialog" role="dialog" aria-labelledby="dialog-title" aria-modal="true">
+    <div class="plan-dialog-overlay"></div>
+    <div class="plan-dialog-content">
+        <div class="plan-dialog-header">
+            <h3 id="dialog-title" class="plan-dialog-title">Alert</h3>
+            <button class="plan-dialog-close" aria-label="Close dialog">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="plan-dialog-body">
+            <p id="dialog-message"></p>
+        </div>
+        <div class="plan-dialog-footer">
+            <button class="plan-dialog-btn plan-dialog-btn--primary" id="dialog-confirm">Confirm</button>
+        </div>
     </div>
 </div>
 
@@ -242,6 +279,51 @@
     var weekDayButtons = document.querySelectorAll('.week-day[data-date]');
     
     if (!planPage) return;
+
+    // ---------- Dialog ----------
+    var dialog = document.getElementById('plan-dialog');
+    var dialogMessage = document.getElementById('dialog-message');
+    var dialogConfirm = document.getElementById('dialog-confirm');
+    var dialogClose = document.querySelector('.plan-dialog-close');
+    var dialogOverlay = document.querySelector('.plan-dialog-overlay');
+
+    function showDialog(message, title) {
+        if (!dialog || !dialogMessage) return;
+        
+        dialogMessage.textContent = message || '';
+        if (title && document.getElementById('dialog-title')) {
+            document.getElementById('dialog-title').textContent = title;
+        }
+        dialog.classList.add('show');
+        
+        if (dialogConfirm) {
+            setTimeout(function() {
+                dialogConfirm.focus();
+            }, 100);
+        }
+    }
+
+    function hideDialog() {
+        if (dialog) {
+            dialog.classList.remove('show');
+        }
+    }
+
+    if (dialogConfirm) {
+        dialogConfirm.addEventListener('click', hideDialog);
+    }
+    if (dialogClose) {
+        dialogClose.addEventListener('click', hideDialog);
+    }
+    if (dialogOverlay) {
+        dialogOverlay.addEventListener('click', hideDialog);
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && dialog && dialog.classList.contains('show')) {
+            hideDialog();
+        }
+    });
     
     var planPageUrl = planPage.getAttribute('data-plan-url') || '';
     var currentDateStr = planPage.getAttribute('data-selected-date');
@@ -329,16 +411,16 @@
 
     function formatLocalHHMM(isoString) {
         if (!isoString) return "";
-        var dt = new Date(isoString);   // 自动按浏览器本地时区解析
+        var dt = new Date(isoString);
         if (isNaN(dt.getTime())) return "";
         var h = String(dt.getHours()).padStart(2, '0');
         var m = String(dt.getMinutes()).padStart(2, '0');
         return h + ":" + m;
     }
 
-    async function markDrugTaken(li, btn, result, nowDt) {
+    async function toggleDrugRecord(li, btn, result, nowDt) {
         if (!currentUserId) {
-            alert("Missing user id");
+            showDialog("Missing user id", "Alert");
             return;
         }
 
@@ -346,17 +428,21 @@
         var drugId = li.getAttribute('data-drug-id');
         var expectedDate = li.getAttribute('data-expected-date');
         var expectedTime = li.getAttribute('data-expected-time') || null;
+        var isCompleted = li.getAttribute("data-completed") === "1";
 
         var payload = {
             user_id: Number(currentUserId),
             drug_id: Number(drugId),
             plan_item_id: Number(planItemId),
             expected_date: expectedDate,
-            expected_time: expectedTime,
-            status: result.status,
-            timing_flag: result.flag,
-            taken_at: nowDt.toISOString()
+            expected_time: expectedTime
         };
+
+        if (!isCompleted) {
+            payload.status = result.status;
+            payload.timing_flag = result.flag;
+            payload.taken_at = nowDt.toISOString();
+        }
 
         try {
             const resp = await fetch("/mark_drug_taken", {
@@ -368,40 +454,69 @@
             const data = await resp.json();
 
             if (!resp.ok || data.error) {
-                alert(data.error || "Failed to mark drug as taken");
+                showDialog(data.error || "Failed to toggle drug record", "Alert");
                 return;
             }
 
-            if (result.message) {
-                alert(result.message + " (saved)");
-            } else {
-                alert("Recorded as taken");
-            }
+            if (data.action === "deleted") {
+                showDialog("Record deleted", "Success");
+                
+                li.classList.remove("plan-item--completed");
+                li.setAttribute("data-completed", "0");
+                li.setAttribute("data-completion-status", "");
+                li.setAttribute("data-completion-time", "");
 
-            li.classList.add("plan-item--completed");
-            li.setAttribute("data-completed", "1");
-            li.setAttribute("data-completion-status", result.status);
-            li.setAttribute("data-completion-time", nowDt.toISOString());
+                if (btn) {
+                    btn.classList.remove("checked");
+                    btn.removeAttribute("disabled");
+                    btn.setAttribute("aria-label", "Mark as completed");
+                    btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>';
+                }
 
-            if (btn && btn.parentNode) {
-                btn.parentNode.removeChild(btn);
-            }
+                var statusSpan = li.querySelector(".plan-item-status");
+                if (statusSpan) {
+                    statusSpan.textContent = "";
+                }
+            } else if (data.action === "created") {
+                if (result && result.message) {
+                    showDialog(result.message, "Success");
+                } else {
+                    showDialog("Recorded as taken", "Success");
+                }
 
-            var statusSpan = li.querySelector(".plan-item-status");
-            if (statusSpan) {
-                var timeStr = formatTimeHHMM(nowDt);
-                if (result.status === "ON_TIME") {
-                    statusSpan.textContent = "Completed on time at " + timeStr;
-                } else if (result.status === "LATE") {
-                    statusSpan.textContent = "Completed late at " + timeStr;
-                } else if (result.status === "EARLY") {
-                    statusSpan.textContent = "Completed early at " + timeStr;
+                li.classList.add("plan-item--completed");
+                li.setAttribute("data-completed", "1");
+                if (result) {
+                    li.setAttribute("data-completion-status", result.status || "");
+                } else {
+                    li.setAttribute("data-completion-status", "");
+                }
+                li.setAttribute("data-completion-time", nowDt.toISOString());
+
+                // 更新checkbox为已勾选状态
+                if (btn) {
+                    btn.classList.add("checked");
+                    btn.setAttribute("aria-label", "Already completed");
+                    // 替换SVG为勾选图标
+                    btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+                }
+
+                var statusSpan = li.querySelector(".plan-item-status");
+                if (statusSpan && result) {
+                    var timeStr = formatTimeHHMM(nowDt);
+                    if (result.status === "ON_TIME") {
+                        statusSpan.textContent = "Completed on time at " + timeStr;
+                    } else if (result.status === "LATE") {
+                        statusSpan.textContent = "Completed late at " + timeStr;
+                    } else if (result.status === "EARLY") {
+                        statusSpan.textContent = "Completed early at " + timeStr;
+                    }
                 }
             }
 
         } catch (e) {
             console.error(e);
-            // alert("Network error while marking drug as taken");
+            showDialog("Network error while toggling drug record", "Alert");
         }
     }
 
@@ -410,18 +525,43 @@
     checkboxes.forEach(function(btn) {
         btn.addEventListener('click', async function(e) {
             e.preventDefault();
+            
+            // 检查是否被禁用（过去日期）
+            if (btn.disabled || btn.classList.contains('disabled')) {
+                return;
+            }
+            
             var li = btn.closest('.plan-item');
             if (!li) return;
 
             var completed = li.getAttribute("data-completed");
+            var isPastDate = li.getAttribute("data-is-past-date") === "1";
+
+            // 如果是已完成的记录，直接toggle（删除）
+            // 可以取消的记录：今天、昨天、以及未来的日期
+            // 不能取消的记录：前天及更早的日期
             if (completed === "1") {
-                alert("This dose has already been recorded.");
+                // 检查是否是过去日期（前天及更早不能取消）
+                if (isPastDate) {
+                    showDialog("Cannot modify past dates.", "Alert");
+                    return;
+                }
+                // 今天、昨天和未来的日期都可以取消记录
+                // 直接删除记录，不需要验证时间
+                await toggleDrugRecord(li, btn, null, new Date());
+                return;
+            }
+
+            // 未完成的记录：检查是否可以完成
+            // 检查是否是过去日期
+            if (isPastDate) {
+                showDialog("Cannot modify past dates.", "Alert");
                 return;
             }
 
             var expectedDt = buildExpectedDate(li);
             if (!expectedDt) {
-                alert("This item has no valid expected time; cannot complete.");
+                showDialog("This item has no valid expected time; cannot complete.", "Alert");
                 return;
             }
 
@@ -429,15 +569,11 @@
             var result = classifyTaking(expectedDt, nowDt);
 
             if (!result.canComplete) {
-                alert(result.message);
+                showDialog(result.message, "Alert");
                 return;
             }
 
-            if (result.message) {
-                alert(result.message);
-            }
-
-            await markDrugTaken(li, btn, result, nowDt);
+            await toggleDrugRecord(li, btn, result, nowDt);
         });
     });
 
