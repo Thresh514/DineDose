@@ -223,6 +223,41 @@ def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
     print("[DEBUG] get_all_plan_items_by_plan_id:", len(items))
     return items
 
+def get_all_plan_items() -> List[plan_item]:
+    conn = mydb()
+    cur = conn.cursor()
+
+    query = """
+        SELECT id, plan_id, drug_id, dosage, unit,
+               amount_literal, note
+        FROM plan_item
+    """
+    cur.execute(query)
+    rows = cur.fetchall()
+
+    items: List[plan_item] = []
+    for row in rows:
+        rd = _row_to_dict(cur, row)
+        item = plan_item(
+            id=rd["id"],
+            plan_id=rd["plan_id"],
+            drug_id=rd["drug_id"],
+            drug_name=None,                     
+            dosage=rd["dosage"],
+            unit=rd["unit"],
+            amount_literal=rd.get("amount_literal"),
+            note=rd.get("note"),
+            date=None,
+            time=None,
+            plan_item_rule=None,
+        )
+        items.append(item)
+
+    cur.close()
+    conn.close()
+    print("[DEBUG] get_all_plan_items:", len(items))
+    return items
+
 
 def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rule]]:
     """
@@ -506,3 +541,65 @@ def delete_plan_item_and_rules(item_id: int) -> bool:
     finally:
         cur.close()
         conn.close()
+
+
+# ====== CREATE: 创建 plan ======
+def create_plan(
+    patient_id: int,
+    doctor_id: int,
+    name: str = "Default Plan",
+    description: Optional[str] = None,
+    doctor_name: Optional[str] = None,
+    patient_name: Optional[str] = None,
+) -> plan:
+    """
+    创建一个新的 plan，建立 doctor 和 patient 的关系。
+    如果该 patient 已经有 plan，则返回现有的 plan。
+    """
+    conn = mydb()
+    cur = conn.cursor()
+    
+    try:
+        # 先检查是否已存在 plan
+        existing = get_plan_by_user_id(patient_id)
+        if existing:
+            cur.close()
+            conn.close()
+            return existing
+        
+        # 创建新的 plan
+        query = """
+            INSERT INTO plan (patient_id, doctor_id, name, description, doctor_name, patient_name)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id, patient_id, doctor_id, name, description, doctor_name, patient_name
+        """
+        cur.execute(
+            query,
+            (patient_id, doctor_id, name, description, doctor_name, patient_name),
+        )
+        row = cur.fetchone()
+        conn.commit()
+        
+        row_dict = _row_to_dict(cur, row)
+        new_plan = plan(
+            id=row_dict["id"],
+            patient_id=row_dict["patient_id"],
+            doctor_id=row_dict["doctor_id"],
+            name=row_dict["name"],
+            description=row_dict.get("description"),
+            doctor_name=row_dict.get("doctor_name"),
+            patient_name=row_dict.get("patient_name"),
+        )
+        
+        cur.close()
+        conn.close()
+        return new_plan
+    except Exception as e:
+        conn.rollback()
+        print("create_plan ERROR:", e)
+        raise
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()

@@ -1,6 +1,9 @@
 <header class="app-header">
     <div class="brand">Dine Dose</div>
     <div class="header-actions">
+        <a class="icon" href="{{ url_for('patient_home.patient_feedback_page') }}" aria-label="messages">
+            <img class="icon" src="{{ url_for('static', filename='public/message.png') }}" alt="messages">
+        </a>
         <a class="icon" href="{{ url_for('patient_home.patient_food_history_page') }}" aria-label="food history">
             <img class="icon" src="{{ url_for('static', filename='public/history.png') }}" alt="food history">
         </a>

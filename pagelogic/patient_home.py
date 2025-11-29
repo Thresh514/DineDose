@@ -1,6 +1,6 @@
-from flask import render_template, Blueprint, request, session
+from flask import render_template, Blueprint, request, session, jsonify
 from datetime import date, datetime, time as dt_time, timedelta
-from pagelogic.repo import food_repo, drug_repo, food_record_repo, drug_record_repo
+from pagelogic.repo import food_repo, drug_repo, food_record_repo, drug_record_repo, feedback_repo
 from pagelogic.service import plan_service
 
 patient_home_bp = Blueprint('patient_home', __name__)
@@ -231,27 +231,107 @@ def patient_food_history_page():
                           current_period=period)
 
 
+@patient_home_bp.route('/patient/get_feedback', methods=['GET'])
+def get_patient_feedback():
+    """
+    患者获取某一天的医生反馈
+    """
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    feedback_date_str = request.args.get('date')
+    if not feedback_date_str:
+        return jsonify({"error": "date parameter is required"}), 400
+    
+    try:
+        feedback_date = date.fromisoformat(feedback_date_str)
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+    
+    feedback = feedback_repo.get_feedback_by_date(user_id, feedback_date)
+    
+    if feedback:
+        return jsonify({"feedback": feedback.to_dict()}), 200
+    else:
+        return jsonify({"feedback": None}), 200
+
+
+@patient_home_bp.route('/patient/feedback', methods=['GET'])
+def patient_feedback_page():
+    """
+    患者反馈页面
+    显示医生给患者的所有反馈
+    """
+    user_id = session.get('user_id')
+    if not user_id:
+        return render_template('patient_feedback.html', feedbacks=[])
+    
+    # 获取前后三天的反馈
+    today = date.today()
+    start_date = today - timedelta(days=3)
+    end_date = today + timedelta(days=3)
+    
+    try:
+        feedbacks = feedback_repo.get_feedbacks_by_date_range(
+            patient_id=user_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        # 转换为字典格式并格式化日期显示
+        feedbacks_list = []
+        for fb in feedbacks:
+            fb_dict = fb.to_dict()
+            # 格式化日期显示
+            if fb.feedback_date:
+                fb_dict['feedback_date_display'] = fb.feedback_date.strftime('%B %d, %Y')
+                fb_dict['feedback_date_weekday'] = fb.feedback_date.strftime('%A')
+            else:
+                fb_dict['feedback_date_display'] = 'Unknown Date'
+                fb_dict['feedback_date_weekday'] = ''
+            # 格式化时间显示
+            if fb.created_at:
+                if isinstance(fb.created_at, datetime):
+                    fb_dict['created_at_display'] = fb.created_at.strftime('%I:%M %p')
+                else:
+                    fb_dict['created_at_display'] = None
+            else:
+                fb_dict['created_at_display'] = None
+            
+            feedbacks_list.append(fb_dict)
+        
+        print(f"DEBUG: Found {len(feedbacks_list)} feedbacks for user {user_id}")
+        
+    except Exception as e:
+        print(f"ERROR: Failed to get feedbacks: {e}")
+        import traceback
+        traceback.print_exc()
+        feedbacks_list = []
+    
+    return render_template('patient_feedback.html', feedbacks=feedbacks_list, user_id=user_id)
+
+
 @patient_home_bp.route('/patient/plan', methods=['GET'])
 def patient_plan_page():
     # 从 session 获取当前用户ID
     user_id = session.get('user_id')
 
-    # 获取选中的日期（默认今天）
     selected_date_str = request.args.get('date')
+    today_date = date.today()
+    yesterday_date = today_date - timedelta(days=1)
     if selected_date_str:
         try:
             selected_date = date.fromisoformat(selected_date_str)
         except ValueError:
-            selected_date = date.today()
+            selected_date = today_date
     else:
-        selected_date = date.today()
+        selected_date = today_date
     
-    # 计算选中日期所在周的开始日期（周日）和结束日期（周六）
     days_since_sunday = (selected_date.weekday() + 1) % 7  # 0=Sunday, 6=Saturday
     week_start = selected_date - timedelta(days=days_since_sunday)
     week_end = week_start + timedelta(days=6)
     
-    # 一周日期列表
     week_dates = []
     for i in range(7):
         week_date = week_start + timedelta(days=i)
@@ -262,7 +342,6 @@ def patient_plan_page():
             'is_selected': week_date == selected_date
         })
     
-    # 未登录：空数据
     if not user_id:
         return render_template(
             'patient_plan.html',
@@ -272,6 +351,8 @@ def patient_plan_page():
             evening_items=[],
             completed_map={},
             selected_date=selected_date,
+            today_date=today_date,
+            yesterday_date=yesterday_date,
             week_dates=week_dates,
             week_start=week_start,
             week_end=week_end
@@ -291,6 +372,8 @@ def patient_plan_page():
                 evening_items=[],
                 completed_map={},
                 selected_date=selected_date,
+                today_date=today_date,
+                yesterday_date=yesterday_date,
                 week_dates=week_dates,
                 week_start=week_start,
                 week_end=week_end
@@ -305,6 +388,8 @@ def patient_plan_page():
             evening_items=[],
             completed_map={},
             selected_date=selected_date,
+            today_date=today_date,
+            yesterday_date=yesterday_date,
             week_dates=week_dates,
             week_start=week_start,
             week_end=week_end
@@ -399,6 +484,8 @@ def patient_plan_page():
         evening_items=evening_items,
         completed_map=completed_map,
         selected_date=selected_date,
+        today_date=today_date,
+        yesterday_date=yesterday_date,
         week_dates=week_dates,
         week_start=week_start,
         week_end=week_end
