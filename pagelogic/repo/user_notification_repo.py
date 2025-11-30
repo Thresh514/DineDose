@@ -137,9 +137,6 @@ def get_notification_configs_by_user_ids(user_ids: List[int]) -> Dict[int, Notif
         WHERE user_id IN ({placeholders})
     """
 
-    if config.FLASK_ENV == "dev":
-        print("[DEV] get_notification_configs_by_user_ids:", user_ids)
-
     cur.execute(query, tuple(user_ids))
     rows = cur.fetchall()
 
