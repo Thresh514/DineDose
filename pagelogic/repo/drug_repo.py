@@ -92,6 +92,7 @@ def get_drugs():
         d = _row_to_drug(cur, row)
         drugs.append(d)
     print("finished loading drugs from DB.", time.time())
+    print(drugs[:10], drugs[-10:])
     # assign 给 drug_repo的drugs
     cur.close()
     conn.close()
@@ -177,3 +178,20 @@ def get_drug_by_id_locally(id: int) -> Optional[drug]:
 
 def get_drugs_by_ids_locally(ids: List[int]) -> List[drug]:
     return [d for d in drugs if d.id in ids]
+
+def get_drug_by_ndc_locally(ndc: str) -> Optional[drug]:
+    for d in drugs:
+        if d.product_ndc == ndc:
+            return d
+    return None
+
+def get_drugs_by_name_locally(name: str) -> List[drug]:
+    if name == "":
+        return drugs[:100]  # 如果 name 为空，返回前100个药品作为默认结果
+    res = []
+    name = name.lower()
+    
+    for drug in drugs:
+        if name in drug.brand_name.lower() or name in drug.generic_name.lower():
+            res.append(drug)
+    return res[:100]  # 最多返回100个结果

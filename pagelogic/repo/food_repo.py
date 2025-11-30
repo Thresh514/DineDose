@@ -102,5 +102,16 @@ def get_foods_by_name_locally(name: str) -> Optional[food]:
     print(res)
     return res
 
+def get_foods_by_name_locally(name: str) -> List[food]:
+    if name == "":
+        return foods[:100]  # 如果 name 为空，返回前100个食品作为默认结果
+    
+    name = name.lower()
+    res = []
+    for food in foods:
+        if name in food.description.lower():
+            res.append(food)
+    return res[:100]  # 最多返回100个结果
+
 def get_foods_by_ids_locally(ids: List[int]) -> List[food]:
     return [f for f in foods if f.id in ids]

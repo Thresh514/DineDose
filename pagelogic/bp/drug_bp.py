@@ -17,3 +17,49 @@ def get_drug_by_id_locally():
         return jsonify({"error": f"No food found with id {drug_id}"}), 404
 
     return jsonify(food.to_dict()), 200
+
+
+
+
+
+
+# Return a sample of drugs (first 100)
+@drug_bp.route('/get_sample_drugs', methods=['GET'])
+def get_sample_drugs_locally():
+    sample_drugs = drug_repo.get_drugs_by_name_locally("")
+    return jsonify([drug.to_dict() for drug in sample_drugs]), 200
+
+
+# Search drugs by whether the brand_name or generic_name includes name
+# name should be at least 2 characters long
+# if multiple drugs match, return the first 100 drugs
+@drug_bp.route('/search_drug', methods=['GET'])
+def search_drug_locally():
+    drug_name = request.args.get("name", "")
+    if not drug_name:
+        return jsonify({"error": "Missing name"}), 400
+        
+    if len(drug_name) < 2:
+        return jsonify({"error": "Name too short, must be at least 2 characters"}), 400
+
+    drugs = drug_repo.get_drugs_by_name_locally(drug_name)
+    if not drugs:
+        return jsonify([]), 404
+
+    return jsonify([drug.to_dict() for drug in drugs]), 200
+
+
+# Get drug by NDC code
+# 100% match on product_ndc
+@drug_bp.route('/get_drug_by_ndc', methods=['POST'])
+def get_drug_by_ndc_locally():
+    data = request.get_json()
+    ndc = data.get("ndc", "")
+    if not ndc:
+        return jsonify({"error": "Missing ndc"}), 400
+
+    drug = drug_repo.get_drug_by_ndc_locally(ndc)
+    if drug is None:
+        return jsonify({"error": f"No drug found with ndc {ndc}"}), 404
+
+    return jsonify(drug.to_dict()), 200
