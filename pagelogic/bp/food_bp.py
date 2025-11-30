@@ -47,19 +47,21 @@ def get_sample_foods_locally():
 
 
 # search food，by whether the  description includes name 
-# /search_food?name=Banana
+# /search_food?name="Banana Juice"
 # name should be at least 2 characters long
 #if multiple foods match, return the first 100 foods
 @food_bp.route('/search_food', methods=['GET'])
 def search_foods_locally():
     name = request.args.get("name", "")
+    names = name.split(" ")
+
     if not name:
         return jsonify({"error": "Missing name"}), 400
     
     if len(name) < 2:
         return jsonify({"error": "Name too short, must be at least 2 characters"}), 400
 
-    foods = food_repo.get_foods_by_name_locally(name)
+    foods = food_repo.get_foods_by_names_locally(names)
     if not foods:
         return jsonify([]), 404
 

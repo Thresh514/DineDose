@@ -181,17 +181,22 @@ def get_drugs_by_ids_locally(ids: List[int]) -> List[drug]:
 
 def get_drug_by_ndc_locally(ndc: str) -> Optional[drug]:
     for d in drugs:
-        if d.product_ndc == ndc:
+        if d.product_ndc and d.product_ndc == ndc:
             return d
     return None
 
-def get_drugs_by_name_locally(name: str) -> List[drug]:
-    if name == "":
+def get_drugs_by_name_locally(names: List[str]) -> List[drug]:
+    if not names or all(name == "" for name in names):
         return drugs[:100]  # 如果 name 为空，返回前100个药品作为默认结果
     res = []
-    name = name.lower()
+    names = [name.lower() for name in names]
     
     for drug in drugs:
-        if name in drug.brand_name.lower() or name in drug.generic_name.lower():
+        if drug.brand_name and all(name in drug.brand_name.lower() for name in names):
             res.append(drug)
-    return res[:100]  # 最多返回100个结果
+        elif drug.generic_name and all(name in drug.generic_name.lower() for name in names):
+            res.append(drug)
+    return sorted(res, key=lambda x: (x.brand_name is None, 
+                                      x.generic_name is None, 
+                                      len(x.brand_name) if x.brand_name else float('inf'),
+                                      len(x.generic_name) if x.generic_name else float('inf')))[:100]
