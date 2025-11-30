@@ -75,6 +75,8 @@ def magic_login():
 @login_bp.route('/login/google', methods=['GET'])
 def oauth_login():
     redirect_uri = url_for('login.oauth_authorize', _external=True)
+    if redirect_uri.startswith('http://'):
+        redirect_uri = redirect_uri.replace('http://', 'https://')
     return oauth.google.authorize_redirect(redirect_uri)
 
 @login_bp.route('/login/authorize', methods=['GET'])

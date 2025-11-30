@@ -1,16 +1,19 @@
-# import pymysql
 import psycopg
 from psycopg.rows import dict_row 
 import os
 
 from dotenv import load_dotenv
-load_dotenv() #解决 环境变量 加载失败问题
+load_dotenv()
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+# Flask URL 配置 - 用于生成外部链接（Magic Link 和 OAuth）
+SERVER_NAME = os.getenv("SERVER_NAME", None)  # 例如: "dinedose.onrender.com" 或 "yourdomain.com"
+PREFERRED_URL_SCHEME = os.getenv("PREFERRED_URL_SCHEME", "https")  # 生产环境用 https
+
 # Flask Session 配置 - 确保 OAuth state 在进程间正确共享
-SESSION_COOKIE_SECURE = False  # 开发环境设为 False，生产环境使用 HTTPS 时设为 True
+SESSION_COOKIE_SECURE = True # 开发环境设为 False，生产环境使用 HTTPS 时设为 True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 PERMANENT_SESSION_LIFETIME = 86400  # 24 小时
@@ -35,16 +38,6 @@ LLM_API_URL = os.getenv("LLM_API_URL", "https://api.openai.com/v1/chat/completio
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = "gpt-5-mini"
 
-# def mydb():
-#     return pymysql.connect(
-#         host='dinedose.cds2osi82wxl.us-east-1.rds.amazonaws.com',
-#         user='admin',
-#         password='8Q8aA18WrlwUmnDPwnGh',
-#         database='db',
-#         charset='utf8mb4',
-#         port=3306,
-#         cursorclass=pymysql.cursors.DictCursor
-#     )
 
 def mydb():
     return psycopg.connect(

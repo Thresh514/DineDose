@@ -3,5 +3,3 @@ from authlib.integrations.flask_client import OAuth
 
 mail = Mail()
 oauth = OAuth()
-
-

@@ -1,4 +1,5 @@
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import mail, oauth
 from pagelogic import test_bp
 from pagelogic.login import login_bp
@@ -16,6 +17,15 @@ def notify_cronjob():
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config')
+    
+    # 如果使用反向代理，启用 ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    
+    # 设置服务器名称和 URL 方案
+    import config
+    if config.SERVER_NAME:
+        app.config['SERVER_NAME'] = config.SERVER_NAME
+    app.config['PREFERRED_URL_SCHEME'] = config.PREFERRED_URL_SCHEME
 
     # 初始化扩展
     mail.init_app(app)

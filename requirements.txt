@@ -17,3 +17,4 @@ tqdm
 dotenv
 requests
 boto3
+apscheduler
