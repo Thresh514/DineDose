@@ -1,0 +1,58 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="{{ url_for('static', filename='doctor.css') }}">
+
+<div class="doctor-sidebar">
+    <div class="sidebar-header">
+        <h2 class="sidebar-title">Dashboard</h2>
+    </div>
+    
+    <div class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-title">General</div>
+            <a href="/doctor/home" class="nav-item" data-page="patients">
+                <span class="nav-indicator"></span>
+                <span class="nav-label">Patients</span>
+            </a>
+            <a href="/doctor/plans" class="nav-item" data-page="plan">
+                <span class="nav-indicator"></span>
+                <span class="nav-label">Plan</span>
+            </a>
+            <a href="/doctor/feedback" class="nav-item" data-page="feedback">
+                <span class="nav-indicator"></span>
+                <span class="nav-label">Feedback</span>
+            </a>
+        </div>
+    </div>
+    
+    <div class="sidebar-footer">
+        <a href="{{ url_for('logout.logout') }}" class="user-icon" title="Logout"><i class="fas fa-user"></i></a>
+    </div>
+</div>
+
+<script>
+// 根据当前页面高亮对应的导航项
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        const page = item.getAttribute('data-page');
+        if (currentPath.includes(page) || 
+            (page === 'patients' && currentPath === '/doctor/home') ||
+            (page === 'plan' && currentPath.includes('/doctor/plan')) ||
+            (page === 'feedback' && currentPath.includes('/doctor/feedback'))) {
+            item.classList.add('active');
+        }
+    });
+    
+    // 搜索功能
+    const searchInput = document.getElementById('patient-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            // 可以在这里添加搜索逻辑
+            console.log('Searching for:', e.target.value);
+        });
+    }
+});
+</script>
+

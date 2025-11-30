@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, session, jsonify
 from pagelogic.repo import user_repo, plan_repo, feedback_repo, drug_record_repo
 from pagelogic.service import plan_service
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from utils.llm_api import call_llm_api
+from config import mydb
 
 doctor_page_bp = Blueprint("doctor_page_bp", __name__)
 
@@ -85,6 +86,54 @@ def add_patient():
         return jsonify({"error": f"Failed to add patient: {str(e)}"}), 500
 
 
+@doctor_page_bp.route("/doctor/remove_patient", methods=["POST"])
+def remove_patient():
+    """
+    移除患者：删除 doctor 和 patient 之间的关系（删除对应的 plan）
+    """
+    doctor_id = session.get("user_id")
+    if not doctor_id:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    data = request.get_json()
+    patient_id = data.get("patient_id") if data else None
+    
+    if not patient_id:
+        return jsonify({"error": "patient_id is required"}), 400
+    
+    try:
+        patient_id = int(patient_id)
+    except ValueError:
+        return jsonify({"error": "Invalid patient_id"}), 400
+    
+    # 验证权限：确保这个 patient 确实是当前 doctor 的患者
+    plan = plan_repo.get_plan_by_user_id(patient_id)
+    if not plan:
+        return jsonify({"error": "Patient not found"}), 404
+    
+    if plan.doctor_id != doctor_id:
+        return jsonify({"error": "You don't have permission to remove this patient"}), 403
+    
+    # 删除 plan（这会删除所有相关的 plan_items 和 plan_item_rules）
+    try:
+        # 先删除所有 plan_items（会自动删除对应的 plan_item_rules）
+        plan_items = plan_repo.get_all_plan_items_by_plan_id(plan.id)
+        for item in plan_items:
+            plan_repo.delete_plan_item_and_rules(item.id)
+        
+        # 删除 plan
+        conn = mydb()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM plan WHERE id = %s", (plan.id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"message": "Patient removed successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to remove patient: {str(e)}"}), 500
+
+
 @doctor_page_bp.route("/doctor/patient_plan")
 def doctor_view_patient_plan():
     patient_id = request.args.get("id")
@@ -105,9 +154,27 @@ def doctor_plan_editor():
     if not patient_id:
         return "Missing patient_id", 400
 
+    doctor_id = session.get("user_id")
+    if not doctor_id:
+        return "Not logged in", 401
+
     plan = plan_service.get_raw_plan(int(patient_id))
+    
+    # 如果没有plan，自动创建一个
     if not plan:
-        return "No plan found for this patient", 404
+        patient = user_repo.get_user_by_id(int(patient_id))
+        patient_name = patient.username if patient else f"Patient {patient_id}"
+        doctor = user_repo.get_user_by_id(doctor_id)
+        doctor_name = doctor.username if doctor else None
+        
+        plan = plan_repo.create_plan(
+            patient_id=int(patient_id),
+            doctor_id=doctor_id,
+            name=f"Treatment Plan for {patient_name}",
+            description=None,
+            doctor_name=doctor_name,
+            patient_name=patient_name,
+        )
     
     patient = user_repo.get_user_by_id(patient_id)
     patient_name = patient.username if patient else f"Patient {patient_id}"
@@ -127,17 +194,40 @@ def doctor_plan_item_create():
     if not patient_id:
         return "Missing patient_id", 400
 
+    doctor_id = session.get("user_id")
+    if not doctor_id:
+        return "Not logged in", 401
+
     # 拿到这个 patient 的 plan，为了得到 plan_id
     plan = plan_service.get_user_plan(int(patient_id), None, None)
+    
+    # 如果没有plan，自动创建一个
     if not plan:
-        return "No plan found for this patient", 404
+        raw_plan = plan_service.get_raw_plan(int(patient_id))
+        if not raw_plan:
+            patient = user_repo.get_user_by_id(int(patient_id))
+            patient_name = patient.username if patient else f"Patient {patient_id}"
+            doctor = user_repo.get_user_by_id(doctor_id)
+            doctor_name = doctor.username if doctor else None
+            
+            raw_plan = plan_repo.create_plan(
+                patient_id=int(patient_id),
+                doctor_id=doctor_id,
+                name=f"Treatment Plan for {patient_name}",
+                description=None,
+                doctor_name=doctor_name,
+                patient_name=patient_name,
+            )
+        plan_id = raw_plan.id
+    else:
+        plan_id = plan.id
     
     patient = user_repo.get_user_by_id(patient_id)
     patient_name = patient.username if patient else f"Patient {patient_id}"
     return render_template(
         "doctor_plan_item_create.html",
         patient_id=patient_id,
-        plan_id=plan.id,
+        plan_id=plan_id,
         patient_name=patient_name,
     )
 
@@ -325,3 +415,88 @@ def get_feedback():
         return jsonify({"feedback": feedback.to_dict()}), 200
     else:
         return jsonify({"feedback": None}), 200
+
+
+@doctor_page_bp.route("/doctor/feedback", methods=["GET"])
+def doctor_feedback_page():
+    """
+    医生反馈页面
+    """
+    doctor_id = session.get("user_id")
+    if not doctor_id:
+        return "Not logged in", 401
+    
+    return render_template("doctor_feedback.html", doctor_id=doctor_id)
+
+
+@doctor_page_bp.route("/doctor/plans", methods=["GET"])
+def doctor_plans_page():
+    """
+    医生计划列表页面 - 显示所有患者的 plan
+    """
+    doctor_id = session.get("user_id")
+    if not doctor_id:
+        return "Not logged in", 401
+    
+    return render_template("doctor_plans.html", doctor_id=doctor_id)
+
+
+@doctor_page_bp.route("/doctor/patient_stats", methods=["GET"])
+def get_patient_stats():
+    """
+    获取患者统计信息：昨天的完成率、今天的任务数、风险等级
+    """
+    doctor_id = session.get("user_id")
+    if not doctor_id:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    patient_id = request.args.get("patient_id")
+    if not patient_id:
+        return jsonify({"error": "patient_id is required"}), 400
+    
+    try:
+        patient_id = int(patient_id)
+    except ValueError:
+        return jsonify({"error": "Invalid patient_id"}), 400
+    
+    # 验证权限
+    plan = plan_repo.get_plan_by_user_id(patient_id)
+    if not plan or plan.doctor_id != doctor_id:
+        return jsonify({"error": "You don't have permission to view stats for this patient"}), 403
+    
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    
+    # 1. 计算昨天的完成率
+    yesterday_plan = plan_service.get_user_plan(patient_id, yesterday, yesterday)
+    yesterday_records = drug_record_repo.get_drug_records_by_date_range(
+        user_id=patient_id,
+        start=yesterday,
+        end=yesterday
+    )
+    
+    yesterday_completion = 0
+    if yesterday_plan and yesterday_plan.plan_items:
+        total_tasks = len(yesterday_plan.plan_items)
+        completed_tasks = len([r for r in yesterday_records if r.status == "TAKEN" and r.updated_at])
+        if total_tasks > 0:
+            yesterday_completion = round((completed_tasks / total_tasks) * 100)
+    
+    # 2. 计算今天的任务数
+    today_plan = plan_service.get_user_plan(patient_id, today, today)
+    today_tasks = len(today_plan.plan_items) if today_plan and today_plan.plan_items else 0
+    
+    # 3. 计算风险等级（基于完成率）
+    # High: < 70%, Medium: 70-85%, Low: > 85%
+    if yesterday_completion < 70:
+        risk_level = "High"
+    elif yesterday_completion < 85:
+        risk_level = "Medium"
+    else:
+        risk_level = "Low"
+    
+    return jsonify({
+        "yesterday_completion": yesterday_completion,
+        "today_tasks": today_tasks,
+        "risk_level": risk_level
+    }), 200

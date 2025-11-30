@@ -1,195 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Plan Editor</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 20px;
-        }
-
-        .item-box {
-            border: 1px solid #ccc;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            background: #fafafa;
-        }
-
-        .rule-box {
-            margin-left: 20px;
-            margin-top: 10px;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 6px;
-        }
-
-        .btn {
-            padding: 8px 12px;
-            background: #1976d2;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 14px;
-            margin-right: 8px;
-        }
-
-        .btn-danger {
-            background: #d32f2f;
-        }
-
-        .info-icon {
-            display: inline-block;
-            margin-left: 8px;
-            cursor: pointer;
-            color: #1976d2;
-            font-weight: bold;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.45);
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 420px;
-        }
-
-        .close-btn {
-            float: right;
-            cursor: pointer;
-            font-weight: bold;
-            color: #555;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='doctor.css') }}">
 </head>
 <body>
 
-<h2>Plan Editor ({{ patient_name }}) id: {{ patient_id }}</h2>
+    {% include "components/doctor_sidebar.html" %}
 
-<!-- Add New -->
-<div style="margin: 20px 0;">
-    <a class="btn" href="/doctor/plan_item_create?patient_id={{ patient_id }}">
-        ➕ Add New Plan Item
-    </a>
-</div>
+    <div class="editor-page-container">
+        <div class="editor-page-content">
+            <h1 class="page-title">Plan Editor</h1>
+            <p style="color: #666; margin-bottom: 20px;">Patient: {{ patient_name }} (ID: {{ patient_id }})</p>
 
-<hr>
+            <!-- Add New -->
+            <div class="editor-page-add-section">
+                <a class="btn-add" href="/doctor/plan_item_create?patient_id={{ patient_id }}">
+                    <i class="fas fa-plus"></i> Add New Plan Item
+                </a>
+            </div>
 
-<!-- Existing Plan Items -->
-{% for item in plan.plan_items %}
-<div class="item-box">
-    <h3>
-        {{ item.drug_name }} {{ item.dosage }} {{ item.unit }}
-        <span class="info-icon" onclick="showDrugInfo({{ item.drug_id }})">ℹ️</span>
-    </h3>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e0e0e0;">
 
-    <p><b>Note:</b> {{ item.note }}</p>
+            <!-- Existing Plan Items -->
+            <div class="editor-page-items-list">
+                {% for item in plan.plan_items %}
+                <div class="editor-page-item-box">
+                    <div class="editor-page-item-header">
+                        <h3 class="editor-page-item-title">
+                            {{ item.drug_name }} {{ item.dosage }} {{ item.unit }}
+                        </h3>
+                        <span class="editor-page-info-icon" onclick="showDrugInfo('{{ item.drug_id }}')" title="View drug information"><i class="fas fa-info-circle"></i></span>
+                    </div>
 
-    <h4>Rule</h4>
+                    {% if item.note %}
+                    <p class="editor-page-item-note"><b>Note:</b> {{ item.note }}</p>
+                    {% endif %}
 
-    {% if item.plan_item_rule %}
-        <div class="rule-box">
-            <b>Start:</b> {{ item.plan_item_rule.start_date }} <br>
-            <b>End:</b> {{ item.plan_item_rule.end_date }} <br>
-            <b>Repeat:</b> {{ item.plan_item_rule.repeat_type }}
+                    <div class="editor-page-rule-section">
+                        <h4>Rule</h4>
+                        {% if item.plan_item_rule %}
+                            <div class="editor-page-rule-info">
+                                <b>Start:</b> {{ item.plan_item_rule.start_date }} <br>
+                                {% if item.plan_item_rule.end_date %}
+                                <b>End:</b> {{ item.plan_item_rule.end_date }} <br>
+                                {% endif %}
+                                <b>Repeat:</b> {{ item.plan_item_rule.repeat_type }}
 
-            {% if item.plan_item_rule.repeat_type == "PRN" and item.plan_item_rule.interval_value %}
-                ({{ item.plan_item_rule.interval_value }} h)
-            {% endif %}
-            <br>
+                                {% if item.plan_item_rule.repeat_type == "PRN" and item.plan_item_rule.interval_value %}
+                                    ({{ item.plan_item_rule.interval_value }} h)
+                                {% endif %}
+                                <br>
 
-            {% if item.plan_item_rule.repeat_type == "WEEKLY" %}
-                <b>Days:</b>
-                {{ item.plan_item_rule.mon and 'Mon ' or '' }}
-                {{ item.plan_item_rule.tue and 'Tue ' or '' }}
-                {{ item.plan_item_rule.wed and 'Wed ' or '' }}
-                {{ item.plan_item_rule.thu and 'Thu ' or '' }}
-                {{ item.plan_item_rule.fri and 'Fri ' or '' }}
-                {{ item.plan_item_rule.sat and 'Sat ' or '' }}
-                {{ item.plan_item_rule.sun and 'Sun ' or '' }}
-                <br>
-            {% endif %}
+                                {% if item.plan_item_rule.repeat_type == "WEEKLY" %}
+                                    <b>Days:</b>
+                                    {{ item.plan_item_rule.mon and 'Mon ' or '' }}
+                                    {{ item.plan_item_rule.tue and 'Tue ' or '' }}
+                                    {{ item.plan_item_rule.wed and 'Wed ' or '' }}
+                                    {{ item.plan_item_rule.thu and 'Thu ' or '' }}
+                                    {{ item.plan_item_rule.fri and 'Fri ' or '' }}
+                                    {{ item.plan_item_rule.sat and 'Sat ' or '' }}
+                                    {{ item.plan_item_rule.sun and 'Sun ' or '' }}
+                                    <br>
+                                {% endif %}
 
-            {% if item.plan_item_rule.repeat_type != "PRN" and item.plan_item_rule.times %}
-                <b>Times:</b>
-                {% for t in item.plan_item_rule.times %}
-                    {{ t }}
+                                {% if item.plan_item_rule.repeat_type != "PRN" and item.plan_item_rule.times %}
+                                    <b>Times:</b>
+                                    {% for t in item.plan_item_rule.times %}
+                                        {{ t }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p style="color: #999;">No rule</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="editor-page-item-actions">
+                        <a href="/doctor/plan_item_edit?item_id={{ item.id }}&patient_id={{ patient_id }}" class="btn btn-edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="#" onclick="deleteItem({{ item.id }}); return false;" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
                 {% endfor %}
-            {% endif %}
+
+                {% if not plan.plan_items %}
+                <div class="editor-page-item-box" style="text-align: center; color: #999; padding: 40px;">
+                    No plan items yet. Click "Add New Plan Item" to create one.
+                </div>
+                {% endif %}
+            </div>
         </div>
-    {% else %}
-        <p>No rule</p>
-    {% endif %}
-
-    <div style="margin-top: 10px;">
-        <a href="/doctor/plan_item_edit?item_id={{ item.id }}&patient_id={{ patient_id }}" class="btn">
-            ✏ Edit
-        </a>
-        <a href="#" onclick="deleteItem({{ item.id }})" class="btn btn-danger">
-            🗑 Delete
-        </a>
     </div>
-</div>
-{% endfor %}
 
-<!-- ====== MODAL FOR DRUG INFO ====== -->
-<div class="modal" id="drug-modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">✖</span>
-        <h3>Drug Information</h3>
-        <pre id="drug-info" style="white-space: pre-wrap;"></pre>
+    <!-- Modal for Drug Info -->
+    <div class="editor-page-modal" id="drug-modal">
+        <div class="editor-page-modal-content">
+            <button class="editor-page-close-btn" onclick="closeModal()">✖</button>
+            <h3>Drug Information</h3>
+            <pre class="editor-page-drug-info" id="drug-info"></pre>
+        </div>
     </div>
-</div>
 
-<script>
-function deleteItem(item_id) {
-    if (!confirm("Delete this plan_item?")) return;
+    <script>
+        function deleteItem(item_id) {
+            if (!confirm("Delete this plan_item?")) return;
 
-    fetch(`/plan_item/${item_id}`, { method: "DELETE" })
-    .then(r => r.json())
-    .then(() => location.reload());
-}
-
-async function showDrugInfo(drugId) {
-    try {
-        const resp = await fetch(`/get_drug?id=${drugId}`);
-        const data = await resp.json();
-
-        if (!resp.ok) {
-            alert("Failed to load drug info");
-            return;
+            fetch(`/plan_item/${item_id}`, { method: "DELETE" })
+                .then(r => r.json())
+                .then(() => location.reload())
+                .catch(err => {
+                    console.error(err);
+                    alert("Failed to delete item");
+                });
         }
 
-        // 渲染信息
-        let text = "";
-        for (let key in data) {
-            text += `${key}: ${data[key]}\n`;
+        async function showDrugInfo(drugId) {
+            try {
+                const resp = await fetch(`/get_drug?id=${drugId}`);
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    alert("Failed to load drug info");
+                    return;
+                }
+
+                // 渲染信息
+                let text = "";
+                for (let key in data) {
+                    text += `${key}: ${data[key]}\n`;
+                }
+
+                document.getElementById("drug-info").textContent = text;
+                document.getElementById("drug-modal").style.display = "flex";
+            } catch (err) {
+                console.error(err);
+                alert("Network error while loading drug info");
+            }
         }
 
-        document.getElementById("drug-info").textContent = text;
-        document.getElementById("drug-modal").style.display = "flex";
+        function closeModal() {
+            document.getElementById("drug-modal").style.display = "none";
+        }
 
-    } catch (err) {
-        console.error(err);
-        alert("Network error while loading drug info");
-    }
-}
-
-function closeModal() {
-    document.getElementById("drug-modal").style.display = "none";
-}
-</script>
+        // 点击modal外部关闭
+        document.getElementById("drug-modal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
 
 </body>
 </html>

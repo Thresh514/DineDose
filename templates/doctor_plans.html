@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Plans - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='doctor.css') }}">
+</head>
+<body>
+
+    {% include "components/doctor_sidebar.html" %}
+
+    <div class="main-container">
+        <h1 class="page-title">Plans</h1>
+
+        <div class="plans-page-list" id="plans-list">
+            <div class="loading-indicator" id="loading-indicator">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading plans...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const doctorId = "{{ doctor_id }}";
+        let plansData = [];
+
+        // 显示加载提示
+        function showLoading() {
+            const container = document.getElementById('plans-list');
+            container.innerHTML = `
+                <div class="loading-indicator" id="loading-indicator">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Loading plans...</div>
+                </div>
+            `;
+        }
+
+        // 隐藏加载提示
+        function hideLoading() {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
+        // 加载计划列表
+        async function loadPlans() {
+            showLoading();
+            try {
+                const response = await fetch(`/get_patients?id=${doctorId}`);
+                const patients = await response.json();
+
+                // 获取每个患者的原始 plan（包含规则信息）
+                const plansWithInfo = await Promise.all(
+                    patients.map(async (patient) => {
+                        try {
+                            const planResponse = await fetch(`/get_raw_plan?id=${patient.id}`);
+                            if (planResponse.ok) {
+                                const plan = await planResponse.json();
+                                return {
+                                    patient: patient,
+                                    plan: plan
+                                };
+                            }
+                            return {
+                                patient: patient,
+                                plan: null
+                            };
+                        } catch (error) {
+                            console.error(`Failed to load plan for patient ${patient.id}:`, error);
+                            return {
+                                patient: patient,
+                                plan: null
+                            };
+                        }
+                    })
+                );
+
+                plansData = plansWithInfo;
+                hideLoading();
+                renderPlans(plansWithInfo);
+            } catch (error) {
+                console.error('Failed to load plans:', error);
+                hideLoading();
+                document.getElementById('plans-list').innerHTML = 
+                    '<div class="plans-page-card">Failed to load plans. Please refresh the page.</div>';
+            }
+        }
+
+        // 格式化时间
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            try {
+                let timePart = timeStr;
+                // 如果是 ISO 格式，提取时间部分
+                if (timeStr.includes('T')) {
+                    timePart = timeStr.split('T')[1];
+                }
+                // 移除秒和毫秒部分
+                const [hours, minutes] = timePart.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                const displayMinutes = minutes || '00';
+                return `${displayHour}:${displayMinutes} ${ampm}`;
+            } catch (e) {
+                return timeStr;
+            }
+        }
+
+        // 格式化日期
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        // 获取周几的显示文本（仅用于 WEEKLY 类型）
+        function getWeekdaysText(rule) {
+            if (!rule || rule.repeat_type !== 'WEEKLY') return '';
+            const days = [];
+            if (rule.mon) days.push('Mon');
+            if (rule.tue) days.push('Tue');
+            if (rule.wed) days.push('Wed');
+            if (rule.thu) days.push('Thu');
+            if (rule.fri) days.push('Fri');
+            if (rule.sat) days.push('Sat');
+            if (rule.sun) days.push('Sun');
+            return days.length > 0 ? days.join(', ') : 'None';
+        }
+
+        // 获取重复类型显示文本
+        function getRepeatTypeText(rule) {
+            if (!rule) return 'Once';
+            const type = rule.repeat_type || 'ONCE';
+            switch (type) {
+                case 'DAILY':
+                    return 'Daily';
+                case 'WEEKLY':
+                    return 'Weekly';
+                case 'PRN':
+                    return 'PRN';
+                default:
+                    return 'Once';
+            }
+        }
+
+        // 获取间隔值显示（仅用于 PRN 类型）
+        function getIntervalText(rule) {
+            if (!rule || rule.repeat_type !== 'PRN') return '';
+            if (rule.interval_value) {
+                return `Every ${rule.interval_value} hour${rule.interval_value !== 1 ? 's' : ''}`;
+            }
+            return 'As needed';
+        }
+
+        // 渲染计划列表
+        function renderPlans(plans) {
+            const container = document.getElementById('plans-list');
+            
+            if (plans.length === 0) {
+                container.innerHTML = '<div class="plans-page-card">No plans found.</div>';
+                return;
+            }
+
+            container.innerHTML = plans.map(item => {
+                const patient = item.patient;
+                const plan = item.plan;
+                const avatarText = patient.username ? patient.username.charAt(0).toUpperCase() : '?';
+                const planName = plan ? (plan.name || 'Treatment Plan') : 'No plan found';
+                
+                // 处理计划项，显示规则信息
+                let planDetailsHtml = '';
+                let hasPlanItems = false;
+                if (plan && plan.plan_items && plan.plan_items.length > 0) {
+                    hasPlanItems = true;
+                    planDetailsHtml = '<div class="plans-page-details">';
+                    planDetailsHtml += '<div class="plans-page-details-title">Medication Schedule:</div>';
+                    
+                    plan.plan_items.forEach(item => {
+                        const drugName = item.drug_name || 'Unknown Drug';
+                        const dosage = item.dosage && item.unit ? `${item.dosage} ${item.unit}` : '';
+                        const rule = item.plan_item_rule;
+                        
+                        planDetailsHtml += '<div class="plans-page-item-card">';
+                        planDetailsHtml += `<div class="plans-page-item-header">`;
+                        planDetailsHtml += `<span class="plans-page-item-drug-name">${drugName}</span>`;
+                        if (dosage) {
+                            planDetailsHtml += `<span class="plans-page-item-dosage-info">${dosage} per dose</span>`;
+                        }
+                        planDetailsHtml += `</div>`;
+                        
+                        if (rule) {
+                            const repeatType = rule.repeat_type || 'ONCE';
+                            const repeatTypeText = getRepeatTypeText(rule);
+                            
+                            planDetailsHtml += '<div class="plans-page-item-rule-info">';
+                            planDetailsHtml += '<div class="plans-page-schedule-row">';
+                            
+                            // Start Date（总是显示）
+                            planDetailsHtml += '<div class="plans-page-schedule-item">';
+                            planDetailsHtml += '<div class="plans-page-schedule-label">Start Date</div>';
+                            planDetailsHtml += `<div class="plans-page-schedule-value">${formatDate(rule.start_date) || 'Not specified'}</div>`;
+                            planDetailsHtml += '</div>';
+                            
+                            // End Date（如果有则显示）
+                            if (rule.end_date) {
+                                planDetailsHtml += '<div class="plans-page-schedule-item">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">End Date</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${formatDate(rule.end_date)}</div>`;
+                                planDetailsHtml += '</div>';
+                            }
+                            
+                            // 根据重复类型显示不同的信息
+                            if (repeatType === 'WEEKLY') {
+                                // WEEKLY: 显示周几、每天几次、具体时间
+                                const weekdays = getWeekdaysText(rule);
+                                const timesCount = rule.times ? rule.times.length : 0;
+                                const timesText = rule.times && rule.times.length > 0 
+                                    ? rule.times.map(t => formatTime(t)).join(', ') 
+                                    : 'Not specified';
+                                
+                                // 周几
+                                planDetailsHtml += '<div class="plans-page-schedule-item">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">Days</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${weekdays || 'None'}</div>`;
+                                planDetailsHtml += '</div>';
+                                
+                                // 每天几次
+                                planDetailsHtml += '<div class="plans-page-schedule-item">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">Times/Day</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${timesCount} time${timesCount !== 1 ? 's' : ''}</div>`;
+                                planDetailsHtml += '</div>';
+                                
+                                // 具体时间
+                                planDetailsHtml += '<div class="plans-page-schedule-item plans-page-schedule-item-times">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">Times</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${timesText}</div>`;
+                                planDetailsHtml += '</div>';
+                                
+                            } else if (repeatType === 'DAILY') {
+                                // DAILY: 显示每天几次、具体时间
+                                const timesCount = rule.times ? rule.times.length : 0;
+                                const timesText = rule.times && rule.times.length > 0 
+                                    ? rule.times.map(t => formatTime(t)).join(', ') 
+                                    : 'Not specified';
+                                
+                                // 每天几次
+                                planDetailsHtml += '<div class="plans-page-schedule-item">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">Times/Day</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${timesCount} time${timesCount !== 1 ? 's' : ''}</div>`;
+                                planDetailsHtml += '</div>';
+                                
+                                // 具体时间
+                                planDetailsHtml += '<div class="plans-page-schedule-item plans-page-schedule-item-times">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">Times</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${timesText}</div>`;
+                                planDetailsHtml += '</div>';
+                                
+                            } else if (repeatType === 'PRN') {
+                                // PRN: 显示间隔时间
+                                const intervalText = getIntervalText(rule);
+                                
+                                planDetailsHtml += '<div class="plans-page-schedule-item">';
+                                planDetailsHtml += '<div class="plans-page-schedule-label">Interval</div>';
+                                planDetailsHtml += `<div class="plans-page-schedule-value">${intervalText}</div>`;
+                                planDetailsHtml += '</div>';
+                                
+                            } else {
+                                // ONCE 或其他类型
+                                const timesCount = rule.times ? rule.times.length : 0;
+                                const timesText = rule.times && rule.times.length > 0 
+                                    ? rule.times.map(t => formatTime(t)).join(', ') 
+                                    : 'Not specified';
+                                
+                                if (timesCount > 0) {
+                                    planDetailsHtml += '<div class="plans-page-schedule-item plans-page-schedule-item-times">';
+                                    planDetailsHtml += '<div class="plans-page-schedule-label">Times</div>';
+                                    planDetailsHtml += `<div class="plans-page-schedule-value">${timesText}</div>`;
+                                    planDetailsHtml += '</div>';
+                                }
+                            }
+                            
+                            // 重复类型（总是显示）
+                            planDetailsHtml += '<div class="plans-page-schedule-item">';
+                            planDetailsHtml += '<div class="plans-page-schedule-label">Repeat</div>';
+                            planDetailsHtml += `<div class="plans-page-schedule-value">${repeatTypeText}</div>`;
+                            planDetailsHtml += '</div>';
+                            
+                            planDetailsHtml += '</div>';
+                            planDetailsHtml += '</div>';
+                        } else {
+                            planDetailsHtml += '<div class="plans-page-item-rule-info">';
+                            planDetailsHtml += '<div class="plans-page-schedule-row">';
+                            planDetailsHtml += '<div class="plans-page-schedule-item"><div class="plans-page-schedule-value">No schedule rule</div></div>';
+                            planDetailsHtml += '</div>';
+                            planDetailsHtml += '</div>';
+                        }
+                        
+                        planDetailsHtml += '</div>';
+                    });
+                    
+                    planDetailsHtml += '</div>';
+                } else {
+                    planDetailsHtml = '<div class="plans-page-details"><div class="plans-page-no-items">No plan items found.</div></div>';
+                }
+                
+                return `
+                    <div class="plans-page-card" data-patient-id="${patient.id}">
+                        <div class="plans-page-header">
+                            <div class="plans-page-avatar">${avatarText}</div>
+                            <div class="plans-page-info">
+                                <div class="plans-page-label">Patient</div>
+                                <div class="plans-page-name">${patient.username || 'Unknown'}</div>
+                                <div class="plans-page-plan-name">${planName}</div>
+                            </div>
+                        </div>
+                        
+                        ${planDetailsHtml}
+                        
+                        <div class="plans-page-actions">
+                            <a href="/doctor/patient_plan?id=${patient.id}&name=${encodeURIComponent(patient.username || 'Unknown')}&email=${encodeURIComponent(patient.email || '')}" class="btn btn-calendar">
+                                <i class="fas fa-calendar"></i> Calendar View
+                            </a>
+                            <a href="${hasPlanItems ? '/doctor/plan_editor?patient_id=' + patient.id : '/doctor/plan_item_create?patient_id=' + patient.id}" class="btn btn-edit">
+                                <i class="fas ${hasPlanItems ? 'fa-edit' : 'fa-plus'}"></i> ${hasPlanItems ? 'Edit Plan' : 'Add Plan'}
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 页面加载时获取计划列表
+        window.addEventListener('load', loadPlans);
+    </script>
+
+</body>
+</html>
+

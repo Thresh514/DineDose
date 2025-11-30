@@ -34,11 +34,11 @@ class ScheduledDose:
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
-    print("\n==================== STEP 1: Collect scheduled doses ====================")
-    now = datetime.now()
 
-    window_start = now
-    window_end = now + timedelta(days=days)
+    NOW = datetime.now()
+    
+    window_start = NOW
+    window_end = NOW + timedelta(days=days)
 
 
     # 1) Fetch all users

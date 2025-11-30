@@ -3,608 +3,862 @@
 <head>
     <meta charset="UTF-8">
     <title>Edit Plan Item</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            margin: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        h2 {
-            margin-bottom: 16px;
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            width: 75%;
+            display: flex;
+            gap: 30px;
+            padding: 30px;
+            min-height: 100vh;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+        }
+
+        /* ====== 左列：表单 ====== */
+        .form-column {
+            flex: 1;
+            max-width: 600px;
         }
 
         .form-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            max-width: 720px;
-            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            background: #ffffff;
         }
 
-        .field-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+        .form-field {
+            margin-bottom: 20px;
         }
 
-        .field-row label {
-            min-width: 120px;
-            font-size: 14px;
+        .form-field label {
+            display: block;
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
-        .field-row input,
-        .field-row select,
-        .field-row textarea {
-            font-size: 14px;
-            padding: 4px 6px;
-        }
-
-        textarea {
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
             width: 100%;
-            min-height: 60px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            background: #ffffff;
+            font-size: 16px;
+            color: #212121;
+            font-family: inherit;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .form-field textarea {
+            min-height: 100px;
             resize: vertical;
         }
 
-        .help-icon {
-            display: inline-flex;
+        .notification-settings {
+            margin-top: 20px;
+        }
+
+        .notification-settings label {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 1px solid #999;
-            font-size: 11px;
-            cursor: default;
-            color: #555;
-            background: #fff;
+            gap: 8px;
+            font-weight: normal;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .notification-settings input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
         }
 
         .section-title {
             font-weight: bold;
-            margin-top: 16px;
-            margin-bottom: 8px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            color: #212121;
+            font-size: 18px;
         }
 
         .days-group {
             display: flex;
-            gap: 8px;
+            gap: 15px;
             flex-wrap: wrap;
+            margin-top: 10px;
         }
 
         .days-group label {
-            min-width: auto;
-        }
-
-        .actions {
-            margin-top: 16px;
             display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            background: #f5f5f5;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
             cursor: pointer;
-            font-size: 14px;
         }
 
-        .btn-primary {
-            background: #1976d2;
-            border-color: #1976d2;
-            color: white;
+        .days-group input[type="checkbox"] {
+            width: auto;
         }
 
-        .btn-danger {
-            background: #d32f2f;
-            border-color: #b71c1c;
-            color: #fff;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .message {
-            margin-top: 12px;
-            font-size: 14px;
-        }
-
-        .message.error {
-            color: #b71c1c;
-        }
-
-        .message.success {
-            color: #1b5e20;
-        }
-
-        /* ===== time chips 样式 ===== */
         .times-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            min-height: 22px;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 30px;
         }
 
         .time-chip {
             display: inline-flex;
             align-items: center;
-            padding: 2px 6px;
-            border-radius: 12px;
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            font-size: 13px;
-            gap: 4px;
+            padding: 6px 12px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+            gap: 6px;
         }
 
         .time-chip button {
             border: none;
             background: transparent;
             cursor: pointer;
-            font-size: 12px;
-            line-height: 1;
+            font-size: 16px;
+            color: #666;
+            padding: 0;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-chip button:hover {
+            color: #212121;
+        }
+
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .time-input-group input[type="time"] {
+            flex: 1;
+        }
+
+        .time-input-group button {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            color: #212121;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .time-input-group button:hover {
+            background: #d0d0d0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* ====== 右列：患者信息和操作 ====== */
+        .info-column {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .info-card-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .patient-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 0;
+            background: #9c27b0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .patient-details {
+            flex: 1;
+        }
+
+        .patient-name {
+            font-weight: bold;
+            color: #212121;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .patient-age {
+            color: #212121;
+            font-size: 16px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px dashed #e0e0e0;
+            margin: 15px 0;
+        }
+
+        .condition-summary {
+            margin-top: 15px;
+        }
+
+        .condition-summary-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .condition-summary-text {
+            color: #212121;
+            font-size: 16px;
+        }
+
+        .validation-alert {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .alert-icon {
+            color: #d32f2f;
+            font-size: 24px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-message {
+            flex: 1;
+        }
+
+        .alert-message-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 4px;
+        }
+
+        .alert-message-text {
+            color: #212121;
+            font-size: 16px;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            color: #212121;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-override {
+            padding: 10px 20px;
+            background: #212121;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-override:hover {
+            background: #424242;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-reset {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            color: #212121;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .btn-reset:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-confirm {
+            padding: 10px 20px;
+            background: #212121;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .btn-confirm:hover {
+            background: #424242;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .message.error {
+            color: #d32f2f;
+            background: #ffebee;
+        }
+
+        .message.success {
+            color: #2e7d32;
+            background: #e8f5e9;
         }
     </style>
 </head>
 <body>
 
+    {% include "components/doctor_sidebar.html" %}
 
-<h2>Edit plan Item ({{ patient_name }}) id: {{ patient_id }}</h2>
+    <div class="main-container">
+        <!-- 左列：表单 -->
+        <div class="form-column">
+            <div class="form-card">
+                <input type="hidden" id="plan-id" value="{{ plan_id }}">
+                <input type="hidden" id="patient-id" value="{{ patient_id }}">
+                <input type="hidden" id="item-id" value="{{ item.id }}">
 
+                <!-- Drug -->
+                <div class="form-field">
+                    <label for="drug-id">Drug</label>
+                    <input type="number" id="drug-id" placeholder="Drug ID">
+                </div>
 
-<div class="form-card">
-    <input type="hidden" id="plan-id" value="{{ plan_id }}">
-    <input type="hidden" id="patient-id" value="{{ patient_id }}">
-    <input type="hidden" id="item-id" value="{{ item.id }}">
+                <!-- Time -->
+                <div class="form-field">
+                    <label>Time</label>
+                    <div id="time-display" style="padding: 10px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #212121; min-height: 20px;">Morning & Evening</div>
+                </div>
 
-    <!-- ========== BASIC INFO ========== -->
-    <div class="section-title">
-        Basic Information
-    </div>
+                <!-- Frequency -->
+                <div class="form-field">
+                    <label>Frequency</label>
+                    <div id="frequency-display" style="padding: 10px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #212121; min-height: 20px;">Every Sun-Sat</div>
+                </div>
 
-    <div class="field-row">
-        <label for="drug-id">
-            Drug ID
-            <span class="help-icon" title="Internal drug identifier used by the system.">?</span>
-        </label>
-        <input type="number" id="drug-id" placeholder="e.g. 1001">
-    </div>
+                <!-- Amount -->
+                <div class="form-field">
+                    <label for="amount-literal">Amount</label>
+                    <input type="text" id="amount-literal" placeholder="1 pill">
+                </div>
 
-    <div class="field-row">
-        <label for="dosage">
-            Dosage
-            <span class="help-icon" title="Numeric dosage amount, for example 500.">?</span>
-        </label>
-        <input type="number" id="dosage" placeholder="e.g. 500">
-        <label for="unit">
-            Unit
-            <span class="help-icon" title="Unit of the dosage, for example mg or ml.">?</span>
-        </label>
-        <input type="text" id="unit" placeholder="e.g. mg" style="width: 80px;">
-    </div>
+                <!-- Unit -->
+                <div class="form-field">
+                    <label for="unit">Unit</label>
+                    <input type="text" id="unit" placeholder="mg">
+                </div>
 
-    <div class="field-row">
-        <label for="amount-literal">
-            Amount text
-            <span class="help-icon" title="Human-readable description, such as '1 tablet'.">?</span>
-        </label>
-        <input type="text" id="amount-literal" placeholder="e.g. 1 tablet" style="flex: 1;">
-    </div>
+                <!-- Notification Settings -->
+                <div class="notification-settings">
+                    <div class="section-title">Notification Settings</div>
+                    <label>
+                        <input type="checkbox" id="notify-sms" checked>
+                        SMS
+                    </label>
+                    <label>
+                        <input type="checkbox" id="notify-email" checked>
+                        Email
+                    </label>
+                </div>
 
-    <div class="field-row">
-        <label for="note">
-            Note
-            <span class="help-icon" title="Any additional instructions for this medication.">?</span>
-        </label>
-    </div>
-    <div class="field-row">
-        <textarea id="note" placeholder="Optional note for the patient"></textarea>
-    </div>
+                <!-- Additional Info -->
+                <div class="form-field">
+                    <label for="note">Additional Info</label>
+                    <textarea id="note" placeholder="Type some additional informations here!"></textarea>
+                </div>
 
-    <!-- ========== RULE (SINGLE) ========== -->
-    <div class="section-title">
-        Schedule Rule
-        <span class="help-icon" title="Defines when and how often the patient should take this medication.">?</span>
-    </div>
+                <!-- 隐藏的实际表单字段 -->
+                <div class="hidden">
+                    <input type="number" id="dosage">
+                    <input type="date" id="start-date">
+                    <input type="date" id="end-date">
+                    <select id="repeat-type">
+                        <option value="ONCE">ONCE</option>
+                        <option value="DAILY">DAILY</option>
+                        <option value="WEEKLY">WEEKLY</option>
+                        <option value="PRN">PRN (as needed)</option>
+                    </select>
+                    <div id="days-row" class="hidden">
+                        <label><input type="checkbox" id="day-mon"> Mon</label>
+                        <label><input type="checkbox" id="day-tue"> Tue</label>
+                        <label><input type="checkbox" id="day-wed"> Wed</label>
+                        <label><input type="checkbox" id="day-thu"> Thu</label>
+                        <label><input type="checkbox" id="day-fri"> Fri</label>
+                        <label><input type="checkbox" id="day-sat"> Sat</label>
+                        <label><input type="checkbox" id="day-sun"> Sun</label>
+                    </div>
+                    <div id="times-row" class="hidden">
+                        <div class="time-input-group">
+                            <input type="time" id="time-picker" step="60">
+                            <button type="button" id="btn-add-time">Add</button>
+                        </div>
+                        <div id="times-chips" class="times-chips"></div>
+                    </div>
+                    <input type="number" id="interval-value" class="hidden" id="interval-row">
+                </div>
 
-    <div class="field-row">
-        <label for="start-date">
-            Start date
-            <span class="help-icon" title="The first date when this plan becomes active.">?</span>
-        </label>
-        <input type="date" id="start-date">
-
-        <label for="end-date">
-            End date
-            <span class="help-icon" title="The last date when this plan is active. Leave empty for open-ended.">?</span>
-        </label>
-        <input type="date" id="end-date">
-    </div>
-
-    <div class="field-row">
-        <label for="repeat-type">
-            Repeat
-            <span class="help-icon" title="ONCE: single dose; DAILY: every day; WEEKLY: specific days; PRN: as needed.">?</span>
-        </label>
-        <select id="repeat-type">
-            <option value="ONCE">ONCE</option>
-            <option value="DAILY">DAILY</option>
-            <option value="WEEKLY">WEEKLY</option>
-            <option value="PRN">PRN (as needed)</option>
-        </select>
-    </div>
-
-    <!-- WEEKLY: Days -->
-    <div class="field-row hidden" id="days-row">
-        <label>
-            Days
-            <span class="help-icon" title="For WEEKLY repeat, select which days of the week the patient should take this medication.">?</span>
-        </label>
-        <div class="days-group">
-            <label><input type="checkbox" id="day-mon"> Mon</label>
-            <label><input type="checkbox" id="day-tue"> Tue</label>
-            <label><input type="checkbox" id="day-wed"> Wed</label>
-            <label><input type="checkbox" id="day-thu"> Thu</label>
-            <label><input type="checkbox" id="day-fri"> Fri</label>
-            <label><input type="checkbox" id="day-sat"> Sat</label>
-            <label><input type="checkbox" id="day-sun"> Sun</label>
-        </div>
-    </div>
-
-    <!-- NON-PRN: Times（改成 time picker + chips） -->
-    <div class="field-row" id="times-row">
-        <label>
-            Times
-            <span class="help-icon" title="Choose one or more times in a day (local time).">?</span>
-        </label>
-        <div style="flex: 1;">
-            <div class="field-row" style="gap: 8px; margin-bottom: 4px;">
-                <input type="time" id="time-picker" step="60">
-                <button type="button" class="btn" id="btn-add-time">Add</button>
+                <div id="message" class="message"></div>
             </div>
-            <div id="times-chips" class="times-chips"></div>
+        </div>
+
+        <!-- 右列：患者信息和操作 -->
+        <div class="info-column">
+            <!-- Patient Info Card -->
+            <div class="info-card">
+                <div class="info-card-title">Patient Info Card</div>
+                <div class="patient-header">
+                    <div class="patient-avatar" id="patient-avatar">{{ patient_name[0] if patient_name else '?' }}</div>
+                    <div class="patient-details">
+                        <div class="patient-name" id="patient-name">{{ patient_name }}</div>
+                        <div class="patient-age" id="patient-age">Age: <span id="patient-age-value">N/A</span></div>
+                    </div>
+                </div>
+                <hr class="divider">
+                <div class="condition-summary">
+                    <div class="condition-summary-title">Condition Summary</div>
+                    <div class="condition-summary-text" id="condition-summary">This patient is already recovered!</div>
+                </div>
+            </div>
+
+            <!-- Validation Alert (隐藏，如果有冲突时显示) -->
+            <div class="validation-alert hidden" id="validation-alert">
+                <div class="alert-title">Validation Alert</div>
+                <div class="alert-content">
+                    <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="alert-message">
+                        <div class="alert-message-title">Drug conflict detected</div>
+                        <div class="alert-message-text" id="conflict-message">ibuprofen and aspirin cannot be taken in the same time!</div>
+                    </div>
+                </div>
+                <div class="alert-actions">
+                    <button class="btn-cancel" onclick="handleCancelConflict()">Cancel</button>
+                    <button class="btn-override" onclick="handleOverrideConflict()">Override</button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn-reset" onclick="handleReset()">Reset</button>
+                <button class="btn-confirm" onclick="handleConfirm()">Confirm</button>
+            </div>
         </div>
     </div>
 
-    <!-- PRN: Interval -->
-    <div class="field-row hidden" id="interval-row">
-        <label for="interval-value">
-            Interval (hours)
-            <span class="help-icon" title="For PRN (as needed): minimum number of hours between two doses.">?</span>
-        </label>
-        <input type="number" id="interval-value" placeholder="e.g. 6">
-    </div>
+    <script>
+        // 后端传进来的 item 数据
+        const itemData = {{ item | tojson | safe }};
+        const patientId = {{ patient_id }};
 
-    <!-- ========== ACTIONS ========== -->
-    <div class="actions">
-        <button class="btn btn-primary" id="btn-save">Save</button>
-        <button class="btn btn-danger" id="btn-delete" type="button">Delete</button>
-        <button class="btn" type="button" onclick="history.back();">Back</button>
-    </div>
+        const repeatTypeSelect = document.getElementById("repeat-type");
+        const daysRow = document.getElementById("days-row");
+        const timesRow = document.getElementById("times-row");
+        const intervalRow = document.getElementById("interval-value");
+        const messageEl = document.getElementById("message");
 
-    <div id="message" class="message"></div>
-</div>
+        let timesState = [];
 
-<script>
-    // 后端传进来的 item 数据（直接是 JS 对象，而不是字符串）
-    const itemData = {{ item | tojson | safe }};
+        // 格式化时间显示
+        function formatTimeDisplay(times) {
+            if (!times || times.length === 0) return "";
+            const timeMap = {
+                "08:00": "Morning",
+                "12:00": "Noon",
+                "18:00": "Evening",
+                "20:00": "Evening"
+            };
+            const mapped = times.map(t => {
+                const hhmm = t.length >= 5 ? t.slice(0, 5) : t;
+                return timeMap[hhmm] || hhmm;
+            });
+            return mapped.join(" & ");
+        }
 
-    const repeatTypeSelect = document.getElementById("repeat-type");
-    const daysRow          = document.getElementById("days-row");
-    const timesRow         = document.getElementById("times-row");
-    const intervalRow      = document.getElementById("interval-row");
-    const messageEl        = document.getElementById("message");
+        // 格式化频率显示
+        function formatFrequencyDisplay(rule) {
+            if (!rule) return "";
+            if (rule.repeat_type === "DAILY") return "Every day";
+            if (rule.repeat_type === "WEEKLY") {
+                const days = [];
+                if (rule.mon) days.push("Mon");
+                if (rule.tue) days.push("Tue");
+                if (rule.wed) days.push("Wed");
+                if (rule.thu) days.push("Thu");
+                if (rule.fri) days.push("Fri");
+                if (rule.sat) days.push("Sat");
+                if (rule.sun) days.push("Sun");
+                return days.length > 0 ? `Every ${days.join("-")}` : "Weekly";
+            }
+            if (rule.repeat_type === "PRN") return "As needed";
+            return "Once";
+        }
 
-    // 用数组保存所有时间（"HH:MM"）
-    let timesState = [];
-
-    function updateRuleVisibility() {
-        const val = repeatTypeSelect.value;
-
-        daysRow.classList.add("hidden");
-        intervalRow.classList.add("hidden");
-        timesRow.classList.remove("hidden");
-
-        if (val === "WEEKLY") {
-            daysRow.classList.remove("hidden");
+        function updateRuleVisibility() {
+            const val = repeatTypeSelect.value;
+            daysRow.classList.add("hidden");
             intervalRow.classList.add("hidden");
-        } else if (val === "PRN") {
-            intervalRow.classList.remove("hidden");
             timesRow.classList.add("hidden");
-            daysRow.classList.add("hidden");
-        } else {
-            // ONCE / DAILY
-            daysRow.classList.add("hidden");
-            intervalRow.classList.add("hidden");
-            timesRow.classList.remove("hidden");
-        }
-    }
 
-    function showMessage(text, isError) {
-        messageEl.textContent = text;
-        if (isError) {
-            messageEl.classList.add("error");
-            messageEl.classList.remove("success");
-        } else {
-            messageEl.classList.remove("error");
-            messageEl.classList.add("success");
-        }
-    }
-
-    // ===== 渲染 chips =====
-    function renderTimesChips() {
-        const container = document.getElementById("times-chips");
-        container.innerHTML = "";
-
-        if (!timesState.length) {
-            const span = document.createElement("span");
-            span.style.fontSize = "12px";
-            span.style.color = "#777";
-            span.textContent = "No times added yet.";
-            container.appendChild(span);
-            return;
+            if (val === "WEEKLY") {
+                daysRow.classList.remove("hidden");
+                timesRow.classList.remove("hidden");
+            } else if (val === "PRN") {
+                intervalRow.classList.remove("hidden");
+            } else {
+                timesRow.classList.remove("hidden");
+            }
         }
 
-        timesState.forEach((t) => {
-            const chip = document.createElement("span");
-            chip.className = "time-chip";
+        function showMessage(text, isError) {
+            messageEl.textContent = text;
+            messageEl.className = "message " + (isError ? "error" : "success");
+        }
 
-            const label = document.createElement("span");
-            label.textContent = t;
+        function renderTimesChips() {
+            const container = document.getElementById("times-chips");
+            container.innerHTML = "";
+            if (!timesState.length) return;
 
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.textContent = "×";
-            btn.title = "Remove";
-            btn.addEventListener("click", () => {
-                timesState = timesState.filter((x) => x !== t);
-                renderTimesChips();
+            timesState.forEach((t) => {
+                const chip = document.createElement("span");
+                chip.className = "time-chip";
+                chip.innerHTML = `<span>${t}</span><button type="button" onclick="removeTime('${t}')">×</button>`;
+                container.appendChild(chip);
             });
-
-            chip.appendChild(label);
-            chip.appendChild(btn);
-            container.appendChild(chip);
-        });
-    }
-
-    // Add 按钮：从 <input type="time"> 里读 "HH:MM"
-    document.getElementById("btn-add-time").addEventListener("click", () => {
-        const picker = document.getElementById("time-picker");
-        const value = picker.value;   // "HH:MM"
-
-        if (!value) {
-            showMessage("Please choose a time before adding.", true);
-            return;
         }
 
-        if (!timesState.includes(value)) {
-            timesState.push(value);
-            timesState.sort();
+        function removeTime(time) {
+            timesState = timesState.filter(t => t !== time);
             renderTimesChips();
-        }
-    });
-
-    // ====== 公用：从表单构造 rule 对象 ======
-    function buildRuleFromForm() {
-        const startDate    = document.getElementById("start-date").value;
-        const endDate      = document.getElementById("end-date").value;
-        const repeatType   = repeatTypeSelect.value;
-        const intervalVal  = document.getElementById("interval-value").value;
-
-        if (!startDate) {
-            showMessage("Start date is required.", true);
-            return null;
+            updateDisplayFields();
         }
 
-        const rule = {
-            start_date: startDate,
-            end_date: endDate || null,
-            repeat_type: repeatType,
-            interval_value: null,
-            mon: false,
-            tue: false,
-            wed: false,
-            thu: false,
-            fri: false,
-            sat: false,
-            sun: false,
-            times: []
-        };
-
-        if (repeatType === "WEEKLY") {
-            rule.mon = document.getElementById("day-mon").checked;
-            rule.tue = document.getElementById("day-tue").checked;
-            rule.wed = document.getElementById("day-wed").checked;
-            rule.thu = document.getElementById("day-thu").checked;
-            rule.fri = document.getElementById("day-fri").checked;
-            rule.sat = document.getElementById("day-sat").checked;
-            rule.sun = document.getElementById("day-sun").checked;
-
-            rule.times = [...timesState]; // 直接存 HH:MM，后端照旧解析
-        } else if (repeatType === "PRN") {
-            if (!intervalVal) {
-                showMessage("Interval is required for PRN schedule.", true);
-                return null;
+        document.getElementById("btn-add-time").addEventListener("click", () => {
+            const picker = document.getElementById("time-picker");
+            const value = picker.value;
+            if (!value) {
+                showMessage("Please choose a time before adding.", true);
+                return;
             }
-            rule.interval_value = parseInt(intervalVal, 10);
-            if (Number.isNaN(rule.interval_value) || rule.interval_value <= 0) {
-                showMessage("Interval must be a positive number of hours.", true);
-                return null;
+            const hhmm = value.slice(0, 5);
+            if (!timesState.includes(hhmm)) {
+                timesState.push(hhmm);
+                timesState.sort();
+                renderTimesChips();
+                updateDisplayFields();
             }
-        } else {
-            // ONCE / DAILY
-            rule.times = [...timesState];
+        });
+
+        function updateDisplayFields() {
+            const timeDisplayDiv = document.getElementById("time-display");
+            const frequencyDisplayDiv = document.getElementById("frequency-display");
+
+            // 更新Time显示
+            const timeText = formatTimeDisplay(timesState);
+            timeDisplayDiv.textContent = timeText || "Morning & Evening";
+
+            // 更新Frequency显示
+            const rule = buildRuleFromForm();
+            if (rule) {
+                frequencyDisplayDiv.textContent = formatFrequencyDisplay(rule) || "Every Sun-Sat";
+            } else {
+                frequencyDisplayDiv.textContent = "Every Sun-Sat";
+            }
         }
 
-        return rule;
-    }
+        function buildRuleFromForm() {
+            const startDate = document.getElementById("start-date").value;
+            const endDate = document.getElementById("end-date").value;
+            const repeatType = repeatTypeSelect.value;
+            const intervalVal = document.getElementById("interval-value").value;
 
-    // ====== 把后端 itemData 填回表单 ======
-    function extractHHMMFromAny(str) {
-        if (typeof str !== "string") return str;
-        const m = str.match(/(\d{2}:\d{2})/);  // 从 "08:00:00" 截出 "08:00"
-        if (m) return m[1];
-        return str.length >= 5 ? str.slice(0, 5) : str;
-    }
+            if (!startDate) return null;
 
-    function fillFormFromItem(item) {
-        const drugIdInput      = document.getElementById("drug-id");
-        const dosageInput      = document.getElementById("dosage");
-        const unitInput        = document.getElementById("unit");
-        const amountInput      = document.getElementById("amount-literal");
-        const noteInput        = document.getElementById("note");
-        const startDateInput   = document.getElementById("start-date");
-        const endDateInput     = document.getElementById("end-date");
-        const intervalInput    = document.getElementById("interval-value");
+            const rule = {
+                start_date: startDate,
+                end_date: endDate || null,
+                repeat_type: repeatType,
+                interval_value: null,
+                mon: false, tue: false, wed: false, thu: false,
+                fri: false, sat: false, sun: false,
+                times: []
+            };
 
-        // Basic info
-        drugIdInput.value  = item.drug_id || "";
-        dosageInput.value  = item.dosage || "";
-        unitInput.value    = item.unit || "";
-        amountInput.value  = item.amount_literal || "";
-        noteInput.value    = item.note || "";
+            if (repeatType === "WEEKLY") {
+                rule.mon = document.getElementById("day-mon").checked;
+                rule.tue = document.getElementById("day-tue").checked;
+                rule.wed = document.getElementById("day-wed").checked;
+                rule.thu = document.getElementById("day-thu").checked;
+                rule.fri = document.getElementById("day-fri").checked;
+                rule.sat = document.getElementById("day-sat").checked;
+                rule.sun = document.getElementById("day-sun").checked;
+                rule.times = [...timesState];
+            } else if (repeatType === "PRN") {
+                if (intervalVal) {
+                    rule.interval_value = parseInt(intervalVal, 10);
+                }
+            } else {
+                rule.times = [...timesState];
+            }
 
-        // rule：一个 plan_item 只有一个 rule
-        let rule = {};
-        if (Array.isArray(item.plan_item_rule)) {
-            rule = item.plan_item_rule[0] || {};
-        } else if (item.plan_item_rule) {
-            rule = item.plan_item_rule;
+            return rule;
         }
 
-        if (rule.start_date) {
-            startDateInput.value = rule.start_date;
-        }
-        if (rule.end_date) {
-            endDateInput.value = rule.end_date;
+        function extractHHMMFromAny(str) {
+            if (typeof str !== "string") return str;
+            const m = str.match(/(\d{2}:\d{2})/);
+            if (m) return m[1];
+            return str.length >= 5 ? str.slice(0, 5) : str;
         }
 
-        if (rule.repeat_type) {
-            repeatTypeSelect.value = rule.repeat_type;
+        function fillFormFromItem(item) {
+            document.getElementById("drug-id").value = item.drug_id || "";
+            document.getElementById("dosage").value = item.dosage || "";
+            document.getElementById("unit").value = item.unit || "";
+            document.getElementById("amount-literal").value = item.amount_literal || "";
+            document.getElementById("note").value = item.note || "";
+
+            let rule = {};
+            if (Array.isArray(item.plan_item_rule)) {
+                rule = item.plan_item_rule[0] || {};
+            } else if (item.plan_item_rule) {
+                rule = item.plan_item_rule;
+            }
+
+            if (rule.start_date) {
+                document.getElementById("start-date").value = rule.start_date;
+            }
+            if (rule.end_date) {
+                document.getElementById("end-date").value = rule.end_date;
+            }
+            if (rule.repeat_type) {
+                repeatTypeSelect.value = rule.repeat_type;
+            }
+            updateRuleVisibility();
+
+            if (rule.repeat_type === "WEEKLY") {
+                document.getElementById("day-mon").checked = !!rule.mon;
+                document.getElementById("day-tue").checked = !!rule.tue;
+                document.getElementById("day-wed").checked = !!rule.wed;
+                document.getElementById("day-thu").checked = !!rule.thu;
+                document.getElementById("day-fri").checked = !!rule.fri;
+                document.getElementById("day-sat").checked = !!rule.sat;
+                document.getElementById("day-sun").checked = !!rule.sun;
+            }
+
+            timesState = [];
+            if (rule.repeat_type !== "PRN" && Array.isArray(rule.times) && rule.times.length > 0) {
+                timesState = rule.times.map(extractHHMMFromAny);
+                timesState = Array.from(new Set(timesState));
+                timesState.sort();
+            }
+            renderTimesChips();
+
+            if (rule.repeat_type === "PRN" && rule.interval_value != null) {
+                document.getElementById("interval-value").value = rule.interval_value;
+            }
+
+            // 更新显示字段
+            updateDisplayFields();
         }
+
+        // 监听字段变化
+        document.getElementById("drug-id").addEventListener("change", () => {
+            updateDisplayFields();
+            // 更新Drug显示
+            const drugId = document.getElementById("drug-id").value;
+            if (drugId) {
+                fetch(`/get_drug?id=${drugId}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const dosage = document.getElementById("dosage").value;
+                        const unit = document.getElementById("unit").value;
+                        const drugName = `${data.generic_name || 'Unknown'} ${dosage || ''}${unit || ''}`;
+                        document.getElementById("drug-id").setAttribute("data-drug-name", drugName);
+                    })
+                    .catch(() => {});
+            }
+        });
+        document.getElementById("dosage").addEventListener("input", updateDisplayFields);
+        document.getElementById("unit").addEventListener("input", updateDisplayFields);
+        repeatTypeSelect.addEventListener("change", () => {
+            updateRuleVisibility();
+            updateDisplayFields();
+        });
+
+        function handleReset() {
+            fillFormFromItem(itemData);
+            showMessage("Form reset to original values.", false);
+        }
+
+        function handleCancelConflict() {
+            document.getElementById("validation-alert").classList.add("hidden");
+        }
+
+        function handleOverrideConflict() {
+            document.getElementById("validation-alert").classList.add("hidden");
+            handleConfirm();
+        }
+
+        async function handleConfirm() {
+            const planId = document.getElementById("plan-id").value;
+            const itemId = document.getElementById("item-id").value;
+            const drugId = document.getElementById("drug-id").value;
+            const dosage = document.getElementById("dosage").value;
+            const unit = document.getElementById("unit").value;
+            const amountLiteral = document.getElementById("amount-literal").value;
+            const note = document.getElementById("note").value;
+
+            if (!planId || !itemId || !drugId || !dosage || !unit) {
+                showMessage("Please fill in all required fields.", true);
+                return;
+            }
+
+            const rule = buildRuleFromForm();
+            if (!rule) {
+                showMessage("Start date is required.", true);
+                return;
+            }
+
+            const payload = {
+                plan_id: parseInt(planId, 10),
+                drug_id: parseInt(drugId, 10),
+                dosage: parseInt(dosage, 10),
+                unit: unit,
+                amount_literal: amountLiteral || null,
+                note: note || null,
+                rules: [rule]
+            };
+
+            try {
+                const resp = await fetch(`/plan_item/${itemId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await resp.json();
+                if (!resp.ok) {
+                    showMessage("Failed to update: " + (data.error || "Unknown error"), true);
+                    return;
+                }
+
+                showMessage("Plan item updated successfully.", false);
+                setTimeout(() => {
+                    window.location.href = `/doctor/plan_editor?patient_id=${patientId}`;
+                }, 1500);
+            } catch (err) {
+                console.error(err);
+                showMessage("Network error.", true);
+            }
+        }
+
+        // 获取患者信息
+        async function loadPatientInfo() {
+            try {
+                const response = await fetch(`/get_patients?id={{ doctor_id if doctor_id else '' }}`);
+                const patients = await response.json();
+                const patient = patients.find(p => p.id == patientId);
+                if (patient) {
+                    // 可以在这里更新患者信息，如果有年龄字段的话
+                    // document.getElementById("patient-age-value").textContent = patient.age || "N/A";
+                }
+            } catch (err) {
+                console.error("Failed to load patient info:", err);
+            }
+        }
+
+        // 初始化
+        repeatTypeSelect.addEventListener("change", updateRuleVisibility);
         updateRuleVisibility();
-
-        // WEEKLY: days
-        if (rule.repeat_type === "WEEKLY") {
-            document.getElementById("day-mon").checked = !!rule.mon;
-            document.getElementById("day-tue").checked = !!rule.tue;
-            document.getElementById("day-wed").checked = !!rule.wed;
-            document.getElementById("day-thu").checked = !!rule.thu;
-            document.getElementById("day-fri").checked = !!rule.fri;
-            document.getElementById("day-sat").checked = !!rule.sat;
-            document.getElementById("day-sun").checked = !!rule.sun;
-        }
-
-        // timesState：把后端给的 time[]（一般是 "HH:MM:SS"）转成 "HH:MM"
-        timesState = [];
-        if (rule.repeat_type !== "PRN" && Array.isArray(rule.times) && rule.times.length > 0) {
-            timesState = rule.times.map(extractHHMMFromAny);
-            timesState = Array.from(new Set(timesState));
-            timesState.sort();
-        }
-        renderTimesChips();
-
-        // PRN: interval
-        if (rule.repeat_type === "PRN" && rule.interval_value != null) {
-            intervalInput.value = rule.interval_value;
-        }
-    }
-
-    // 初始化 UI
-    repeatTypeSelect.addEventListener("change", updateRuleVisibility);
-    updateRuleVisibility();
-    fillFormFromItem(itemData);
-
-    // ====== 保存 ======
-    document.getElementById("btn-save").addEventListener("click", async function () {
-        const planId       = document.getElementById("plan-id").value;
-        const itemId       = document.getElementById("item-id").value;
-        const drugId       = document.getElementById("drug-id").value;
-        const dosage       = document.getElementById("dosage").value;
-        const unit         = document.getElementById("unit").value;
-        const amountLiteral= document.getElementById("amount-literal").value;
-        const note         = document.getElementById("note").value;
-
-        if (!planId) {
-            showMessage("Missing plan_id. Please check backend template logic.", true);
-            return;
-        }
-        if (!itemId) {
-            showMessage("Missing item_id.", true);
-            return;
-        }
-        if (!drugId || !dosage || !unit) {
-            showMessage("Drug ID, dosage and unit are required.", true);
-            return;
-        }
-
-        const rule = buildRuleFromForm();
-        if (!rule) {
-            return;
-        }
-
-        const payload = {
-            plan_id: parseInt(planId, 10),
-            drug_id: parseInt(drugId, 10),
-            dosage: parseInt(dosage, 10),
-            unit: unit,
-            amount_literal: amountLiteral || null,
-            note: note || null,
-            rules: [rule]
-        };
-
-        try {
-            const resp = await fetch(`/plan_item/${itemId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await resp.json();
-            if (!resp.ok) {
-                showMessage("Failed to update plan item: " + (data.error || "Unknown error"), true);
-                return;
-            }
-
-            showMessage("Plan item updated successfully.", false);
-        } catch (err) {
-            console.error(err);
-            showMessage("Network or server error when updating plan item.", true);
-        }
-    });
-
-    // ====== 删除 ======
-    document.getElementById("btn-delete").addEventListener("click", async function () {
-        const itemId = document.getElementById("item-id").value;
-        if (!itemId) {
-            showMessage("Missing item_id.", true);
-            return;
-        }
-        if (!confirm("Are you sure you want to delete this plan item?")) {
-            return;
-        }
-
-        try {
-            const resp = await fetch(`/plan_item/${itemId}`, {
-                method: "DELETE"
-            });
-            const data = await resp.json();
-            if (!resp.ok) {
-                showMessage("Failed to delete plan item: " + (data.error || "Unknown error"), true);
-                return;
-            }
-            showMessage("Plan item deleted successfully.", false);
-        } catch (err) {
-            console.error(err);
-            showMessage("Network or server error when deleting plan item.", true);
-        }
-    });
-</script>
+        fillFormFromItem(itemData);
+        // loadPatientInfo(); // 如果需要加载患者详细信息，取消注释
+    </script>
 
 </body>
 </html>

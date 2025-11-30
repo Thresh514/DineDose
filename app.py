@@ -66,7 +66,6 @@ def create_app():
     scheduler.start()
 
 
-    print(app.url_map)
     return app
 
 
