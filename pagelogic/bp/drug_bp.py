@@ -35,14 +35,15 @@ def get_sample_drugs_locally():
 # if multiple drugs match, return the first 100 drugs
 @drug_bp.route('/search_drug', methods=['GET'])
 def search_drug_locally():
-    drug_name = request.args.get("name", "")
-    if not drug_name:
+    name = request.args.get("name", "")
+    names = name.split(" ")
+    if not names or all(name == "" for name in names):
         return jsonify({"error": "Missing name"}), 400
         
-    if len(drug_name) < 2:
+    if len(name) < 2:
         return jsonify({"error": "Name too short, must be at least 2 characters"}), 400
 
-    drugs = drug_repo.get_drugs_by_name_locally(drug_name)
+    drugs = drug_repo.get_drugs_by_name_locally(names)
     if not drugs:
         return jsonify([]), 404
 
