@@ -37,3 +37,30 @@ def get_food_locally():
     if not foods:
         return jsonify([]), 404
     return jsonify([food.to_dict() for food in foods]), 200
+
+
+# Return a sample of foods (first 100)
+@food_bp.route('/get_sample_foods', methods=['GET'])
+def get_sample_foods_locally():
+    sample_foods = food_repo.get_foods_by_name_locally("")
+    return jsonify([food.to_dict() for food in sample_foods]), 200
+
+
+# search food，by whether the  description includes name 
+# /search_food?name=Banana
+# name should be at least 2 characters long
+#if multiple foods match, return the first 100 foods
+@food_bp.route('/search_food', methods=['GET'])
+def search_foods_locally():
+    name = request.args.get("name", "")
+    if not name:
+        return jsonify({"error": "Missing name"}), 400
+    
+    if len(name) < 2:
+        return jsonify({"error": "Name too short, must be at least 2 characters"}), 400
+
+    foods = food_repo.get_foods_by_name_locally(name)
+    if not foods:
+        return jsonify([]), 404
+
+    return jsonify([food.to_dict() for food in foods]), 200
