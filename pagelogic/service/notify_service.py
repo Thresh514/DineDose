@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import date, datetime, time as dt_time, timedelta, timezone
 from typing import List, Optional, Tuple, Set
 
@@ -31,15 +31,14 @@ class ScheduledDose:
 # =========================
 # Step 1: collect scheduled doses
 # =========================
-NOW = datetime.now()
-#datetime.now(timezone.utc) 才是utc+0时间
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
     print("\n==================== STEP 1: Collect scheduled doses ====================")
-    NOW = datetime.now()
-    
-    window_start = NOW
-    window_end = NOW + timedelta(days=days)
+    now = datetime.now()
+
+    window_start = now
+    window_end = now + timedelta(days=days)
 
     print(f"[STEP1] Time window: {window_start}  →  {window_end}")
 
@@ -60,10 +59,9 @@ def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
     users_with_plans = [u for u in users if u.id in plans]
     print(f"[STEP1] Users with a plan: {[u.id for u in users_with_plans]}")
 
-    scheduled: List[ScheduledDose] = []
-
-    # 3) Expand plan items into concrete doses
-    for user in users_with_plans:
+    # --------- 并发展开每个用户的 plan ---------
+    def expand_user_plan(user) -> List[ScheduledDose]:
+        """在单个线程里处理一个 user 的 plan，返回该用户的所有 ScheduledDose。"""
         print(f"\n[STEP1] Expanding plan for user_id={user.id}")
 
         plan = plan_service.get_user_plan(
@@ -74,13 +72,14 @@ def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
 
         if not plan:
             print(f"[STEP1]   No plan returned for user {user.id}")
-            continue
+            return []
         if not plan.plan_items:
             print(f"[STEP1]   Plan has no items for user {user.id}")
-            continue
+            return []
 
         print(f"[STEP1]   Expanded plan_items count={len(plan.plan_items)}")
 
+        user_scheduled: List[ScheduledDose] = []
         for item in plan.plan_items:
             if item.date is None:
                 print(f"[STEP1]   Skipping PRN/no-date item: plan_item_id={item.id}")
@@ -96,11 +95,33 @@ def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
                 unit=getattr(item, "unit", None),
             )
             print(f"[STEP1]   Added ScheduledDose: {sd}")
-            scheduled.append(sd)
+            user_scheduled.append(sd)
+
+        return user_scheduled
+
+    scheduled: List[ScheduledDose] = []
+
+    # 控制线程数，避免把 DB 打爆
+    max_workers = min(8, len(users_with_plans)) or 1
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_user_id = {
+            executor.submit(expand_user_plan, user): user.id
+            for user in users_with_plans
+        }
+
+        for future in as_completed(future_to_user_id):
+            uid = future_to_user_id[future]
+            try:
+                user_doses = future.result()
+                print(f"[STEP1]   User {uid} produced {len(user_doses)} doses")
+                scheduled.extend(user_doses)
+            except Exception as e:
+                # 避免某个用户异常直接把整个 job 打崩
+                print(f"[STEP1]   Error expanding plan for user {uid}: {e}")
 
     print(f"\n[STEP1] TOTAL scheduled doses collected: {len(scheduled)}")
     return scheduled
-
 
 # =========================
 # Step 2: diff scheduled vs completed
@@ -150,7 +171,7 @@ def find_missed_doses(
 # Step 3: main entry
 # =========================
 
-def notify_jobs(days: int = 1, interval: int = 5*60) -> None:
+def notify_jobs(days:int, interval:int) -> None:
     print("\n==================== NOTIFY JOB START ====================")
     print(f"[MAIN] Running notify_jobs(days={days})")
 
@@ -176,13 +197,23 @@ def notify_jobs(days: int = 1, interval: int = 5*60) -> None:
 # =========================
 # Step 4: send notifications
 # =========================
-#interval: seconds between checks
+# interval: seconds between checks
 def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None:
+    """
+    对每个 missed dose：
+    - 对每个 offset in notify_minutes：
+        target_dt = scheduled_dt + offset(min)
+        如果 |target_dt - now| < interval（秒）则本次 cron 触发一次通知
+    """
     print("\n==================== STEP 4: Sending notifications ====================")
 
     if not missed_doses:
         print("[STEP4] No missed doses, skipping email.")
         return
+
+    # 当前时间（本地时间）
+    now = datetime.now()
+    interval_seconds = interval
 
     user_ids = {dose.user_id for dose in missed_doses}
     print(f"[STEP4] Users with missed doses: {user_ids}")
@@ -202,9 +233,6 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
     for uid, cfg in user_id_to_config.items():
         print(f"  user_id={uid}, notify_minutes={cfg.notify_minutes}, enabled={cfg.enabled}")
 
-    now_utc = NOW
-
-
     for dose in missed_doses:
         print(f"\n[STEP4] Evaluating dose → {dose}")
 
@@ -216,21 +244,30 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
             print("[STEP4]   Notification disabled, skipping")
             continue
 
-        # Construct datetime
+        # 计划服药时间（本地）
         scheduled_time = dose.expected_time or dt_time(9, 0)
         scheduled_dt = datetime.combine(dose.expected_date, scheduled_time)
 
-        if scheduled_dt.tzinfo is None:
-            diff_minutes = round(
-                (scheduled_dt - now_utc.replace(tzinfo=None)).total_seconds() / interval
+        # 是否本次 cron 需要触发这个 dose 的通知
+        should_send = False
+
+        for offset in cfg.notify_minutes:
+            target_dt = scheduled_dt + timedelta(minutes=offset)
+            diff_seconds = (target_dt - now).total_seconds()
+
+            print(
+                f"[STEP4]   check offset={offset}: "
+                f"target_dt={target_dt}, diff_seconds={diff_seconds}"
             )
-        else:
-            diff_minutes = round((scheduled_dt - now_utc).total_seconds() / interval)
 
-        print(f"[STEP4]   Time diff (minutes): {diff_minutes}, now_utc={now_utc}")
+            # 只在「提前 interval 秒之内」这一段时间触发一次
+            if 0 <= diff_seconds < interval_seconds:
+                print(f"(diff_seconds={diff_seconds} is < {interval_seconds} and is >= 0), will notify.")
+                should_send = True
+                break
 
-        if diff_minutes not in cfg.notify_minutes:
-            print("[STEP4]   Time does not match notify_minutes, skipping")
+        if not should_send:
+            print("[STEP4]   No offset matched in this run, skipping")
             continue
 
         email = user_id_to_email.get(dose.user_id)
