@@ -1,0 +1,1496 @@
+/* ============================================
+   Doctor Dashboard - Common/Shared Styles
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #ffffff;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+.main-container {
+    width: 75%;
+    padding: 30px;
+    overflow-y: auto;
+    transition: width 0.3s ease;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #212121;
+}
+
+/* ============================================
+   Sidebar Styles (Shared)
+   ============================================ */
+.doctor-sidebar {
+    width: 25%;
+    height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 100;
+    overflow: hidden;
+    position: relative;
+}
+
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    min-height: 60px;
+}
+
+.sidebar-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+    color: #212121;
+}
+
+.sidebar-search {
+    padding: 15px 20px;
+    position: relative;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-search input {
+    width: 100%;
+    padding: 8px 30px 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 14px;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+}
+
+.nav-section {
+    padding: 0 10px;
+}
+
+.nav-section-title {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #212121;
+    font-size: 16px;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 48px;
+    border-radius: 0;
+    margin: 2px 0;
+}
+
+.nav-item:hover {
+    background-color: #f5f5f5;
+}
+
+.nav-item.active {
+    background-color: #e0e0e0;
+}
+
+.nav-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #999;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.nav-item.active .nav-indicator {
+    background-color: #212121;
+}
+
+.nav-label {
+    flex: 1;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: auto;
+    min-height: 60px;
+}
+
+.user-icon {
+    font-size: 24px;
+    text-decoration: none;
+    color: #212121;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.user-icon:hover {
+    background-color: #f5f5f5;
+    transform: scale(1.05);
+}
+
+/* ============================================
+   Common Button Styles (Shared)
+   ============================================ */
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    border: none;
+}
+
+.btn-calendar {
+    background: #212121;
+    color: white;
+}
+
+.btn-calendar:hover {
+    background: #424242;
+}
+
+.btn-edit {
+    background: #e0e0e0;
+    color: #212121;
+    border: 1px solid #ccc;
+}
+
+.btn-edit:hover {
+    background: #d0d0d0;
+}
+
+.btn-primary {
+    background: #212121;
+    border-color: #212121;
+    color: #fff;
+}
+
+.btn-add {
+    padding: 10px 20px;
+    background: #212121;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add:hover {
+    background: #424242;
+}
+
+.btn-danger {
+    background: #212121;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #424242;
+}
+
+.btn-ai {
+    padding: 10px 16px;
+    background: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-ai:hover {
+    background: #d0d0d0;
+}
+
+.btn-send {
+    padding: 10px 16px;
+    background: #212121;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-send:hover {
+    background: #424242;
+}
+
+.btn-send:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.view-plan-btn {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #212121;
+    background: #212121;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.view-plan-btn:hover {
+    background: #424242;
+}
+
+/* ============================================
+   Loading Styles (Shared)
+   ============================================ */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top-color: #212121;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 16px;
+    color: #666;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ============================================
+   Plans Page Styles (doctor_plans.html)
+   ============================================ */
+.plans-page-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.plans-page-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+}
+
+.plans-page-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.plans-page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.plans-page-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #424242 0%, #212121 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.plans-page-info {
+    flex: 1;
+}
+
+.plans-page-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.plans-page-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #212121;
+}
+
+.plans-page-plan-name {
+    font-size: 16px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.plans-page-details {
+    margin-top: 24px;
+    padding: 20px;
+    background: #fafafa;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.plans-page-details-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #212121;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.plans-page-item-card {
+    margin-bottom: 16px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid #212121;
+    border-radius: 4px;
+    transition: box-shadow 0.2s;
+}
+
+.plans-page-item-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.plans-page-item-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.plans-page-item-drug-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #212121;
+}
+
+.plans-page-item-dosage-info {
+    font-size: 15px;
+    color: #666;
+    padding: 4px 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.plans-page-item-rule-info {
+    margin-top: 8px;
+}
+
+.plans-page-schedule-row {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.plans-page-schedule-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 120px;
+}
+
+.plans-page-schedule-item-times {
+    flex: 2;
+    min-width: 200px;
+}
+
+.plans-page-schedule-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.plans-page-schedule-value {
+    font-size: 15px;
+    color: #212121;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.plans-page-no-items {
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+    background: #fafafa;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.plans-page-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* ============================================
+   Feedback Page Styles (doctor_feedback.html)
+   ============================================ */
+.feedback-page-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feedback-page-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+}
+
+.feedback-page-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.feedback-page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.feedback-page-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #424242 0%, #212121 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.feedback-page-info {
+    flex: 1;
+}
+
+.feedback-page-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.feedback-page-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #212121;
+}
+
+.feedback-page-filters {
+    margin-bottom: 30px;
+}
+
+.feedback-page-filters-label {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.feedback-page-filter-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.feedback-page-filter-btn {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background: #ffffff;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.feedback-page-filter-btn:hover {
+    background: #f5f5f5;
+}
+
+.feedback-page-filter-btn.active {
+    background: #e0e0e0;
+    color: #212121;
+    border-color: #ccc;
+}
+
+.feedback-page-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 0;
+}
+
+.feedback-page-stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.feedback-page-stat-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.feedback-page-stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #212121;
+}
+
+.feedback-page-stat-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    color: #212121;
+}
+
+.feedback-page-risk-level {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.feedback-page-risk-high {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.feedback-page-risk-medium {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffe0b2;
+}
+
+.feedback-page-risk-low {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.feedback-page-section {
+    margin-top: 20px;
+}
+
+.feedback-page-label-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #212121;
+    margin-bottom: 10px;
+}
+
+.feedback-page-input-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.feedback-page-textarea {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.feedback-page-textarea:focus {
+    outline: none;
+    border-color: #999;
+}
+
+.feedback-page-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.feedback-page-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.feedback-page-status.sent {
+    color: #2e7d32;
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+}
+
+.feedback-page-status.pending {
+    color: #f57c00;
+    background: #fff3e0;
+    border: 1px solid #ffe0b2;
+}
+
+/* ============================================
+   Home Page Styles (doctor_home.html)
+   ============================================ */
+#patient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.home-page-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+}
+
+.home-page-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.home-page-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.home-page-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #424242 0%, #212121 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.home-page-card-info {
+    flex: 1;
+}
+
+.home-page-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 20px;
+    color: #212121;
+}
+
+.home-page-email {
+    font-size: 14px;
+    color: #666;
+}
+
+.home-page-card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.home-page-action-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+}
+
+.home-page-btn-plan {
+    background: #212121;
+    color: white;
+}
+
+.home-page-btn-plan:hover {
+    background: #424242;
+}
+
+.home-page-btn-feedback {
+    background: #e0e0e0;
+    color: #212121;
+    border: 1px solid #ccc;
+}
+
+.home-page-btn-feedback:hover {
+    background: #d0d0d0;
+}
+
+.home-page-btn-remove {
+    background: #f5f5f5;
+    color: #e65100;
+    border: 1px solid #e0e0e0;
+}
+
+.home-page-btn-remove:hover {
+    background: #ffebee;
+    border-color: #ffcdd2;
+}
+
+.home-page-add-card {
+    border: 2px dashed #e0e0e0;
+    border-radius: 0;
+    padding: 20px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.home-page-add-card:hover {
+    border-color: #212121;
+    background: #fafafa;
+}
+
+.home-page-add-card-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #666;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.home-page-add-card-placeholder i {
+    font-size: 32px;
+    color: #999;
+}
+
+.home-page-add-card-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.home-page-add-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.home-page-add-input:focus {
+    outline: none;
+    border-color: #212121;
+}
+
+.home-page-add-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.home-page-add-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    background: #212121;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    flex: 1;
+}
+
+.home-page-add-btn:hover {
+    background: #424242;
+}
+
+.home-page-add-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.home-page-cancel-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    background: #f5f5f5;
+    color: #212121;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    flex: 1;
+}
+
+.home-page-cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+.home-page-message {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.home-page-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.home-page-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* ============================================
+   Plan Editor Page Styles (doctor_plan_editor.html)
+   ============================================ */
+.editor-page-container {
+    width: 75%;
+    display: flex;
+    min-height: 100vh;
+    overflow-y: auto;
+    transition: width 0.3s ease;
+}
+
+.editor-page-content {
+    flex: 1;
+    padding: 30px;
+}
+
+.editor-page-add-section {
+    margin-bottom: 20px;
+}
+
+.editor-page-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.editor-page-item-box {
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.editor-page-item-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.editor-page-item-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #212121;
+    margin-right: 10px;
+}
+
+.editor-page-info-icon {
+    display: inline-block;
+    cursor: pointer;
+    color: #212121;
+    font-size: 20px;
+}
+
+.editor-page-item-note {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.editor-page-rule-section {
+    margin-left: 20px;
+    margin-top: 15px;
+    padding: 15px;
+    background: #f0f0f0;
+    border-radius: 0;
+}
+
+.editor-page-rule-section h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #212121;
+}
+
+.editor-page-rule-info {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.editor-page-rule-info b {
+    color: #212121;
+}
+
+.editor-page-item-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.editor-page-modal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.editor-page-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.editor-page-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 24px;
+    color: #555;
+    background: none;
+    border: none;
+}
+
+.editor-page-close-btn:hover {
+    color: #212121;
+}
+
+.editor-page-modal-content h3 {
+    margin-bottom: 15px;
+    color: #212121;
+    font-size: 28px;
+}
+
+.editor-page-drug-info {
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* ============================================
+   Calendar View Styles (doctor_calendar_view.html)
+   ============================================ */
+.calendar-page-toolbar {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calendar-page-view-btn,
+.calendar-page-nav-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.calendar-page-view-btn:hover,
+.calendar-page-nav-btn:hover {
+    background: #e0e0e0;
+}
+
+.calendar-page-view-btn.active {
+    background: #212121;
+    color: #fff;
+    border-color: #212121;
+}
+
+.calendar-page-current-range {
+    font-size: 14px;
+    color: #555;
+    margin-left: 12px;
+    font-weight: 500;
+}
+
+.calendar-page-calendar {
+    display: grid;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.calendar-page-calendar.day-view {
+    grid-template-columns: 1fr;
+}
+
+.calendar-page-calendar.week-view,
+.calendar-page-calendar.month-view {
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-page-day {
+    border: 1px solid #e0e0e0;
+    padding: 12px;
+    min-height: 120px;
+    background: #ffffff;
+    border-radius: 4px;
+    transition: box-shadow 0.2s;
+}
+
+.calendar-page-day:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-page-day-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #212121;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.calendar-page-event {
+    background: #f5f5f5;
+    border-left: 3px solid #212121;
+    padding: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    border-radius: 2px;
+    transition: background-color 0.2s;
+}
+
+.calendar-page-event:hover {
+    background: #eeeeee;
+}
+
+.calendar-page-event strong {
+    font-size: 13px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.calendar-page-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.calendar-page-loading-overlay .spinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.calendar-page-loading-text {
+    margin-top: 10px;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+}
+
+.calendar-page-event-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.calendar-page-event-modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 380px;
+    max-height: 70%;
+    overflow: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: relative;
+    font-size: 14px;
+}
+
+.calendar-page-event-modal h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.calendar-page-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #eee;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.calendar-page-modal-body p {
+    margin: 4px 0;
+}
+
+.calendar-page-modal-body h4 {
+    margin: 8px 0 4px;
+    font-size: 15px;
+}
+
+.calendar-page-event-status {
+    margin-top: 6px;
+    font-size: 11px;
+    padding-top: 4px;
+}
+
+.calendar-page-event-status--not {
+    color: #757575;
+}
+
+.calendar-page-event-status--on {
+    color: #2e7d32;
+}
+
+.calendar-page-event-status--early {
+    color: #212121;
+}
+
+.calendar-page-event-status--late {
+    color: #e65100;
+}
+
+/* 兼容旧的类名（calendar_dom.html 使用的简单类名） */
+.toolbar {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-btn,
+.view-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.nav-btn:hover,
+.view-btn:hover {
+    background: #e0e0e0;
+}
+
+.view-btn.active {
+    background: #212121;
+    color: #fff;
+    border-color: #212121;
+}
+
+#current-range {
+    font-size: 14px;
+    color: #555;
+    margin-left: 12px;
+    font-weight: 500;
+}
+
+.calendar {
+    display: grid;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.calendar.day-view {
+    grid-template-columns: 1fr;
+}
+
+.calendar.week-view,
+.calendar.month-view {
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.day {
+    border: 1px solid #e0e0e0;
+    padding: 12px;
+    min-height: 120px;
+    background: #ffffff;
+    border-radius: 4px;
+    transition: box-shadow 0.2s;
+}
+
+.day:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.day-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #212121;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.event {
+    background: #f5f5f5;
+    border-left: 3px solid #212121;
+    padding: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    border-radius: 2px;
+    transition: background-color 0.2s;
+}
+
+.event:hover {
+    background: #eeeeee;
+}
+
+.event strong {
+    font-size: 13px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#loading-overlay .spinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+#loading-text {
+    margin-top: 10px;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+}
+
+#event-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 380px;
+    max-height: 70%;
+    overflow: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: relative;
+    font-size: 14px;
+}
+
+#event-modal h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+#modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #eee;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#modal-body p {
+    margin: 4px 0;
+}
+
+#modal-body h4 {
+    margin: 8px 0 4px;
+    font-size: 15px;
+}
+
+.event-status {
+    margin-top: 6px;
+    font-size: 11px;
+    padding-top: 4px;
+}
+
+.event-status--not {
+    color: #757575;
+}
+
+.event-status--on {
+    color: #2e7d32;
+}
+
+.event-status--early {
+    color: #212121;
+}
+
+.event-status--late {
+    color: #e65100;
+}

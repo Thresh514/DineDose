@@ -258,7 +258,6 @@ def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
 
     cur.close()
     conn.close()
-    print("[DEBUG] get_all_plan_items_by_plan_id:", len(items))
     return items
 
 def get_all_plan_items() -> List[plan_item]:

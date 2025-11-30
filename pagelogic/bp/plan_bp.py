@@ -21,7 +21,6 @@ def get_user_plan_handler():
     to_when = date.fromisoformat(to_str) if to_str else None
 
     plan = plan_service.get_user_plan(user_id, from_when, to_when)
-    print("total number of plan_items: ", len(plan.plan_items))
     return jsonify(plan.to_dict()), 200
 
 @plan_bp.route("/get_raw_plan", methods=["GET"])

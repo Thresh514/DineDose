@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='doctor.css') }}">
+</head>
+<body>
+
+    {% include "components/doctor_sidebar.html" %}
+
+    <div class="main-container">
+        <h1 class="page-title">Feedback</h1>
+
+        <div class="feedback-page-filters">
+            <span class="feedback-page-filters-label">Filter by:</span>
+            <div class="feedback-page-filter-buttons">
+                <button class="feedback-page-filter-btn" data-filter="completion">Completion Rate</button>
+                <button class="feedback-page-filter-btn" data-filter="tasks">Tasks</button>
+                <button class="feedback-page-filter-btn" data-filter="feedback">Feedback Status</button>
+                <button class="feedback-page-filter-btn" data-filter="risk">Risk Level</button>
+            </div>
+        </div>
+
+        <div class="feedback-page-list" id="patients-list">
+            {% if patients %}
+                {% for patient in patients %}
+                    {% set avatar_text = (patient.username[0] if patient.username else '?') | upper %}
+                    {% set risk_class = 'feedback-page-risk-' + (patient.risk_level | lower if patient.risk_level else 'low') %}
+                    <div class="feedback-page-card" data-patient-id="{{ patient.id }}">
+                        <div class="feedback-page-header">
+                            <div class="feedback-page-avatar">{{ avatar_text }}</div>
+                            <div class="feedback-page-info">
+                                <div class="feedback-page-label">Patient</div>
+                                <div class="feedback-page-name">{{ patient.username or 'Unknown' }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="feedback-page-stats">
+                            <div class="feedback-page-stat-item">
+                                <div class="feedback-page-stat-label">Yesterday Completion</div>
+                                <div class="feedback-page-stat-value">
+                                    <span class="feedback-page-stat-badge">{{ patient.yesterday_completion or 0 }}%</span>
+                                </div>
+                            </div>
+                            <div class="feedback-page-stat-item">
+                                <div class="feedback-page-stat-label">Today's Tasks</div>
+                                <div class="feedback-page-stat-value">
+                                    <span class="feedback-page-stat-badge">{{ patient.today_tasks or 0 }} tasks</span>
+                                </div>
+                            </div>
+                            <div class="feedback-page-stat-item">
+                                <div class="feedback-page-stat-label">Risk Level</div>
+                                <div class="feedback-page-stat-value">
+                                    <span class="feedback-page-stat-badge feedback-page-risk-level {{ risk_class }}">{{ patient.risk_level or 'Low' }}</span>
+                                </div>
+                            </div>
+                            <div class="feedback-page-stat-item">
+                                <div class="feedback-page-stat-label">Feedback Status</div>
+                                <div class="feedback-page-stat-value">
+                                    {% if patient.has_feedback_today %}
+                                        <span class="feedback-page-stat-badge feedback-page-status sent">Already sent today</span>
+                                    {% else %}
+                                        <span class="feedback-page-stat-badge feedback-page-status pending">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feedback-page-section">
+                            <div class="feedback-page-label-text">
+                                Feedback:
+                            </div>
+                            <div class="feedback-page-input-wrapper">
+                                <textarea 
+                                    class="feedback-page-textarea" 
+                                    id="feedback-{{ patient.id }}"
+                                    placeholder="Write some feedback here for patient's yesterday performance and today's plan!"
+                                ></textarea>
+                                <div class="feedback-page-actions">
+                                    <button class="btn-ai" onclick="generateAIFeedback({{ patient.id }})">
+                                        <i class="fas fa-robot"></i> AI Doctor
+                                    </button>
+                                    <button class="btn-send" onclick="sendFeedback({{ patient.id }}, {% if patient.has_feedback_today %}true{% else %}false{% endif %})">
+                                        <i class="fas fa-paper-plane"></i> Send
+                                    </button>
+                                </div>
+                            </div>
+                {% endfor %}
+            {% else %}
+                <div class="feedback-page-card">No patients with plans found.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const doctorId = "{{ doctor_id }}";
+        const patientsData = JSON.parse('{{ patients | tojson | safe }}');
+
+        // 生成AI反馈
+        async function generateAIFeedback(patientId) {
+            const textarea = document.getElementById(`feedback-${patientId}`);
+            const card = textarea.closest('.feedback-page-card');
+            
+            card.classList.add('loading');
+            textarea.disabled = true;
+
+            try {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                const response = await fetch('/doctor/give_feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patient_id: patientId,
+                        feedback_date: yesterdayStr,
+                        use_ai: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate feedback');
+                }
+
+                if (data.feedback && data.feedback.feedback) {
+                    textarea.value = data.feedback.feedback;
+                } else {
+                    throw new Error('No feedback generated');
+                }
+            } catch (error) {
+                alert('Error generating AI feedback: ' + error.message);
+            } finally {
+                card.classList.remove('loading');
+                textarea.disabled = false;
+            }
+        }
+
+        // 发送反馈
+        async function sendFeedback(patientId, hasFeedbackToday = false) {
+            const textarea = document.getElementById(`feedback-${patientId}`);
+            const card = textarea.closest('.feedback-page-card');
+            const feedbackText = textarea.value.trim();
+
+            if (!feedbackText) {
+                alert('Please enter feedback text');
+                return;
+            }
+
+            // 如果今天已经发过feedback，显示确认对话框
+            if (hasFeedbackToday) {
+                const confirmMessage = 'You have already sent feedback today. Do you want to update it?';
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+            }
+
+            card.classList.add('loading');
+            textarea.disabled = true;
+
+            try {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                const response = await fetch('/doctor/give_feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patient_id: patientId,
+                        feedback_date: yesterdayStr,
+                        feedback: feedbackText,
+                        use_ai: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to save feedback');
+                }
+
+                alert('Feedback saved successfully!');
+                textarea.value = '';
+                
+                // 更新状态显示（在统计区域）
+                const statsContainer = card.querySelector('.feedback-page-stats');
+                const feedbackStatItem = Array.from(statsContainer.querySelectorAll('.feedback-page-stat-item')).find(item => {
+                    return item.querySelector('.feedback-page-stat-label').textContent === 'Feedback Status';
+                });
+                if (feedbackStatItem) {
+                    const statValue = feedbackStatItem.querySelector('.feedback-page-stat-value');
+                    statValue.innerHTML = '<span class="feedback-page-stat-badge feedback-page-status sent">Already sent today</span>';
+                }
+                
+                // 更新按钮的hasFeedbackToday状态
+                const sendBtn = card.querySelector('.btn-send');
+                if (sendBtn) {
+                    sendBtn.setAttribute('onclick', `sendFeedback(${patientId}, true)`);
+                }
+            } catch (error) {
+                alert('Error saving feedback: ' + error.message);
+            } finally {
+                card.classList.remove('loading');
+                textarea.disabled = false;
+            }
+        }
+
+        // 筛选功能（简单实现）
+        document.querySelectorAll('.feedback-page-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.feedback-page-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                // 这里可以添加筛选逻辑
+            });
+        });
+    </script>
+
+</body>
+</html>
+
