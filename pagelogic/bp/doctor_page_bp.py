@@ -421,12 +421,75 @@ def get_feedback():
 def doctor_feedback_page():
     """
     医生反馈页面
+    获取所有有 plan 的患者及其统计信息
     """
     doctor_id = session.get("user_id")
     if not doctor_id:
         return "Not logged in", 401
     
-    return render_template("doctor_feedback.html", doctor_id=doctor_id)
+    # 获取所有患者
+    patients = user_repo.get_patients_by_doctor_id(doctor_id)
+    
+    # 准备患者数据（只包含有 plan 且有 plan_items 的患者）
+    patients_with_stats = []
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    yesterday_str = yesterday.isoformat()
+    
+    for patient in patients:
+        # 检查是否有 plan
+        plan = plan_repo.get_plan_by_user_id(patient.id)
+        if not plan:
+            continue
+        
+        # 检查 plan 是否有 plan_items
+        plan_items = plan_repo.get_all_plan_items_by_plan_id(plan.id)
+        if not plan_items or len(plan_items) == 0:
+            continue
+        
+        # 计算统计信息
+        yesterday_plan = plan_service.get_user_plan(patient.id, yesterday, yesterday)
+        yesterday_records = drug_record_repo.get_drug_records_by_date_range(
+            user_id=patient.id,
+            start=yesterday,
+            end=yesterday
+        )
+        
+        yesterday_completion = 0
+        if yesterday_plan and yesterday_plan.plan_items:
+            total_tasks = len(yesterday_plan.plan_items)
+            completed_tasks = len([r for r in yesterday_records if r.status == "TAKEN" and r.updated_at])
+            if total_tasks > 0:
+                yesterday_completion = round((completed_tasks / total_tasks) * 100)
+        
+        today_plan = plan_service.get_user_plan(patient.id, today, today)
+        today_tasks = len(today_plan.plan_items) if today_plan and today_plan.plan_items else 0
+        
+        # 计算风险等级
+        if yesterday_completion < 70:
+            risk_level = "High"
+        elif yesterday_completion < 85:
+            risk_level = "Medium"
+        else:
+            risk_level = "Low"
+        
+        # 检查昨天是否已经有 feedback
+        feedback = feedback_repo.get_feedback_by_date(patient.id, yesterday)
+        has_feedback_today = feedback is not None
+        
+        patients_with_stats.append({
+            "id": patient.id,
+            "username": patient.username,
+            "email": patient.email,
+            "yesterday_completion": yesterday_completion,
+            "today_tasks": today_tasks,
+            "risk_level": risk_level,
+            "has_feedback_today": has_feedback_today
+        })
+    
+    return render_template("doctor_feedback.html", 
+                         doctor_id=doctor_id, 
+                         patients=patients_with_stats)
 
 
 @doctor_page_bp.route("/doctor/plans", methods=["GET"])
