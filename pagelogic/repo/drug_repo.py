@@ -188,9 +188,9 @@ def get_drugs_by_name_locally(name: str) -> List[drug]:
     if name == "":
         return drugs[:100]  # 如果 name 为空，返回前100个药品作为默认结果
     res = []
-
+    name = name.lower()
     
     for drug in drugs:
-        if name in drug.brand_name or name in drug.generic_name:
+        if name in drug.brand_name.lower() or name in drug.generic_name.lower():
             res.append(drug)
     return res[:100]  # 最多返回100个结果

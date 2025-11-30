@@ -109,7 +109,7 @@ def get_foods_by_name_locally(name: str) -> List[food]:
     name = name.lower()
     res = []
     for food in foods:
-        if name in food.description:
+        if name in food.description.lower():
             res.append(food)
     return res[:100]  # 最多返回100个结果
 
