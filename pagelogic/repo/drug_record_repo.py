@@ -313,7 +313,8 @@ def get_drug_record_by_unique(
 #get recent completed drug records within given days
 #return the list of drug_record
 def get_recent_completed_drug_records(
-    days: int
+    days: int,
+    now: datetime
 ) -> List[drug_record]:
     conn = mydb()
     cur = conn.cursor()
@@ -326,7 +327,7 @@ def get_recent_completed_drug_records(
         ORDER BY expected_date DESC, expected_time DESC
     """
 
-    start_date = date.today() - timedelta(days=days)
+    start_date = now.date() - timedelta(days=days)
     cur.execute(query, (start_date,))
     rows = cur.fetchall()
 
