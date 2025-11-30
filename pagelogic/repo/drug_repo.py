@@ -69,11 +69,6 @@ def get_drugs():
     conn = mydb()       #copy-paste
     cur = conn.cursor() #copy-paste
 
-
-    print("Entered get_drugs from app.py")
-    print("star loading drugs from DB...", time.time())
-
-
     query = """
         SELECT
             id, product_ndc, brand_name, brand_name_base,
@@ -83,7 +78,6 @@ def get_drugs():
         FROM drugs
     """
     if config.FLASK_ENV == "dev":
-        print("get_foods are running in DEV mode, so only top 100 food will be loaded into local memory:")
         query += " LIMIT 100"
 
     cur.execute(query)
@@ -91,8 +85,6 @@ def get_drugs():
     for row in rows:
         d = _row_to_drug(cur, row)
         drugs.append(d)
-    print("finished loading drugs from DB.", time.time())
-    print(drugs[:10], drugs[-10:])
     # assign 给 drug_repo的drugs
     cur.close()
     conn.close()
@@ -125,7 +117,6 @@ def get_drug_by_id(id: int) -> Optional[drug]:
         conn.close()
         return None
     
-    print(row)
     d = _row_to_drug(cur, row)
 
     cur.close()
@@ -142,8 +133,6 @@ def get_drugs_by_ids(ids: List[int]) -> List[drug]:
 
     conn = mydb()
     cur = conn.cursor()
-
-    print("Querying for drug ids:", ids)
 
     placeholders = ",".join(["%s"] * len(ids))
     query = f"""

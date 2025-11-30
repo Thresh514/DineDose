@@ -40,24 +40,16 @@ def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
     window_start = now
     window_end = now + timedelta(days=days)
 
-    print(f"[STEP1] Time window: {window_start}  →  {window_end}")
 
     # 1) Fetch all users
     users = user_repo.get_all_users()
     user_ids = [user.id for user in users]
 
-    print(f"[STEP1] Total users found: {len(users)}")
-    print(f"[STEP1] User IDs: {user_ids}")
-
     # 2) Get plans for users
     plans = plan_repo.get_plans_by_user_ids(user_ids)
 
-    print(f"[STEP1] Total plans found: {len(plans)}")
-    print(f"[STEP1] Plans belong to users: {list(plans.keys())}")
-
     # Filter users with a plan
     users_with_plans = [u for u in users if u.id in plans]
-    print(f"[STEP1] Users with a plan: {[u.id for u in users_with_plans]}")
 
     # --------- 并发展开每个用户的 plan ---------
     def expand_user_plan(user) -> List[ScheduledDose]:
@@ -82,7 +74,6 @@ def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
         user_scheduled: List[ScheduledDose] = []
         for item in plan.plan_items:
             if item.date is None:
-                print(f"[STEP1]   Skipping PRN/no-date item: plan_item_id={item.id}")
                 continue
 
             sd = ScheduledDose(
@@ -120,7 +111,6 @@ def get_scheduled_doses_within(days: int) -> List[ScheduledDose]:
                 # 避免某个用户异常直接把整个 job 打崩
                 print(f"[STEP1]   Error expanding plan for user {uid}: {e}")
 
-    print(f"\n[STEP1] TOTAL scheduled doses collected: {len(scheduled)}")
     return scheduled
 
 # =========================
@@ -132,10 +122,6 @@ def find_missed_doses(
     recent_records: List[drug_record_repo.drug_record],
 ) -> List[ScheduledDose]:
 
-    print("\n==================== STEP 2: Compare scheduled vs completed ====================")
-    print(f"[STEP2] Scheduled count: {len(scheduled)}")
-    print(f"[STEP2] Completed records count: {len(recent_records)}")
-
     completed_keys = set()
 
     for record in recent_records:
@@ -146,7 +132,6 @@ def find_missed_doses(
             record.expected_time,
         )
         completed_keys.add(key)
-        print(f"[STEP2] Completed record: {key}")
 
     missed = []
 
@@ -158,12 +143,8 @@ def find_missed_doses(
             dose.expected_time,
         )
         if key not in completed_keys:
-            print(f"[STEP2] MISSED dose: {key}")
             missed.append(dose)
-        else:
-            print(f"[STEP2] OK dose (taken): {key}")
 
-    print(f"\n[STEP2] TOTAL missed doses: {len(missed)}")
     return missed
 
 
@@ -177,21 +158,15 @@ def notify_jobs(days:int, interval:int) -> None:
 
     # Step 1
     scheduled_doses = get_scheduled_doses_within(days)
-    print(f"[MAIN] Scheduled doses count: {len(scheduled_doses)}")
 
     # Step 2
     recent_records = drug_record_repo.get_recent_completed_drug_records(days)
-    print(f"[MAIN] Completed drug records count: {len(recent_records)}")
 
     # Step 3
     missed_doses = find_missed_doses(scheduled_doses, recent_records)
-    print(f"[MAIN] Missed doses count: {len(missed_doses)}")
 
     # Step 4
-    print(f"[MAIN] Sending notifications ...")
     send_notifications(missed_doses, interval)
-
-    print("==================== NOTIFY JOB END ====================\n")
 
 
 # =========================
@@ -208,7 +183,6 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
     print("\n==================== STEP 4: Sending notifications ====================")
 
     if not missed_doses:
-        print("[STEP4] No missed doses, skipping email.")
         return
 
     # 当前时间（本地时间）
@@ -216,15 +190,10 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
     interval_seconds = interval
 
     user_ids = {dose.user_id for dose in missed_doses}
-    print(f"[STEP4] Users with missed doses: {user_ids}")
 
     users = user_repo.get_users_by_ids(list(user_ids))
     user_id_to_email = {u.id: u.email for u in users}
     user_id_to_name = {u.id: u.username for u in users}
-
-    print("[STEP4] Loaded user profiles:")
-    for uid in user_id_to_email:
-        print(f"  user_id={uid}, email={user_id_to_email[uid]}")
 
     user_id_to_config = user_notification_repo.get_notification_configs_by_user_ids(
         list(user_ids)
@@ -234,14 +203,10 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
         print(f"  user_id={uid}, notify_minutes={cfg.notify_minutes}, enabled={cfg.enabled}")
 
     for dose in missed_doses:
-        print(f"\n[STEP4] Evaluating dose → {dose}")
-
         cfg = user_id_to_config.get(dose.user_id)
         if not cfg:
-            print("[STEP4]   No notification config, skipping")
             continue
         if not cfg.enabled or not cfg.email_enabled:
-            print("[STEP4]   Notification disabled, skipping")
             continue
 
         # 计划服药时间（本地）
@@ -272,14 +237,12 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
 
         email = user_id_to_email.get(dose.user_id)
         if not email:
-            print("[STEP4]   Cannot send email (email missing)")
             continue
 
         user_name = user_id_to_name.get(dose.user_id, "")
         subject = "DineDose Medication Reminder"
         body = build_email_body(dose, user_name)
 
-        print(f"[STEP4]   Sending email to {email}")
         send_email_ses(email, subject, body)
 
 
