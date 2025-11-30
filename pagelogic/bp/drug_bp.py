@@ -32,6 +32,8 @@ def get_sample_drugs_locally():
 
 # Search drugs by whether the brand_name or generic_name includes name
 # name should be at least 2 characters long
+
+#search_drug?name="aspirin amazon"
 # if multiple drugs match, return the first 100 drugs
 @drug_bp.route('/search_drug', methods=['GET'])
 def search_drug_locally():
@@ -52,7 +54,7 @@ def search_drug_locally():
 
 # Get drug by NDC code
 # 100% match on product_ndc
-@drug_bp.route('/get_drug_by_ndc', methods=['POST'])
+@drug_bp.route('/get_drug_by_ndc', methods=['GET'])
 def get_drug_by_ndc_locally():
     data = request.get_json()
     ndc = data.get("ndc", "")
