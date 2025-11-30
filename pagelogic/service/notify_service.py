@@ -178,7 +178,7 @@ def send_notifications(missed_doses: List[ScheduledDose], interval: int) -> None
     对每个 missed dose：
     - 对每个 offset in notify_minutes：
         target_dt = scheduled_dt + offset(min)
-        如果 |target_dt - now| < interval（秒）则本次 cron 触发一次通知
+        如果 0 <= (target_dt - now) < interval（秒），则本次 cron 触发一次通知
     """
     print("\n==================== STEP 4: Sending notifications ====================")
 
@@ -269,5 +269,6 @@ def build_email_body(dose: ScheduledDose, user_name: str) -> str:
         f"- Scheduled time: {scheduled_str}\n\n"
         f"Please confirm whether you have taken this medication.\n"
         f"If you have already taken it, you can ignore this email.\n\n"
-        f"— DineDose Team"
+        f"— DineDose Team\n"
+        f"From Zetian Dev"
     )
