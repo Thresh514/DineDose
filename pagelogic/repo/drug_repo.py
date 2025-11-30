@@ -92,6 +92,7 @@ def get_drugs():
         d = _row_to_drug(cur, row)
         drugs.append(d)
     print("finished loading drugs from DB.", time.time())
+    print(drugs[:10], drugs[-10:])
     # assign 给 drug_repo的drugs
     cur.close()
     conn.close()
