@@ -62,7 +62,6 @@ def _row_to_food(cur, row):
 
 
 def get_foods():
-    print("star loading foods from DB...", time.time())
     global foods
     conn = mydb()
     cur = conn.cursor()
@@ -71,15 +70,12 @@ def get_foods():
     try:
         sql_message = "SELECT * FROM foods"
         if config.FLASK_ENV == "dev":
-            print("get_foods are running in DEV mode, so only top 100 food will be loaded into local memory:")
             sql_message += " LIMIT 100"
 
         cur.execute(sql_message)
         
         rows = cur.fetchall()
         foods = [_row_to_food(cur, row) for row in rows]
-        print(foods[:10], foods[-10:])
-        print("finished loading foods from DB.", time.time())
         return foods
     finally:
         cur.close()
@@ -104,12 +100,10 @@ def get_food_by_id_locally(id: int) -> Optional[food]:
     return None
 
 def get_foods_by_name_locally(name: str) -> Optional[food]:
-    print("get_foods_by_name_locally: name = ", name)
     res = []
     for food in foods:
         if name in food.description:
             res.append(food)
-    print(res)
     return res
 
 
