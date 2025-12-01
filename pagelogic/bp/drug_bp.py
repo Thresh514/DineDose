@@ -52,12 +52,11 @@ def search_drug_locally():
     return jsonify([drug.to_dict() for drug in drugs]), 200
 
 
-# Get drug by NDC code
-# 100% match on product_ndc
+# Get drug by ndc
+# /get_drug_by_ndc?ndc=12345-6789
 @drug_bp.route('/get_drug_by_ndc', methods=['GET'])
 def get_drug_by_ndc_locally():
-    data = request.get_json()
-    ndc = data.get("ndc", "")
+    ndc = request.args.get("ndc", "")
     if not ndc:
         return jsonify({"error": "Missing ndc"}), 400
 

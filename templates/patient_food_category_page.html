@@ -1,152 +1,654 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Choose Foods</title>
-    {% extends 'patient_base.html' %}
-    {% block content %} 
-        <div class="pfc-container">
-            <!-- Tabs -->
-            <div class="pfc-tabs" role="tablist" aria-label="类别切换">
-                <button class="pfc-tab" role="tab" aria-selected="true" aria-controls="pfc-panel-foods" id="pfc-tab-foods">Foods</button>
-                <button class="pfc-tab" role="tab" aria-selected="false" aria-controls="pfc-panel-drugs" id="pfc-tab-drugs">Drugs</button>
-            </div>
+{% extends 'patient_base.html' %}
 
-            <!-- Search -->
-            <div class="pfc-search">
-                <div class="pfc-search-leading" aria-hidden="true">
-                    <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
-                </div>
-                <label for="pfc-search-input" class="sr-only">Search</label>
-                <div class="pfc-search-field">
-                    <input id="pfc-search-input" class="pfc-search-input" type="search" placeholder="Enter to search" />
-                </div>
-            </div>
-        </div>
+{% block content %}
+<header class="pfc-header">
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='patient_food_category_page.css') }}"
+  >
+  <style>
+    /* Simple modal + bounce animation for drug detail */
+    .pfc-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .pfc-modal.is-open {
+      display: flex;
+    }
+    .pfc-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    .pfc-modal-card {
+      position: relative;
+      z-index: 1001;
+      max-width: 420px;
+      width: 90%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.28);
+      padding: 16px 18px 18px;
+      animation: pfc-bounce-in 0.26s ease-out;
+      font-size: 14px;
+    }
+    .pfc-modal-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .pfc-modal-close {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      border: none;
+      background: transparent;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .pfc-modal-body div {
+      margin-bottom: 4px;
+    }
+    .pfc-modal-body div:last-child {
+      margin-bottom: 0;
+    }
 
-        <!-- Foods panel -->
-        <section id="pfc-panel-foods" role="tabpanel" aria-labelledby="pfc-tab-foods" class="pfc-panel">
-            <ul class="pfc-list" id="pfc-list-foods">
-                {% if foods and foods|length > 0 %}
-                {% for food in foods %}
-                <li class="pfc-item" data-food-id="{{ food.id }}" data-search-text="{{ (food.description or '')|lower }}">
-                    <div class="pfc-avatar" aria-hidden="true">{{ (food.description or '?')[:1]|upper }}</div>
-                    <div class="pfc-title">{{ food.description or 'No name' }}</div>
-                </li>
-                {% endfor %}
-                {% else %}
-                <li class="pfc-item pfc-empty">
-                    <div class="pfc-title">No food data</div>
-                </li>
-                {% endif %}
-            </ul>
-        </section>
+    @keyframes pfc-bounce-in {
+      0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
+</header>
 
-        <!-- Drugs panel -->
-        <section id="pfc-panel-drugs" role="tabpanel" aria-labelledby="pfc-tab-drugs" hidden class="pfc-panel">
-            <ul class="pfc-list" id="pfc-list-drugs">
-                {% if drugs and drugs|length > 0 %}
-                {% for drug in drugs %}
-                <li class="pfc-item" data-drug-ndc="{{ drug.product_ndc }}" data-drug-id="{{ drug.id }}" data-search-text="{{ ((drug.brand_name or drug.generic_name) or '')|lower }}">
-                    <div class="pfc-avatar" aria-hidden="true">{{ ((drug.brand_name or drug.generic_name) or '?')[:1]|upper }}</div>
-                    <div class="pfc-title">{{ (drug.brand_name or drug.generic_name) or 'No name' }}</div>
-                </li>
-                {% endfor %}
-                {% else %}
-                <li class="pfc-item pfc-empty">
-                    <div class="pfc-title">No drug data</div>
-                </li>
-                {% endif %}
-            </ul>
-        </section>
-    <script>
-        // Tab 切换和搜索功能
-        (function(){
-            const tabFoods = document.getElementById('pfc-tab-foods');
-            const tabDrugs = document.getElementById('pfc-tab-drugs');
-            const panelFoods = document.getElementById('pfc-panel-foods');
-            const panelDrugs = document.getElementById('pfc-panel-drugs');
-            const listFoods = document.getElementById('pfc-list-foods');
-            const listDrugs = document.getElementById('pfc-list-drugs');
-            const searchInput = document.getElementById('pfc-search-input');
+<div class="pfc-container">
+  <!-- Tabs -->
+  <div class="pfc-tabs" role="tablist" aria-label="Category switch">
+    <button
+      class="pfc-tab is-active"
+      role="tab"
+      aria-selected="true"
+      aria-controls="pfc-panel-foods"
+      id="pfc-tab-foods"
+      type="button"
+    >
+      Foods
+    </button>
+    <button
+      class="pfc-tab"
+      role="tab"
+      aria-selected="false"
+      aria-controls="pfc-panel-drugs"
+      id="pfc-tab-drugs"
+      type="button"
+    >
+      Drugs
+    </button>
+  </div>
 
-            let currentTab = 'foods'; // 'foods' 或 'drugs'
+  <!-- Search -->
+  <div class="pfc-search">
+    <div class="pfc-search-leading" aria-hidden="true">
+      <img src="{{ url_for('static', filename='public/Search.png') }}" alt="">
+    </div>
+    <label for="pfc-search-input" class="sr-only">Search</label>
+    <div class="pfc-search-field">
+      <input
+        id="pfc-search-input"
+        class="pfc-search-input"
+        type="search"
+        placeholder="Type keyword and press Enter"
+        autocomplete="off"
+      >
+    </div>
+  </div>
+</div>
 
-            function activate(tab){
-                const isFoods = tab === tabFoods;
-                currentTab = isFoods ? 'foods' : 'drugs';
-                tabFoods.classList.toggle('is-active', isFoods);
-                tabDrugs.classList.toggle('is-active', !isFoods);
-                tabFoods.setAttribute('aria-selected', String(isFoods));
-                tabDrugs.setAttribute('aria-selected', String(!isFoods));
-                panelFoods.hidden = !isFoods;
-                panelDrugs.hidden = isFoods;
-                // 切换tab时重新应用搜索
-                performSearch();
-            }
+<!-- Foods panel -->
+<section
+  id="pfc-panel-foods"
+  role="tabpanel"
+  aria-labelledby="pfc-tab-foods"
+  class="pfc-panel"
+>
+  <ul class="pfc-list" id="pfc-list-foods">
+    <li class="pfc-item pfc-empty">
+      <div class="pfc-title">Loading foods...</div>
+    </li>
+  </ul>
+</section>
 
-            function performSearch(){
-                const searchTerm = (searchInput.value || '').trim().toLowerCase();
-                const targetList = currentTab === 'foods' ? listFoods : listDrugs;
-                const items = targetList.querySelectorAll('.pfc-item:not(.pfc-empty)');
-                let hasVisibleItems = false;
+<!-- Drugs panel -->
+<section
+  id="pfc-panel-drugs"
+  role="tabpanel"
+  aria-labelledby="pfc-tab-drugs"
+  class="pfc-panel"
+  hidden
+>
+  <!-- Search mode for drugs -->
+  <div class="pfc-drug-mode">
+    <span class="pfc-drug-mode-label">Search mode:</span>
+    <label class="pfc-drug-mode-option">
+      <input
+        type="radio"
+        name="drug-search-mode"
+        value="name"
+        checked
+      >
+      By name
+    </label>
+    <label class="pfc-drug-mode-option">
+      <input
+        type="radio"
+        name="drug-search-mode"
+        value="ndc"
+      >
+      By NDC
+    </label>
+  </div>
 
-                items.forEach(item => {
-                    const searchText = item.getAttribute('data-search-text') || '';
-                    const matches = searchText.includes(searchTerm);
-                    item.style.display = matches ? '' : 'none';
-                    if (matches) hasVisibleItems = true;
-                });
+  <ul class="pfc-list" id="pfc-list-drugs">
+    <li class="pfc-item pfc-empty">
+      <div class="pfc-title">Loading drugs...</div>
+    </li>
+  </ul>
+</section>
 
-                // 如果没有可见项，显示空状态
-                const emptyItem = targetList.querySelector('.pfc-empty');
-                if (emptyItem) {
-                    emptyItem.style.display = hasVisibleItems ? 'none' : '';
-                } else if (!hasVisibleItems && items.length > 0) {
-                    // 如果没有空状态项，创建一个
-                    const emptyLi = document.createElement('li');
-                    emptyLi.className = 'pfc-item pfc-empty';
-                    emptyLi.innerHTML = '<div class="pfc-title">No results found</div>';
-                    targetList.appendChild(emptyLi);
-                }
-            }
+<!-- Drug detail modal -->
+<div id="pfc-drug-modal" class="pfc-modal" aria-hidden="true">
+  <div id="pfc-modal-backdrop" class="pfc-modal-backdrop"></div>
+  <div
+    class="pfc-modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pfc-modal-title"
+  >
+    <button
+      type="button"
+      class="pfc-modal-close"
+      id="pfc-modal-close"
+      aria-label="Close"
+    >
+      ×
+    </button>
+    <div class="pfc-modal-body" id="pfc-modal-content">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+</div>
 
-            tabFoods.addEventListener('click', () => activate(tabFoods));
-            tabDrugs.addEventListener('click', () => activate(tabDrugs));
-            searchInput.addEventListener('input', performSearch);
+<script>
+  (function () {
+    const API_SAMPLE_FOODS = "/get_sample_foods";
+    const API_SEARCH_FOODS = "/search_food";
+    const API_SAMPLE_DRUGS = "/get_sample_drugs";
+    const API_SEARCH_DRUGS = "/search_drug";
+    const API_DRUG_BY_NDC = "/get_drug_by_ndc";
 
-            // 使用事件委托处理食物项点击跳转
-            listFoods.addEventListener('click', function(e) {
-                const item = e.target.closest('.pfc-item[data-food-id]');
-                if (item && !item.classList.contains('pfc-empty')) {
-                    const foodId = item.getAttribute('data-food-id');
-                    if (foodId) {
-                        window.location.href = `/patient/food/detail/${foodId}`;
-                    }
-                }
-            });
+    const tabFoods = document.getElementById("pfc-tab-foods");
+    const tabDrugs = document.getElementById("pfc-tab-drugs");
+    const panelFoods = document.getElementById("pfc-panel-foods");
+    const panelDrugs = document.getElementById("pfc-panel-drugs");
 
-            // 设置食物项的鼠标样式
-            function updateFoodItemStyles() {
-                const foodItems = listFoods.querySelectorAll('.pfc-item[data-food-id]:not(.pfc-empty)');
-                foodItems.forEach(item => {
-                    item.style.cursor = 'pointer';
-                });
-            }
+    const listFoods = document.getElementById("pfc-list-foods");
+    const listDrugs = document.getElementById("pfc-list-drugs");
+    const searchInput = document.getElementById("pfc-search-input");
 
-            // 初始化样式
-            updateFoodItemStyles();
+    const drugModeInputs = document.querySelectorAll(
+      'input[name="drug-search-mode"]'
+    );
 
-            // 搜索后更新样式
-            const originalPerformSearch = performSearch;
-            performSearch = function() {
-                originalPerformSearch();
-                updateFoodItemStyles();
-            };
-        })();
-    </script>
-    {% endblock %}
-</body>
-</html>
+    const modal = document.getElementById("pfc-drug-modal");
+    const modalBackdrop = document.getElementById("pfc-modal-backdrop");
+    const modalClose = document.getElementById("pfc-modal-close");
+    const modalContent = document.getElementById("pfc-modal-content");
 
+    let currentTab = "foods"; // "foods" | "drugs"
+    let drugSearchMode = "name"; // "name" | "ndc"
+    let currentFoods = [];
+    let currentDrugs = [];
+
+    // -----------------------
+    // Tab switching
+    // -----------------------
+    function setActiveTab(tabName) {
+      const isFoods = tabName === "foods";
+      currentTab = tabName;
+
+      tabFoods.classList.toggle("is-active", isFoods);
+      tabDrugs.classList.toggle("is-active", !isFoods);
+
+      tabFoods.setAttribute("aria-selected", String(isFoods));
+      tabDrugs.setAttribute("aria-selected", String(!isFoods));
+
+      panelFoods.hidden = !isFoods;
+      panelDrugs.hidden = isFoods;
+
+      if (isFoods) {
+        searchInput.placeholder = "Type food name and press Enter";
+      } else {
+        searchInput.placeholder =
+          drugSearchMode === "name"
+            ? "Type drug name and press Enter"
+            : "Type NDC and press Enter";
+      }
+    }
+
+    tabFoods.addEventListener("click", function () {
+      setActiveTab("foods");
+    });
+
+    tabDrugs.addEventListener("click", function () {
+      setActiveTab("drugs");
+    });
+
+    // -----------------------
+    // Drug search mode switch
+    // -----------------------
+    drugModeInputs.forEach((input) => {
+      input.addEventListener("change", function () {
+        if (!this.checked) return;
+        drugSearchMode = this.value; // "name" or "ndc"
+
+        if (currentTab === "drugs") {
+          searchInput.placeholder =
+            drugSearchMode === "name"
+              ? "Type drug name and press Enter"
+              : "Type NDC and press Enter";
+        }
+      });
+    });
+
+    // -----------------------
+    // Foods rendering
+    // -----------------------
+    function clearFoodList() {
+      listFoods.innerHTML = "";
+    }
+
+    function renderFoodEmpty(message) {
+      clearFoodList();
+      const li = document.createElement("li");
+      li.className = "pfc-item pfc-empty";
+      li.innerHTML = '<div class="pfc-title">' + message + "</div>";
+      listFoods.appendChild(li);
+    }
+
+    function renderFoods(foods) {
+      currentFoods = foods || [];
+      clearFoodList();
+
+      if (!currentFoods.length) {
+        renderFoodEmpty("No foods found");
+        return;
+      }
+
+      currentFoods.forEach((food) => {
+        const li = document.createElement("li");
+        li.className = "pfc-item";
+        li.dataset.foodId = food.id;
+        li.dataset.searchText = (food.description || "").toLowerCase();
+
+        const avatar = document.createElement("div");
+        avatar.className = "pfc-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        const firstChar = (food.description && food.description[0]) || "?";
+        avatar.textContent = String(firstChar).toUpperCase();
+
+        const title = document.createElement("div");
+        title.className = "pfc-title";
+        title.textContent = food.description || "No name";
+
+        li.appendChild(avatar);
+        li.appendChild(title);
+        listFoods.appendChild(li);
+      });
+
+      const items = listFoods.querySelectorAll(
+        ".pfc-item[data-food-id]:not(.pfc-empty)"
+      );
+      items.forEach((item) => {
+        item.style.cursor = "pointer";
+      });
+    }
+
+    function setFoodsLoading() {
+      renderFoodEmpty("Loading...");
+    }
+
+    function setFoodsError(message) {
+      renderFoodEmpty(message || "Failed to load foods");
+    }
+
+    // -----------------------
+    // Drugs rendering
+    // -----------------------
+    function clearDrugList() {
+      listDrugs.innerHTML = "";
+    }
+
+    function renderDrugEmpty(message) {
+      clearDrugList();
+      const li = document.createElement("li");
+      li.className = "pfc-item pfc-empty";
+      li.innerHTML = '<div class="pfc-title">' + message + "</div>";
+      listDrugs.appendChild(li);
+    }
+
+    function renderDrugs(drugs) {
+      currentDrugs = drugs || [];
+      clearDrugList();
+
+      if (!currentDrugs.length) {
+        renderDrugEmpty("No drugs found");
+        return;
+      }
+
+      currentDrugs.forEach((drug) => {
+        const li = document.createElement("li");
+        li.className = "pfc-item";
+        li.dataset.drugId = drug.id;
+        li.dataset.drugNdc = drug.product_ndc || "";
+        li.dataset.searchText = (
+          drug.brand_name ||
+          drug.generic_name ||
+          ""
+        ).toLowerCase();
+
+        const avatar = document.createElement("div");
+        avatar.className = "pfc-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        const nameForChar = drug.brand_name || drug.generic_name || "?";
+        avatar.textContent = String(nameForChar[0] || "?").toUpperCase();
+
+        const textWrap = document.createElement("div");
+        textWrap.className = "pfc-text";
+
+        const title = document.createElement("div");
+        title.className = "pfc-title";
+        title.textContent =
+          drug.brand_name || drug.generic_name || "No name";
+
+        const ndcLine = document.createElement("div");
+        ndcLine.className = "pfc-subtitle";
+        ndcLine.textContent = "NDC: " + (drug.product_ndc || "—");
+
+        textWrap.appendChild(title);
+        textWrap.appendChild(ndcLine);
+
+        li.appendChild(avatar);
+        li.appendChild(textWrap);
+        listDrugs.appendChild(li);
+      });
+    }
+
+    function setDrugsLoading() {
+      renderDrugEmpty("Loading...");
+    }
+
+    function setDrugsError(message) {
+      renderDrugEmpty(message || "Failed to load drugs");
+    }
+
+    // -----------------------
+    // Drug modal rendering
+    // -----------------------
+    function openDrugModal(drug) {
+      if (!modal || !modalContent) return;
+
+      const name = drug.brand_name || drug.generic_name || "No name";
+      const ndc = drug.product_ndc || "—";
+      const generic = drug.generic_name || "";
+      const form = drug.dosage_form || "";
+      const route = drug.route || "";
+      const labeler = drug.labeler_name || "";
+
+      let extraLines = "";
+      if (generic && generic !== name) {
+        extraLines += `<div><strong>Generic:</strong> ${generic}</div>`;
+      }
+      if (form) {
+        extraLines += `<div><strong>Dosage form:</strong> ${form}</div>`;
+      }
+      if (route) {
+        extraLines += `<div><strong>Route:</strong> ${route}</div>`;
+      }
+      if (labeler) {
+        extraLines += `<div><strong>Labeler:</strong> ${labeler}</div>`;
+      }
+
+      modalContent.innerHTML = `
+        <div class="pfc-modal-title" id="pfc-modal-title">${name}</div>
+        <div><strong>NDC:</strong> ${ndc}</div>
+        ${extraLines}
+      `;
+
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeDrugModal() {
+      if (!modal) return;
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener("click", closeDrugModal);
+    }
+    if (modalClose) {
+      modalClose.addEventListener("click", closeDrugModal);
+    }
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && modal.classList.contains("is-open")) {
+        closeDrugModal();
+      }
+    });
+
+    // -----------------------
+    // Foods: search via backend (Enter only)
+    // -----------------------
+    async function searchFoods(term) {
+      try {
+        if (!term) {
+          renderFoodEmpty("Please enter a keyword");
+          return;
+        }
+        if (term.length < 2) {
+          renderFoodEmpty("Please enter at least 2 characters");
+          return;
+        }
+
+        setFoodsLoading();
+
+        const url = new URL(API_SEARCH_FOODS, window.location.origin);
+        url.searchParams.set("name", term);
+
+        const resp = await fetch(url.toString());
+        if (resp.status === 404) {
+          renderFoods([]);
+          return;
+        }
+        if (!resp.ok) {
+          throw new Error("Search foods failed");
+        }
+        const data = await resp.json();
+        renderFoods(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setFoodsError("Failed to search foods");
+      }
+    }
+
+    // -----------------------
+    // Drugs: search via backend
+    // -----------------------
+    async function searchDrugsByName(term) {
+      try {
+        if (!term) {
+          setDrugsError("Please enter a drug name");
+          return;
+        }
+        if (term.length < 2) {
+          setDrugsError("Please enter at least 2 characters");
+          return;
+        }
+
+        setDrugsLoading();
+
+        const url = new URL(API_SEARCH_DRUGS, window.location.origin);
+        url.searchParams.set("name", term);
+
+        const resp = await fetch(url.toString());
+        if (resp.status === 404) {
+          renderDrugs([]);
+          return;
+        }
+        if (!resp.ok) {
+          throw new Error("Search drugs failed");
+        }
+        const data = await resp.json();
+        renderDrugs(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setDrugsError("Failed to search drugs");
+      }
+    }
+
+    async function searchDrugByNdc(ndc) {
+      try {
+        if (!ndc) {
+          setDrugsError("Please enter an NDC");
+          return;
+        }
+
+        setDrugsLoading();
+
+        const url = new URL(API_DRUG_BY_NDC, window.location.origin);
+        url.searchParams.set("ndc", ndc);
+
+        const resp = await fetch(url.toString());
+        if (resp.status === 404) {
+          renderDrugs([]);
+          return;
+        }
+        if (!resp.ok) {
+          throw new Error("Search by NDC failed");
+        }
+        const data = await resp.json();
+        renderDrugs(data ? [data] : []);
+      } catch (err) {
+        console.error(err);
+        setDrugsError("Failed to search by NDC");
+      }
+    }
+
+    // -----------------------
+    // Search input events
+    // -----------------------
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+
+      e.preventDefault();
+      const term = (searchInput.value || "").trim();
+
+      if (currentTab === "foods") {
+        searchFoods(term);
+      } else {
+        if (drugSearchMode === "name") {
+          searchDrugsByName(term);
+        } else {
+          searchDrugByNdc(term);
+        }
+      }
+    });
+
+    // -----------------------
+    // Food click → detail page
+    // -----------------------
+    listFoods.addEventListener("click", function (e) {
+      const item = e.target.closest(".pfc-item");
+      if (!item || item.classList.contains("pfc-empty")) return;
+
+      const foodId = item.getAttribute("data-food-id");
+      if (!foodId) return;
+
+      window.location.href =
+        "/patient/food/detail/" + encodeURIComponent(foodId);
+    });
+
+    // -----------------------
+    // Drug click → show modal detail
+    // -----------------------
+    listDrugs.addEventListener("click", function (e) {
+      const item = e.target.closest(".pfc-item");
+      if (!item || item.classList.contains("pfc-empty")) return;
+
+      const drugId = item.getAttribute("data-drug-id");
+      if (!drugId) return;
+
+      const drug = currentDrugs.find(
+        (d) => String(d.id) === String(drugId)
+      );
+      if (!drug) return;
+
+      openDrugModal(drug);
+    });
+
+    // -----------------------
+    // Initial sample load
+    // -----------------------
+    async function loadSampleFoods() {
+      try {
+        const url = new URL(API_SAMPLE_FOODS, window.location.origin);
+        const resp = await fetch(url.toString());
+        if (!resp.ok) {
+          throw new Error("Sample foods failed");
+        }
+        const data = await resp.json();
+        renderFoods(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setFoodsError("Failed to load foods");
+      }
+    }
+
+    async function loadSampleDrugs() {
+      try {
+        const url = new URL(API_SAMPLE_DRUGS, window.location.origin);
+        const resp = await fetch(url.toString());
+        if (!resp.ok) {
+          throw new Error("Sample drugs failed");
+        }
+        const data = await resp.json();
+        renderDrugs(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setDrugsError("Failed to load drugs");
+      }
+    }
+
+    // -----------------------
+    // Init
+    // -----------------------
+    setActiveTab("foods");
+    loadSampleFoods();
+    loadSampleDrugs();
+  })();
+</script>
+{% endblock %}
