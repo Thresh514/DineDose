@@ -1,7 +1,22 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, render_template, request, jsonify, session
 from pagelogic.repo import user_notification_repo, user_repo
 
 user_notification_bp = Blueprint("user_notification", __name__)
+
+@user_notification_bp.route("/notification_setting_page", methods=["GET"])
+def notification_settings_page():
+    """
+    Render the Notification Settings page for the current logged-in user.
+    user_id is taken from session.
+    """
+    user_id = session.get("user_id")
+    if not user_id:
+        # you can redirect to login if you have auth
+        # return redirect(url_for("auth.login"))
+        return "Not logged in", 401
+
+    return render_template("patient_notification_settings.html")
+
 
 @user_notification_bp.route('/get_notification_setting', methods=['GET'])
 def get_notification_setting_handler():
