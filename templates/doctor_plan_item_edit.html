@@ -166,7 +166,8 @@
             margin-top: 10px;
         }
 
-        .time-input-group input[type="time"] {
+        .time-input-group input[type="time"],
+        .time-input-group input[type="date"] {
             flex: 1;
         }
 
@@ -218,7 +219,6 @@
         .patient-avatar {
             width: 50px;
             height: 50px;
-            border-radius: 0;
             background: #9c27b0;
             display: flex;
             align-items: center;
@@ -390,6 +390,113 @@
             color: #2e7d32;
             background: #e8f5e9;
         }
+
+        /* ===== Drug search mini component ===== */
+
+        .drug-search-container {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            background: #fafafa;
+        }
+
+        .selected-drug-display {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #212121;
+        }
+
+        .selected-drug-display span {
+            font-weight: 600;
+        }
+
+        .drug-search-mode {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .drug-search-mode-label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .drug-search-mode-option {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .drug-search-mode-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .drug-search-mode-option span {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: #0f172a;
+            transition: background 0.2s ease, color 0.2s ease;
+            font-size: 13px;
+        }
+
+        .drug-search-mode-option input[type="radio"]:checked + span {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .drug-search-input-row {
+            margin-bottom: 8px;
+        }
+
+        .drug-search-input-row input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .drug-search-results {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .drug-search-item {
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .drug-search-item:hover {
+            background: #f5f5f5;
+        }
+
+        .drug-search-item-title {
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .drug-search-item-sub {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .drug-search-empty {
+            padding: 8px 4px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
     </style>
 </head>
 <body>
@@ -404,22 +511,99 @@
                 <input type="hidden" id="patient-id" value="{{ patient_id }}">
                 <input type="hidden" id="item-id" value="{{ item.id }}">
 
-                <!-- Drug -->
+                <!-- Drug (search by name / NDC) -->
                 <div class="form-field">
-                    <label for="drug-id">Drug</label>
-                    <input type="number" id="drug-id" placeholder="Drug ID">
+                    <label>Drug</label>
+                    <div class="drug-search-container">
+                        <div id="selected-drug-display" class="selected-drug-display">
+                            Selected drug: <span id="selected-drug-text">None selected</span>
+                        </div>
+
+                        <div class="drug-search-mode">
+                            <span class="drug-search-mode-label">Search mode:</span>
+                            <label class="drug-search-mode-option">
+                                <input type="radio" name="drug-search-mode" value="name" checked>
+                                <span>By name</span>
+                            </label>
+                            <label class="drug-search-mode-option">
+                                <input type="radio" name="drug-search-mode" value="ndc">
+                                <span>By NDC</span>
+                            </label>
+                        </div>
+
+                        <div class="drug-search-input-row">
+                            <input
+                                type="search"
+                                id="drug-search-input"
+                                placeholder="Type name or NDC and press Enter"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <ul id="drug-search-results" class="drug-search-results">
+                            <li class="drug-search-empty">Search a drug by name or NDC.</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <!-- Time -->
-                <div class="form-field">
+                <!-- Time summary -->
+                <!-- <div class="form-field">
                     <label>Time</label>
                     <div id="time-display" style="padding: 10px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #212121; min-height: 20px;">Morning & Evening</div>
-                </div>
+                </div> -->
 
-                <!-- Frequency -->
-                <div class="form-field">
+                <!-- Frequency summary -->
+                <!-- <div class="form-field">
                     <label>Frequency</label>
                     <div id="frequency-display" style="padding: 10px; border: 1px solid #e0e0e0; background: #f5f5f5; color: #212121; min-height: 20px;">Every Sun-Sat</div>
+                </div> -->
+
+                <!-- Schedule settings -->
+                <div class="section-title">Schedule Settings</div>
+
+                <div class="form-field">
+                    <label>Start & End Date</label>
+                    <div class="time-input-group">
+                        <input type="date" id="start-date">
+                        <input type="date" id="end-date">
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="repeat-type">Repeat</label>
+                    <select id="repeat-type">
+                        <option value="ONCE">ONCE</option>
+                        <option value="DAILY">DAILY</option>
+                        <option value="WEEKLY">WEEKLY</option>
+                        <option value="PRN">PRN (as needed)</option>
+                    </select>
+                </div>
+
+                <div class="form-field hidden" id="days-row">
+                    <label>Days of week</label>
+                    <div class="days-group">
+                        <label><input type="checkbox" id="day-mon"> Mon</label>
+                        <label><input type="checkbox" id="day-tue"> Tue</label>
+                        <label><input type="checkbox" id="day-wed"> Wed</label>
+                        <label><input type="checkbox" id="day-thu"> Thu</label>
+                        <label><input type="checkbox" id="day-fri"> Fri</label>
+                        <label><input type="checkbox" id="day-sat"> Sat</label>
+                        <label><input type="checkbox" id="day-sun"> Sun</label>
+                    </div>
+                </div>
+
+                <div class="form-field hidden" id="times-row">
+                    <label>Times in a day</label>
+                    <div class="time-input-group">
+                        <input type="time" id="time-picker" step="60">
+                        <button type="button" id="btn-add-time">Add</button>
+                    </div>
+                    <div id="times-chips" class="times-chips"></div>
+                </div>
+
+                <div class="form-field hidden" id="interval-row">
+                    <label for="interval-value">Interval (hours, for PRN)</label>
+                    <input type="number" id="interval-value" placeholder="e.g. 6">
                 </div>
 
                 <!-- Amount -->
@@ -453,34 +637,10 @@
                     <textarea id="note" placeholder="Type some additional informations here!"></textarea>
                 </div>
 
-                <!-- 隐藏的实际表单字段 -->
+                <!-- Hidden technical fields -->
                 <div class="hidden">
+                    <input type="hidden" id="drug-id">
                     <input type="number" id="dosage">
-                    <input type="date" id="start-date">
-                    <input type="date" id="end-date">
-                    <select id="repeat-type">
-                        <option value="ONCE">ONCE</option>
-                        <option value="DAILY">DAILY</option>
-                        <option value="WEEKLY">WEEKLY</option>
-                        <option value="PRN">PRN (as needed)</option>
-                    </select>
-                    <div id="days-row" class="hidden">
-                        <label><input type="checkbox" id="day-mon"> Mon</label>
-                        <label><input type="checkbox" id="day-tue"> Tue</label>
-                        <label><input type="checkbox" id="day-wed"> Wed</label>
-                        <label><input type="checkbox" id="day-thu"> Thu</label>
-                        <label><input type="checkbox" id="day-fri"> Fri</label>
-                        <label><input type="checkbox" id="day-sat"> Sat</label>
-                        <label><input type="checkbox" id="day-sun"> Sun</label>
-                    </div>
-                    <div id="times-row" class="hidden">
-                        <div class="time-input-group">
-                            <input type="time" id="time-picker" step="60">
-                            <button type="button" id="btn-add-time">Add</button>
-                        </div>
-                        <div id="times-chips" class="times-chips"></div>
-                    </div>
-                    <input type="number" id="interval-value" class="hidden" id="interval-row">
                 </div>
 
                 <div id="message" class="message"></div>
@@ -506,7 +666,7 @@
                 </div>
             </div>
 
-            <!-- Validation Alert (隐藏，如果有冲突时显示) -->
+            <!-- Validation Alert -->
             <div class="validation-alert hidden" id="validation-alert">
                 <div class="alert-title">Validation Alert</div>
                 <div class="alert-content">
@@ -531,19 +691,36 @@
     </div>
 
     <script>
-        // 后端传进来的 item 数据
+        // item from backend
         const itemData = {{ item | tojson | safe }};
         const patientId = {{ patient_id }};
 
         const repeatTypeSelect = document.getElementById("repeat-type");
         const daysRow = document.getElementById("days-row");
         const timesRow = document.getElementById("times-row");
-        const intervalRow = document.getElementById("interval-value");
+        const intervalRow = document.getElementById("interval-row");
         const messageEl = document.getElementById("message");
 
-        let timesState = [];
+        const drugIdInput = document.getElementById("drug-id");
+        const selectedDrugTextEl = document.getElementById("selected-drug-text");
+        const drugSearchInput = document.getElementById("drug-search-input");
+        const drugSearchResultsEl = document.getElementById("drug-search-results");
+        const drugSearchModeRadios = document.querySelectorAll('input[name="drug-search-mode"]');
 
-        // 格式化时间显示
+        const API_SEARCH_DRUGS = "/search_drug";
+        const API_DRUG_BY_NDC = "/get_drug_by_ndc";
+
+        let timesState = [];
+        let drugSearchMode = "name"; // "name" | "ndc"
+        let currentDrugResults = [];
+        let currentSelectedDrug = null;
+
+        function showMessage(text, isError) {
+            messageEl.textContent = text;
+            messageEl.className = "message " + (isError ? "error" : "success");
+        }
+
+        // format time display
         function formatTimeDisplay(times) {
             if (!times || times.length === 0) return "";
             const timeMap = {
@@ -559,7 +736,7 @@
             return mapped.join(" & ");
         }
 
-        // 格式化频率显示
+        // format frequency display
         function formatFrequencyDisplay(rule) {
             if (!rule) return "";
             if (rule.repeat_type === "DAILY") return "Every day";
@@ -594,11 +771,6 @@
             }
         }
 
-        function showMessage(text, isError) {
-            messageEl.textContent = text;
-            messageEl.className = "message " + (isError ? "error" : "success");
-        }
-
         function renderTimesChips() {
             const container = document.getElementById("times-chips");
             container.innerHTML = "";
@@ -617,6 +789,7 @@
             renderTimesChips();
             updateDisplayFields();
         }
+        window.removeTime = removeTime;
 
         document.getElementById("btn-add-time").addEventListener("click", () => {
             const picker = document.getElementById("time-picker");
@@ -633,23 +806,6 @@
                 updateDisplayFields();
             }
         });
-
-        function updateDisplayFields() {
-            const timeDisplayDiv = document.getElementById("time-display");
-            const frequencyDisplayDiv = document.getElementById("frequency-display");
-
-            // 更新Time显示
-            const timeText = formatTimeDisplay(timesState);
-            timeDisplayDiv.textContent = timeText || "Morning & Evening";
-
-            // 更新Frequency显示
-            const rule = buildRuleFromForm();
-            if (rule) {
-                frequencyDisplayDiv.textContent = formatFrequencyDisplay(rule) || "Every Sun-Sat";
-            } else {
-                frequencyDisplayDiv.textContent = "Every Sun-Sat";
-            }
-        }
 
         function buildRuleFromForm() {
             const startDate = document.getElementById("start-date").value;
@@ -689,6 +845,21 @@
             return rule;
         }
 
+        function updateDisplayFields() {
+            const timeDisplayDiv = document.getElementById("time-display");
+            const frequencyDisplayDiv = document.getElementById("frequency-display");
+
+            const timeText = formatTimeDisplay(timesState);
+            timeDisplayDiv.textContent = timeText || "Morning & Evening";
+
+            const rule = buildRuleFromForm();
+            if (rule) {
+                frequencyDisplayDiv.textContent = formatFrequencyDisplay(rule) || "Every Sun-Sat";
+            } else {
+                frequencyDisplayDiv.textContent = "Every Sun-Sat";
+            }
+        }
+
         function extractHHMMFromAny(str) {
             if (typeof str !== "string") return str;
             const m = str.match(/(\d{2}:\d{2})/);
@@ -696,8 +867,152 @@
             return str.length >= 5 ? str.slice(0, 5) : str;
         }
 
+        // ====== drug search mini component ======
+
+        function updateSelectedDrugDisplayFromItem(item) {
+            const id = item.drug_id || null;
+            const name = item.drug_name || "";
+            const dosage = item.dosage || "";
+            const unit = item.unit || "";
+            if (!selectedDrugTextEl) return;
+
+            if (id) {
+                let main = name || `Drug #${id}`;
+                let extra = dosage && unit ? ` (${dosage} ${unit})` : "";
+                selectedDrugTextEl.textContent = `${main}${extra}`;
+            } else {
+                selectedDrugTextEl.textContent = "None selected";
+            }
+        }
+
+        function updateSelectedDrugDisplayFromDrug(drug) {
+            if (!selectedDrugTextEl) return;
+            if (!drug) {
+                selectedDrugTextEl.textContent = "None selected";
+                return;
+            }
+            const title = drug.brand_name || drug.generic_name || `Drug #${drug.id}`;
+            const ndc = drug.product_ndc || "";
+            selectedDrugTextEl.textContent = ndc ? `${title} (NDC: ${ndc})` : title;
+        }
+
+        function renderDrugSearchResults(drugs) {
+            currentDrugResults = Array.isArray(drugs) ? drugs : [];
+            drugSearchResultsEl.innerHTML = "";
+
+            if (!currentDrugResults.length) {
+                const li = document.createElement("li");
+                li.className = "drug-search-empty";
+                li.textContent = "No drugs found.";
+                drugSearchResultsEl.appendChild(li);
+                return;
+            }
+
+            currentDrugResults.forEach(d => {
+                const li = document.createElement("li");
+                li.className = "drug-search-item";
+                li.dataset.drugId = d.id;
+
+                const title = document.createElement("div");
+                title.className = "drug-search-item-title";
+                title.textContent = d.brand_name || d.generic_name || `Drug #${d.id}`;
+
+                const sub = document.createElement("div");
+                sub.className = "drug-search-item-sub";
+                const ndc = d.product_ndc || "—";
+                sub.textContent = `NDC: ${ndc}${d.generic_name ? " · Generic: " + d.generic_name : ""}`;
+
+                li.appendChild(title);
+                li.appendChild(sub);
+
+                li.addEventListener("click", () => {
+                    currentSelectedDrug = d;
+                    if (drugIdInput) {
+                        drugIdInput.value = d.id;
+                    }
+                    updateSelectedDrugDisplayFromDrug(d);
+                });
+
+                drugSearchResultsEl.appendChild(li);
+            });
+        }
+
+        async function searchDrugs(term) {
+            try {
+                if (!term) {
+                    drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Please enter a keyword.</li>';
+                    return;
+                }
+
+                if (drugSearchMode === "name" && term.length < 2) {
+                    drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Please enter at least 2 characters.</li>';
+                    return;
+                }
+
+                drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Searching...</li>';
+
+                if (drugSearchMode === "name") {
+                    const url = new URL(API_SEARCH_DRUGS, window.location.origin);
+                    url.searchParams.set("name", term);
+                    const resp = await fetch(url.toString());
+                    if (resp.status === 404) {
+                        renderDrugSearchResults([]);
+                        return;
+                    }
+                    if (!resp.ok) {
+                        throw new Error("Search drugs failed");
+                    }
+                    const data = await resp.json();
+                    renderDrugSearchResults(data);
+                } else {
+                    const url = new URL(API_DRUG_BY_NDC, window.location.origin);
+                    url.searchParams.set("ndc", term);
+                    const resp = await fetch(url.toString());
+                    if (resp.status === 404) {
+                        renderDrugSearchResults([]);
+                        return;
+                    }
+                    if (!resp.ok) {
+                        throw new Error("Search by NDC failed");
+                    }
+                    const data = await resp.json();
+                    renderDrugSearchResults(data ? [data] : []);
+                }
+            } catch (err) {
+                console.error(err);
+                drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Failed to search drugs.</li>';
+            }
+        }
+
+        drugSearchInput.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            const term = (drugSearchInput.value || "").trim();
+            searchDrugs(term);
+        });
+
+        drugSearchModeRadios.forEach(r => {
+            r.addEventListener("change", function () {
+                if (!this.checked) return;
+                drugSearchMode = this.value;
+                if (drugSearchMode === "name") {
+                    drugSearchInput.placeholder = "Type drug name and press Enter";
+                } else {
+                    drugSearchInput.placeholder = "Type NDC and press Enter";
+                }
+            });
+        });
+
+        // ====== fill form from item ======
+
         function fillFormFromItem(item) {
-            document.getElementById("drug-id").value = item.drug_id || "";
+            if (item.drug_id) {
+                drugIdInput.value = item.drug_id;
+            } else {
+                drugIdInput.value = "";
+            }
+            updateSelectedDrugDisplayFromItem(item);
+
             document.getElementById("dosage").value = item.dosage || "";
             document.getElementById("unit").value = item.unit || "";
             document.getElementById("amount-literal").value = item.amount_literal || "";
@@ -743,59 +1058,39 @@
                 document.getElementById("interval-value").value = rule.interval_value;
             }
 
-            // 更新显示字段
             updateDisplayFields();
         }
 
-        // 监听字段变化
-        document.getElementById("drug-id").addEventListener("change", () => {
-            updateDisplayFields();
-            // 更新Drug显示
-            const drugId = document.getElementById("drug-id").value;
-            if (drugId) {
-                fetch(`/get_drug?id=${drugId}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        const dosage = document.getElementById("dosage").value;
-                        const unit = document.getElementById("unit").value;
-                        const drugName = `${data.generic_name || 'Unknown'} ${dosage || ''}${unit || ''}`;
-                        document.getElementById("drug-id").setAttribute("data-drug-name", drugName);
-                    })
-                    .catch(() => {});
-            }
-        });
-        document.getElementById("dosage").addEventListener("input", updateDisplayFields);
-        document.getElementById("unit").addEventListener("input", updateDisplayFields);
-        repeatTypeSelect.addEventListener("change", () => {
-            updateRuleVisibility();
-            updateDisplayFields();
-        });
+        // ====== handlers ======
 
         function handleReset() {
             fillFormFromItem(itemData);
             showMessage("Form reset to original values.", false);
         }
+        window.handleReset = handleReset;
 
         function handleCancelConflict() {
             document.getElementById("validation-alert").classList.add("hidden");
         }
+        window.handleCancelConflict = handleCancelConflict;
 
         function handleOverrideConflict() {
             document.getElementById("validation-alert").classList.add("hidden");
             handleConfirm();
         }
+        window.handleOverrideConflict = handleOverrideConflict;
 
         async function handleConfirm() {
             const planId = document.getElementById("plan-id").value;
             const itemId = document.getElementById("item-id").value;
-            const drugId = document.getElementById("drug-id").value;
+            const drugId = drugIdInput.value;
             const dosage = document.getElementById("dosage").value;
             const unit = document.getElementById("unit").value;
             const amountLiteral = document.getElementById("amount-literal").value;
             const note = document.getElementById("note").value;
 
             if (!planId || !itemId || !drugId || !dosage || !unit) {
-                showMessage("Please fill in all required fields.", true);
+                showMessage("Please fill in all required fields (drug, dosage, unit, dates).", true);
                 return;
             }
 
@@ -837,27 +1132,41 @@
                 showMessage("Network error.", true);
             }
         }
+        window.handleConfirm = handleConfirm;
 
-        // 获取患者信息
+        // ====== optional: patient info load (kept as-is) ======
         async function loadPatientInfo() {
             try {
                 const response = await fetch(`/get_patients?id={{ doctor_id if doctor_id else '' }}`);
                 const patients = await response.json();
                 const patient = patients.find(p => p.id == patientId);
                 if (patient) {
-                    // 可以在这里更新患者信息，如果有年龄字段的话
-                    // document.getElementById("patient-age-value").textContent = patient.age || "N/A";
+                    // update patient info if needed
                 }
             } catch (err) {
                 console.error("Failed to load patient info:", err);
             }
         }
 
-        // 初始化
-        repeatTypeSelect.addEventListener("change", updateRuleVisibility);
+        // ====== init ======
+        repeatTypeSelect.addEventListener("change", () => {
+            updateRuleVisibility();
+            updateDisplayFields();
+        });
+
+        document.getElementById("dosage").addEventListener("input", updateDisplayFields);
+        document.getElementById("unit").addEventListener("input", updateDisplayFields);
+        document.getElementById("start-date").addEventListener("change", updateDisplayFields);
+        document.getElementById("end-date").addEventListener("change", updateDisplayFields);
+        ["day-mon","day-tue","day-wed","day-thu","day-fri","day-sat","day-sun"].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener("change", updateDisplayFields);
+        });
+        document.getElementById("interval-value").addEventListener("input", updateDisplayFields);
+
         updateRuleVisibility();
         fillFormFromItem(itemData);
-        // loadPatientInfo(); // 如果需要加载患者详细信息，取消注释
+        // loadPatientInfo();
     </script>
 
 </body>
