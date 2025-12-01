@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Create Plan Item</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='public/logo.ico') }}">
     <style>
         * {
             margin: 0;
@@ -551,8 +552,8 @@
                 <div class="form-field">
                     <label>Start & End Date</label>
                     <div class="time-input-group">
-                        <input type="date" id="start-date">
-                        <input type="date" id="end-date">
+                        <input type="date" id="start-date" min="">
+                        <input type="date" id="end-date" min="">
                     </div>
                 </div>
 
@@ -611,6 +612,14 @@
                     <input type="text" id="unit" placeholder="mg">
                 </div>
 
+
+                <!-- Additional Info -->
+                <div class="form-field">
+                    <label for="note">Additional Info</label>
+                    <textarea id="note" placeholder="Type some additional informations here!"></textarea>
+                </div>
+
+
                 <!-- Notification Settings -->
                 <div class="notification-settings">
                     <div class="section-title">Notification Settings</div>
@@ -624,12 +633,7 @@
                     </label>
                 </div>
 
-                <!-- Additional Info -->
-                <div class="form-field">
-                    <label for="note">Additional Info</label>
-                    <textarea id="note" placeholder="Type some additional informations here!"></textarea>
-                </div>
-
+                
                 <!-- Hidden technical fields -->
                 <div class="hidden">
                     <input type="hidden" id="drug-id">
@@ -760,12 +764,6 @@
             }
         });
 
-        function extractHHMMFromAny(str) {
-            if (typeof str !== "string") return str;
-            const m = str.match(/(\d{2}:\d{2})/);
-            if (m) return m[1];
-            return str.length >= 5 ? str.slice(0, 5) : str;
-        }
 
         // ====== drug search mini component ======
 
@@ -815,6 +813,8 @@
                         drugIdInput.value = d.id;
                     }
                     updateSelectedDrugDisplayFromDrug(d);
+                    drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Drug selected.</li>';
+                    drugSearchInput.value = "";
                 });
 
                 drugSearchResultsEl.appendChild(li);
@@ -913,20 +913,19 @@
                 rule.fri = document.getElementById("day-fri").checked;
                 rule.sat = document.getElementById("day-sat").checked;
                 rule.sun = document.getElementById("day-sun").checked;
-                rule.times = [...timesState];
+                rule.times = timesState.map(t => t.length === 5 ? t + ":00" : t);
             } else if (repeatType === "PRN") {
                 if (intervalVal) {
                     rule.interval_value = parseInt(intervalVal, 10);
                 }
             } else {
-                rule.times = [...timesState];
+                rule.times = timesState.map(t => t.length === 5 ? t + ":00" : t);
             }
 
             return rule;
         }
 
         function handleReset() {
-            // 清空所有字段
             const inputsToClear = [
                 "start-date","end-date","interval-value",
                 "dosage","amount-literal","unit","note"
@@ -950,6 +949,12 @@
             drugIdInput.value = "";
             currentSelectedDrug = null;
             updateSelectedDrugDisplayFromDrug(null);
+            drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Search a drug by name or NDC.</li>';
+            drugSearchInput.value = "";
+
+            // 重置通知设置为默认值（选中）
+            document.getElementById("notify-sms").checked = true;
+            document.getElementById("notify-email").checked = true;
 
             showMessage("Form cleared.", false);
         }
@@ -994,6 +999,21 @@
                 return;
             }
 
+            if (rule.repeat_type === "WEEKLY") {
+                const hasAnyDay = rule.mon || rule.tue || rule.wed || rule.thu || rule.fri || rule.sat || rule.sun;
+                if (!hasAnyDay) {
+                    showMessage("Please select at least one day of the week for WEEKLY schedule.", true);
+                    return;
+                }
+            }
+
+            if (rule.repeat_type === "DAILY" || rule.repeat_type === "WEEKLY" || rule.repeat_type === "ONCE") {
+                if (!rule.times || rule.times.length === 0) {
+                    showMessage(`Please add at least one time for ${rule.repeat_type} schedule.`, true);
+                    return;
+                }
+            }
+
             if (rule.repeat_type === "PRN") {
                 if (!rule.interval_value || Number.isNaN(rule.interval_value) || rule.interval_value <= 0) {
                     showMessage("Interval must be a positive number of hours for PRN.", true);
@@ -1001,12 +1021,28 @@
                 }
             }
 
+            if (rule.end_date && rule.end_date < rule.start_date) {
+                showMessage("End date must be later than or equal to start date.", true);
+                return;
+            }
+
+            const dosageNum = parseInt(dosage, 10);
+            if (isNaN(dosageNum) || dosageNum <= 0) {
+                showMessage("Dosage must be a positive number.", true);
+                return;
+            }
+
+            const notifySms = document.getElementById("notify-sms").checked;
+            const notifyEmail = document.getElementById("notify-email").checked;
+
             const payload = {
                 drug_id: parseInt(drugId, 10),
                 dosage: parseInt(dosage, 10),
                 unit: unit,
                 amount_literal: amountLiteral || null,
                 note: note || null,
+                notify_sms: notifySms,
+                notify_email: notifyEmail,
                 rules: [rule]
             };
 
@@ -1046,6 +1082,20 @@
         // ====== init ======
         repeatTypeSelect.addEventListener("change", () => {
             updateRuleVisibility();
+        });
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("start-date").setAttribute("min", today);
+        document.getElementById("end-date").setAttribute("min", today);
+
+        document.getElementById("start-date").addEventListener("change", function() {
+            const startDate = this.value;
+            const endDateInput = document.getElementById("end-date");
+            if (startDate) {
+                endDateInput.setAttribute("min", startDate);
+            } else {
+                endDateInput.setAttribute("min", today);
+            }
         });
 
         updateRuleVisibility();

@@ -403,16 +403,22 @@
     function openDrugModal(drug) {
       if (!modal || !modalContent) return;
 
-      const name = drug.brand_name || drug.generic_name || "No name";
+      const name = drug.generic_name || "No name";
+      const brand_name = drug.brand_name || "";
       const ndc = drug.product_ndc || "—";
       const generic = drug.generic_name || "";
       const form = drug.dosage_form || "";
       const route = drug.route || "";
       const labeler = drug.labeler_name || "";
+      const dinedoseId = drug.id || "";
 
       let extraLines = "";
+
       if (generic && generic !== name) {
         extraLines += `<div><strong>Generic:</strong> ${generic}</div>`;
+      }
+      if (brand_name) {
+        extraLines += `<div><strong>Brand:</strong> ${brand_name}</div>`;
       }
       if (form) {
         extraLines += `<div><strong>Dosage form:</strong> ${form}</div>`;
@@ -423,7 +429,9 @@
       if (labeler) {
         extraLines += `<div><strong>Labeler:</strong> ${labeler}</div>`;
       }
-
+      if (dinedoseId) {
+        extraLines += `<div><strong>DineDose ID:</strong> ${dinedoseId}</div>`;
+      }
       modalContent.innerHTML = `
         <div class="pfc-modal-title" id="pfc-modal-title">${name}</div>
         <div><strong>NDC:</strong> ${ndc}</div>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Edit Plan Item</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='public/logo.ico') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         * {
@@ -618,6 +619,13 @@
                     <input type="text" id="unit" placeholder="mg">
                 </div>
 
+                <!-- Additional Info -->
+                <div class="form-field">
+                    <label for="note">Additional Info</label>
+                    <textarea id="note" placeholder="Type some additional informations here!"></textarea>
+                </div>
+
+
                 <!-- Notification Settings -->
                 <div class="notification-settings">
                     <div class="section-title">Notification Settings</div>
@@ -629,12 +637,6 @@
                         <input type="checkbox" id="notify-email" checked>
                         Email
                     </label>
-                </div>
-
-                <!-- Additional Info -->
-                <div class="form-field">
-                    <label for="note">Additional Info</label>
-                    <textarea id="note" placeholder="Type some additional informations here!"></textarea>
                 </div>
 
                 <!-- Hidden technical fields -->

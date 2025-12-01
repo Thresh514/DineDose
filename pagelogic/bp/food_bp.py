@@ -42,7 +42,7 @@ def get_food_locally():
 # Return a sample of foods (first 100)
 @food_bp.route('/get_sample_foods', methods=['GET'])
 def get_sample_foods_locally():
-    sample_foods = food_repo.get_foods_by_names_locally("")
+    sample_foods = food_repo.get_sample_foods_locally()
     #will return first 100 foods
     return jsonify([food.to_dict() for food in sample_foods]), 200
 
@@ -62,7 +62,7 @@ def search_foods_locally():
     if len(name) < 2:
         return jsonify({"error": "Name too short, must be at least 2 characters"}), 400
 
-    foods = food_repo.get_foods_by_names_locally(names)
+    foods = food_repo.search_foods_by_keywords_locally(names)
     if not foods:
         return jsonify([]), 404
 

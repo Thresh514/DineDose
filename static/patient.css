@@ -60,11 +60,29 @@ html,body{
   gap:16px;
   height:32px;
 }
-.header-actions .icon{
+.header-icon{
   width:32px;
   height:32px;
-  object-fit:contain;
-  display:block;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  background:none;
+  border:0;
+  cursor:pointer;
+  text-decoration:none;
+  color:#212121;
+  transition:opacity 0.2s;
+}
+.header-icon:hover{
+  opacity:0.7;
+}
+.header-icon:active{
+  opacity:0.5;
+}
+.header-icon i{
+  font-size:24px;
+  color:#212121;
 }
 
 /* Main */
@@ -756,6 +774,12 @@ button:active,
   font-weight:500;
   cursor:pointer;
   transition:all 0.2s;
+  background:var(--muted-2);
+  color:var(--text);
+}
+
+.plan-dialog-btn:hover{
+  background:var(--muted);
 }
 
 .plan-dialog-btn--primary{
@@ -1383,4 +1407,92 @@ button:active,
         font-size: 16px;
         padding: 14px 20px;
     }
+}
+
+/* =========================================================
+   User Menu (patient_header.html) 专用
+   ========================================================= */
+
+/* User Menu Container */
+.user-menu-container {
+    position: relative;
+}
+
+.user-menu-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--bg);
+    border: 1px solid var(--muted);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.user-menu-dropdown.show {
+    display: block;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: 0;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.user-menu-item:hover {
+    background: var(--muted-2);
+}
+
+.user-menu-item i {
+    width: 20px;
+    font-size: 16px;
+}
+
+/* Username Form Styles */
+.username-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.username-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.username-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--muted);
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    transition: border-color 0.2s;
+}
+
+.username-input:focus {
+    outline: none;
+    border-color: var(--text);
+}
+
+.username-error {
+    font-size: 14px;
+    color: #ef5757;
+    margin-top: 4px;
 }
