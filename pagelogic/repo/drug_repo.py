@@ -174,7 +174,12 @@ def get_drug_by_ndc_locally(ndc: str) -> Optional[drug]:
             return d
     return None
 
-def get_drugs_by_name_locally(names: List[str]) -> List[drug]:
+
+def get_sample_drugs_locally() -> List[drug]:
+    return drugs[:100]
+
+# Retrieve drugs whose brand_name or generic_name contain all the provided names (case-insensitive)
+def search_drugs_by_keywords_locally(names: List[str]) -> List[drug]:
     if not names or all(name == "" for name in names):
         return drugs[:100]  # 如果 name 为空，返回前100个药品作为默认结果
     res = []
