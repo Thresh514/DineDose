@@ -3,414 +3,1053 @@
 <head>
     <meta charset="UTF-8">
     <title>Create Plan Item</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            margin: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        h2 {
-            margin-bottom: 16px;
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            width: 75%;
+            display: flex;
+            gap: 30px;
+            padding: 30px;
+            min-height: 100vh;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+        }
+
+        /* ====== 左列：表单 ====== */
+        .form-column {
+            flex: 1;
+            max-width: 600px;
         }
 
         .form-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            max-width: 720px;
-            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            background: #ffffff;
         }
 
-        .field-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+        .form-field {
+            margin-bottom: 20px;
         }
 
-        .field-row label {
-            min-width: 120px;
-            font-size: 14px;
+        .form-field label {
+            display: block;
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
-        .field-row input,
-        .field-row select,
-        .field-row textarea {
-            font-size: 14px;
-            padding: 4px 6px;
-        }
-
-        textarea {
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
             width: 100%;
-            min-height: 60px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            background: #ffffff;
+            font-size: 16px;
+            color: #212121;
+            font-family: inherit;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .form-field textarea {
+            min-height: 100px;
             resize: vertical;
         }
 
-        .help-icon {
-            display: inline-flex;
+        .notification-settings {
+            margin-top: 20px;
+        }
+
+        .notification-settings label {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 1px solid #999;
-            font-size: 11px;
-            cursor: default;
-            color: #555;
-            background: #fff;
+            gap: 8px;
+            font-weight: normal;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .notification-settings input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
         }
 
         .section-title {
             font-weight: bold;
-            margin-top: 16px;
-            margin-bottom: 8px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            color: #212121;
+            font-size: 18px;
         }
 
         .days-group {
             display: flex;
-            gap: 8px;
+            gap: 15px;
             flex-wrap: wrap;
+            margin-top: 10px;
         }
 
         .days-group label {
-            min-width: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+            cursor: pointer;
         }
 
-        .actions {
-            margin-top: 16px;
+        .days-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .times-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 30px;
+        }
+
+        .time-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+            gap: 6px;
+        }
+
+        .time-chip button {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            padding: 0;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-chip button:hover {
+            color: #212121;
+        }
+
+        .time-input-group {
             display: flex;
             gap: 10px;
+            margin-top: 10px;
         }
 
-        .btn {
-            padding: 6px 12px;
-            border-radius: 4px;
+        .time-input-group input[type="time"],
+        .time-input-group input[type="date"] {
+            flex: 1;
+        }
+
+        .time-input-group button {
+            padding: 10px 20px;
+            background: #e0e0e0;
             border: 1px solid #ccc;
-            background: #f5f5f5;
+            color: #212121;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
         }
 
-        .btn-primary {
-            background: #1976d2;
-            border-color: #1976d2;
-            color: white;
+        .time-input-group button:hover {
+            background: #d0d0d0;
         }
 
         .hidden {
             display: none;
         }
 
+        /* ====== 右列：患者信息和操作 ====== */
+        .info-column {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .info-card-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .patient-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            background: #9c27b0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .patient-details {
+            flex: 1;
+        }
+
+        .patient-name {
+            font-weight: bold;
+            color: #212121;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .patient-age {
+            color: #212121;
+            font-size: 16px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px dashed #e0e0e0;
+            margin: 15px 0;
+        }
+
+        .condition-summary {
+            margin-top: 15px;
+        }
+
+        .condition-summary-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .condition-summary-text {
+            color: #212121;
+            font-size: 16px;
+        }
+
+        .validation-alert {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            background: #ffffff;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .alert-icon {
+            color: #d32f2f;
+            font-size: 24px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-message {
+            flex: 1;
+        }
+
+        .alert-message-title {
+            font-weight: bold;
+            color: #212121;
+            margin-bottom: 4px;
+        }
+
+        .alert-message-text {
+            color: #212121;
+            font-size: 16px;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+            color: #212121;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-override {
+            padding: 10px 20px;
+            background: #212121;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-override:hover {
+            background: #424242;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-reset {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border: none;
+            color: #212121;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .btn-reset:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-confirm {
+            padding: 10px 20px;
+            background: #212121;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .btn-confirm:hover {
+            background: #424242;
+        }
+
         .message {
-            margin-top: 12px;
-            font-size: 14px;
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 16px;
         }
 
         .message.error {
-            color: #b71c1c;
+            color: #d32f2f;
+            background: #ffebee;
         }
 
         .message.success {
-            color: #1b5e20;
+            color: #2e7d32;
+            background: #e8f5e9;
         }
+
+        /* ===== Drug search mini component ===== */
+
+        .drug-search-container {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            background: #fafafa;
+        }
+
+        .selected-drug-display {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #212121;
+        }
+
+        .selected-drug-display span {
+            font-weight: 600;
+        }
+
+        .drug-search-mode {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .drug-search-mode-label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .drug-search-mode-option {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .drug-search-mode-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .drug-search-mode-option span {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: #0f172a;
+            transition: background 0.2s ease, color 0.2s ease;
+            font-size: 13px;
+        }
+
+        .drug-search-mode-option input[type="radio"]:checked + span {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .drug-search-input-row {
+            margin-bottom: 8px;
+        }
+
+        .drug-search-input-row input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .drug-search-results {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .drug-search-item {
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .drug-search-item:hover {
+            background: #f5f5f5;
+        }
+
+        .drug-search-item-title {
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .drug-search-item-sub {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .drug-search-empty {
+            padding: 8px 4px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
     </style>
 </head>
 <body>
 
-<h2>Create Plan Item ({{ patient_name }}) id: {{ patient_id }}</h2>
+    {% include "components/doctor_sidebar.html" %}
 
-<div class="form-card">
-    <!-- 如果你在后端已经计算好 plan_id，可以直接填在这里 -->
-    <input type="hidden" id="plan-id" value="{{ plan_id if plan_id is defined else '' }}">
-    <input type="hidden" id="patient-id" value="{{ patient_id }}">
+    <div class="main-container">
+        <!-- 左列：表单 -->
+        <div class="form-column">
+            <div class="form-card">
+                <input type="hidden" id="plan-id" value="{{ plan_id if plan_id is defined else '' }}">
+                <input type="hidden" id="patient-id" value="{{ patient_id }}">
 
-    <!-- ========== BASIC INFO ========== -->
-    <div class="section-title">
-        Basic Information
-    </div>
+                <!-- Drug (search by name / NDC) -->
+                <div class="form-field">
+                    <label>Drug</label>
+                    <div class="drug-search-container">
+                        <div id="selected-drug-display" class="selected-drug-display">
+                            Selected drug: <span id="selected-drug-text">None selected</span>
+                        </div>
 
-    <div class="field-row">
-        <label for="drug-id">
-            Drug ID
-            <span class="help-icon" title="Internal drug identifier used by the system.">?</span>
-        </label>
-        <input type="number" id="drug-id" placeholder="e.g. 1001">
-    </div>
+                        <div class="drug-search-mode">
+                            <span class="drug-search-mode-label">Search mode:</span>
+                            <label class="drug-search-mode-option">
+                                <input type="radio" name="drug-search-mode" value="name" checked>
+                                <span>By name</span>
+                            </label>
+                            <label class="drug-search-mode-option">
+                                <input type="radio" name="drug-search-mode" value="ndc">
+                                <span>By NDC</span>
+                            </label>
+                        </div>
 
-    <div class="field-row">
-        <label for="dosage">
-            Dosage
-            <span class="help-icon" title="Numeric dosage amount, for example 500.">?</span>
-        </label>
-        <input type="number" id="dosage" placeholder="e.g. 500">
-        <label for="unit">
-            Unit
-            <span class="help-icon" title="Unit of the dosage, for example mg or ml.">?</span>
-        </label>
-        <input type="text" id="unit" placeholder="e.g. mg" style="width: 80px;">
-    </div>
+                        <div class="drug-search-input-row">
+                            <input
+                                type="search"
+                                id="drug-search-input"
+                                placeholder="Type name or NDC and press Enter"
+                                autocomplete="off"
+                            >
+                        </div>
 
-    <div class="field-row">
-        <label for="amount-literal">
-            Amount text
-            <span class="help-icon" title="Human-readable description, such as '1 tablet'.">?</span>
-        </label>
-        <input type="text" id="amount-literal" placeholder="e.g. 1 tablet" style="flex: 1;">
-    </div>
+                        <ul id="drug-search-results" class="drug-search-results">
+                            <li class="drug-search-empty">Search a drug by name or NDC.</li>
+                        </ul>
+                    </div>
+                </div>
 
-    <div class="field-row">
-        <label for="note">
-            Note
-            <span class="help-icon" title="Any additional instructions for this medication.">?</span>
-        </label>
-    </div>
-    <div class="field-row">
-        <textarea id="note" placeholder="Optional note for the patient"></textarea>
-    </div>
+                <!-- Schedule settings -->
+                <div class="section-title">Schedule Settings</div>
 
-    <!-- ========== RULE (ONLY ONE) ========== -->
-    <div class="section-title">
-        Schedule Rule
-        <span class="help-icon" title="Defines when and how often the patient should take this medication.">?</span>
-    </div>
+                <div class="form-field">
+                    <label>Start & End Date</label>
+                    <div class="time-input-group">
+                        <input type="date" id="start-date">
+                        <input type="date" id="end-date">
+                    </div>
+                </div>
 
-    <div class="field-row">
-        <label for="start-date">
-            Start date
-            <span class="help-icon" title="The first date when this plan becomes active.">?</span>
-        </label>
-        <input type="date" id="start-date">
+                <div class="form-field">
+                    <label for="repeat-type">Repeat</label>
+                    <select id="repeat-type">
+                        <option value="ONCE">ONCE</option>
+                        <option value="DAILY">DAILY</option>
+                        <option value="WEEKLY">WEEKLY</option>
+                        <option value="PRN">PRN (as needed)</option>
+                    </select>
+                </div>
 
-        <label for="end-date">
-            End date
-            <span class="help-icon" title="The last date when this plan is active. Leave empty for open-ended.">?</span>
-        </label>
-        <input type="date" id="end-date">
-    </div>
+                <div class="form-field hidden" id="days-row">
+                    <label>Days of week</label>
+                    <div class="days-group">
+                        <label><input type="checkbox" id="day-mon"> Mon</label>
+                        <label><input type="checkbox" id="day-tue"> Tue</label>
+                        <label><input type="checkbox" id="day-wed"> Wed</label>
+                        <label><input type="checkbox" id="day-thu"> Thu</label>
+                        <label><input type="checkbox" id="day-fri"> Fri</label>
+                        <label><input type="checkbox" id="day-sat"> Sat</label>
+                        <label><input type="checkbox" id="day-sun"> Sun</label>
+                    </div>
+                </div>
 
-    <div class="field-row">
-        <label for="repeat-type">
-            Repeat
-            <span class="help-icon" title="ONCE: single dose; DAILY: every day; WEEKLY: specific days; PRN: as needed.">?</span>
-        </label>
-        <select id="repeat-type">
-            <option value="ONCE">ONCE</option>
-            <option value="DAILY">DAILY</option>
-            <option value="WEEKLY">WEEKLY</option>
-            <option value="PRN">PRN (as needed)</option>
-        </select>
-    </div>
+                <div class="form-field hidden" id="times-row">
+                    <label>Times in a day</label>
+                    <div class="time-input-group">
+                        <input type="time" id="time-picker" step="60">
+                        <button type="button" id="btn-add-time">Add</button>
+                    </div>
+                    <div id="times-chips" class="times-chips"></div>
+                </div>
 
-    <!-- WEEKLY: Days -->
-    <div class="field-row hidden" id="days-row">
-        <label>
-            Days
-            <span class="help-icon" title="For WEEKLY repeat, select which days of the week the patient should take this medication.">?</span>
-        </label>
-        <div class="days-group">
-            <label><input type="checkbox" id="day-mon"> Mon</label>
-            <label><input type="checkbox" id="day-tue"> Tue</label>
-            <label><input type="checkbox" id="day-wed"> Wed</label>
-            <label><input type="checkbox" id="day-thu"> Thu</label>
-            <label><input type="checkbox" id="day-fri"> Fri</label>
-            <label><input type="checkbox" id="day-sat"> Sat</label>
-            <label><input type="checkbox" id="day-sun"> Sun</label>
+                <div class="form-field hidden" id="interval-row">
+                    <label for="interval-value">Interval (hours, for PRN)</label>
+                    <input type="number" id="interval-value" placeholder="e.g. 6">
+                </div>
+
+                <!-- Dosage -->
+                <div class="form-field">
+                    <label for="dosage">Dosage (numeric)</label>
+                    <input type="number" id="dosage" placeholder="e.g. 500">
+                </div>
+
+                <!-- Amount -->
+                <div class="form-field">
+                    <label for="amount-literal">Amount</label>
+                    <input type="text" id="amount-literal" placeholder="1 pill">
+                </div>
+
+                <!-- Unit -->
+                <div class="form-field">
+                    <label for="unit">Unit</label>
+                    <input type="text" id="unit" placeholder="mg">
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="notification-settings">
+                    <div class="section-title">Notification Settings</div>
+                    <label>
+                        <input type="checkbox" id="notify-sms" checked>
+                        SMS
+                    </label>
+                    <label>
+                        <input type="checkbox" id="notify-email" checked>
+                        Email
+                    </label>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="form-field">
+                    <label for="note">Additional Info</label>
+                    <textarea id="note" placeholder="Type some additional informations here!"></textarea>
+                </div>
+
+                <!-- Hidden technical fields -->
+                <div class="hidden">
+                    <input type="hidden" id="drug-id">
+                </div>
+
+                <div id="message" class="message"></div>
+            </div>
+        </div>
+
+        <!-- 右列：患者信息和操作 -->
+        <div class="info-column">
+            <!-- Patient Info Card -->
+            <div class="info-card">
+                <div class="info-card-title">Create Plan Item</div>
+                <div class="patient-header">
+                    <div class="patient-avatar" id="patient-avatar">{{ patient_name[0] if patient_name else '?' }}</div>
+                    <div class="patient-details">
+                        <div class="patient-name" id="patient-name">{{ patient_name }}</div>
+                        <div class="patient-age" id="patient-age">ID: <span id="patient-age-value">{{ patient_id }}</span></div>
+                    </div>
+                </div>
+                <hr class="divider">
+                <div class="condition-summary">
+                    <div class="condition-summary-title">Condition Summary</div>
+                    <div class="condition-summary-text" id="condition-summary">This patient is already recovered!</div>
+                </div>
+            </div>
+
+            <!-- Validation Alert (预留给以后做 conflict 检查) -->
+            <div class="validation-alert hidden" id="validation-alert">
+                <div class="alert-title">Validation Alert</div>
+                <div class="alert-content">
+                    <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="alert-message">
+                        <div class="alert-message-title">Drug conflict detected</div>
+                        <div class="alert-message-text" id="conflict-message">ibuprofen and aspirin cannot be taken in the same time!</div>
+                    </div>
+                </div>
+                <div class="alert-actions">
+                    <button class="btn-cancel" onclick="handleCancelConflict()">Cancel</button>
+                    <button class="btn-override" onclick="handleOverrideConflict()">Override</button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn-reset" onclick="handleReset()">Reset</button>
+                <button class="btn-confirm" onclick="handleConfirm()">Confirm</button>
+            </div>
         </div>
     </div>
 
-    <!-- NON-PRN: Times -->
-    <div class="field-row" id="times-row">
-        <label for="times-input">
-            Times
-            <span class="help-icon" title="Specific times in a day, separated by commas, such as '08:00, 12:00, 18:00'.">?</span>
-        </label>
-        <input type="text" id="times-input" placeholder="e.g. 08:00, 12:00, 18:00" style="flex: 1;">
-    </div>
+    <script>
+        const patientId = {{ patient_id }};
 
-    <!-- PRN: Interval only -->
-    <div class="field-row hidden" id="interval-row">
-        <label for="interval-value">
-            Interval (hours)
-            <span class="help-icon" title="For PRN (as needed): minimum number of hours between two doses.">?</span>
-        </label>
-        <input type="number" id="interval-value" placeholder="e.g. 6">
-    </div>
+        const repeatTypeSelect = document.getElementById("repeat-type");
+        const daysRow = document.getElementById("days-row");
+        const timesRow = document.getElementById("times-row");
+        const intervalRow = document.getElementById("interval-row");
+        const messageEl = document.getElementById("message");
 
-    <!-- ========== ACTIONS ========== -->
-    <div class="actions">
-        <button class="btn btn-primary" id="btn-save">Save</button>
-        <button class="btn" type="button" onclick="history.back();">Back</button>
-    </div>
+        const drugIdInput = document.getElementById("drug-id");
+        const selectedDrugTextEl = document.getElementById("selected-drug-text");
+        const drugSearchInput = document.getElementById("drug-search-input");
+        const drugSearchResultsEl = document.getElementById("drug-search-results");
+        const drugSearchModeRadios = document.querySelectorAll('input[name="drug-search-mode"]');
 
-    <div id="message" class="message"></div>
-</div>
+        const API_SEARCH_DRUGS = "/search_drug";
+        const API_DRUG_BY_NDC = "/get_drug_by_ndc";
 
-<script>
-    const repeatTypeSelect = document.getElementById("repeat-type");
-    const daysRow          = document.getElementById("days-row");
-    const timesRow         = document.getElementById("times-row");
-    const intervalRow      = document.getElementById("interval-row");
-    const messageEl        = document.getElementById("message");
+        let timesState = [];
+        let drugSearchMode = "name"; // "name" | "ndc"
+        let currentDrugResults = [];
+        let currentSelectedDrug = null;
 
-    function updateRuleVisibility() {
-        const val = repeatTypeSelect.value;
+        function showMessage(text, isError) {
+            messageEl.textContent = text;
+            messageEl.className = "message " + (isError ? "error" : "success");
+        }
 
-        // Default: hide all special sections
-        daysRow.classList.add("hidden");
-        intervalRow.classList.add("hidden");
-        timesRow.classList.remove("hidden"); // times is default visible
-
-        if (val === "WEEKLY") {
-            // Weekly: show days + times, hide interval
-            daysRow.classList.remove("hidden");
+        function updateRuleVisibility() {
+            const val = repeatTypeSelect.value;
+            daysRow.classList.add("hidden");
             intervalRow.classList.add("hidden");
-        } else if (val === "PRN") {
-            // PRN: show interval, hide times and days
-            intervalRow.classList.remove("hidden");
             timesRow.classList.add("hidden");
-            daysRow.classList.add("hidden");
-        } else {
-            // ONCE / DAILY: only times
-            daysRow.classList.add("hidden");
-            intervalRow.classList.add("hidden");
-            timesRow.classList.remove("hidden");
-        }
-    }
 
-    repeatTypeSelect.addEventListener("change", updateRuleVisibility);
-    updateRuleVisibility();
-
-    // Helper: show message
-    function showMessage(text, isError) {
-        messageEl.textContent = text;
-        if (isError) {
-            messageEl.classList.add("error");
-            messageEl.classList.remove("success");
-        } else {
-            messageEl.classList.remove("error");
-            messageEl.classList.add("success");
-        }
-    }
-
-    // Save button
-    document.getElementById("btn-save").addEventListener("click", async function () {
-        const planId       = document.getElementById("plan-id").value;
-        const drugId       = document.getElementById("drug-id").value;
-        const dosage       = document.getElementById("dosage").value;
-        const unit         = document.getElementById("unit").value;
-        const amountLiteral= document.getElementById("amount-literal").value;
-        const note         = document.getElementById("note").value;
-
-        const startDate    = document.getElementById("start-date").value;
-        const endDate      = document.getElementById("end-date").value;
-        const repeatType   = repeatTypeSelect.value;
-
-        const timesInput   = document.getElementById("times-input").value;
-        const intervalVal  = document.getElementById("interval-value").value;
-
-        // Basic validation
-        if (!planId) {
-            showMessage("Missing plan_id. Please check backend template logic.", true);
-            return;
-        }
-        if (!drugId || !dosage || !unit) {
-            showMessage("Drug ID, dosage and unit are required.", true);
-            return;
-        }
-        if (!startDate) {
-            showMessage("Start date is required.", true);
-            return;
-        }
-
-        // Build rule (single rule only)
-        const rule = {
-            start_date: startDate,
-            end_date: endDate || null,
-            repeat_type: repeatType,
-            interval_value: null,
-            mon: false,
-            tue: false,
-            wed: false,
-            thu: false,
-            fri: false,
-            sat: false,
-            sun: false,
-            times: []
-        };
-
-        if (repeatType === "WEEKLY") {
-            // Days
-            rule.mon = document.getElementById("day-mon").checked;
-            rule.tue = document.getElementById("day-tue").checked;
-            rule.wed = document.getElementById("day-wed").checked;
-            rule.thu = document.getElementById("day-thu").checked;
-            rule.fri = document.getElementById("day-fri").checked;
-            rule.sat = document.getElementById("day-sat").checked;
-            rule.sun = document.getElementById("day-sun").checked;
-
-            // Times
-            if (timesInput.trim()) {
-                rule.times = timesInput
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
+            if (val === "WEEKLY") {
+                daysRow.classList.remove("hidden");
+                timesRow.classList.remove("hidden");
+            } else if (val === "PRN") {
+                intervalRow.classList.remove("hidden");
+            } else {
+                timesRow.classList.remove("hidden");
             }
-        } else if (repeatType === "PRN") {
-            // PRN: interval only
-            if (!intervalVal) {
-                showMessage("Interval is required for PRN schedule.", true);
+        }
+
+        function renderTimesChips() {
+            const container = document.getElementById("times-chips");
+            container.innerHTML = "";
+            if (!timesState.length) return;
+
+            timesState.forEach((t) => {
+                const chip = document.createElement("span");
+                chip.className = "time-chip";
+                chip.innerHTML = `<span>${t}</span><button type="button" onclick="removeTime('${t}')">×</button>`;
+                container.appendChild(chip);
+            });
+        }
+
+        function removeTime(time) {
+            timesState = timesState.filter(t => t !== time);
+            renderTimesChips();
+        }
+        window.removeTime = removeTime;
+
+        document.getElementById("btn-add-time").addEventListener("click", () => {
+            const picker = document.getElementById("time-picker");
+            const value = picker.value;
+            if (!value) {
+                showMessage("Please choose a time before adding.", true);
                 return;
             }
-            rule.interval_value = parseInt(intervalVal, 10);
-            if (Number.isNaN(rule.interval_value) || rule.interval_value <= 0) {
-                showMessage("Interval must be a positive number of hours.", true);
+            const hhmm = value.slice(0, 5);
+            if (!timesState.includes(hhmm)) {
+                timesState.push(hhmm);
+                timesState.sort();
+                renderTimesChips();
+            }
+        });
+
+        function extractHHMMFromAny(str) {
+            if (typeof str !== "string") return str;
+            const m = str.match(/(\d{2}:\d{2})/);
+            if (m) return m[1];
+            return str.length >= 5 ? str.slice(0, 5) : str;
+        }
+
+        // ====== drug search mini component ======
+
+        function updateSelectedDrugDisplayFromDrug(drug) {
+            if (!selectedDrugTextEl) return;
+            if (!drug) {
+                selectedDrugTextEl.textContent = "None selected";
                 return;
             }
-            // times stays empty
-        } else {
-            // ONCE / DAILY: times only
-            if (timesInput.trim()) {
-                rule.times = timesInput
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(s => s.length > 0);
+            const title = drug.brand_name || drug.generic_name || `Drug #${drug.id}`;
+            const ndc = drug.product_ndc || "";
+            selectedDrugTextEl.textContent = ndc ? `${title} (NDC: ${ndc})` : title;
+        }
+
+        function renderDrugSearchResults(drugs) {
+            currentDrugResults = Array.isArray(drugs) ? drugs : [];
+            drugSearchResultsEl.innerHTML = "";
+
+            if (!currentDrugResults.length) {
+                const li = document.createElement("li");
+                li.className = "drug-search-empty";
+                li.textContent = "No drugs found.";
+                drugSearchResultsEl.appendChild(li);
+                return;
+            }
+
+            currentDrugResults.forEach(d => {
+                const li = document.createElement("li");
+                li.className = "drug-search-item";
+                li.dataset.drugId = d.id;
+
+                const title = document.createElement("div");
+                title.className = "drug-search-item-title";
+                title.textContent = d.brand_name || d.generic_name || `Drug #${d.id}`;
+
+                const sub = document.createElement("div");
+                sub.className = "drug-search-item-sub";
+                const ndc = d.product_ndc || "—";
+                sub.textContent = `NDC: ${ndc}${d.generic_name ? " · Generic: " + d.generic_name : ""}`;
+
+                li.appendChild(title);
+                li.appendChild(sub);
+
+                li.addEventListener("click", () => {
+                    currentSelectedDrug = d;
+                    if (drugIdInput) {
+                        drugIdInput.value = d.id;
+                    }
+                    updateSelectedDrugDisplayFromDrug(d);
+                });
+
+                drugSearchResultsEl.appendChild(li);
+            });
+        }
+
+        async function searchDrugs(term) {
+            try {
+                if (!term) {
+                    drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Please enter a keyword.</li>';
+                    return;
+                }
+
+                if (drugSearchMode === "name" && term.length < 2) {
+                    drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Please enter at least 2 characters.</li>';
+                    return;
+                }
+
+                drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Searching...</li>';
+
+                if (drugSearchMode === "name") {
+                    const url = new URL(API_SEARCH_DRUGS, window.location.origin);
+                    url.searchParams.set("name", term);
+                    const resp = await fetch(url.toString());
+                    if (resp.status === 404) {
+                        renderDrugSearchResults([]);
+                        return;
+                    }
+                    if (!resp.ok) {
+                        throw new Error("Search drugs failed");
+                    }
+                    const data = await resp.json();
+                    renderDrugSearchResults(data);
+                } else {
+                    const url = new URL(API_DRUG_BY_NDC, window.location.origin);
+                    url.searchParams.set("ndc", term);
+                    const resp = await fetch(url.toString());
+                    if (resp.status === 404) {
+                        renderDrugSearchResults([]);
+                        return;
+                    }
+                    if (!resp.ok) {
+                        throw new Error("Search by NDC failed");
+                    }
+                    const data = await resp.json();
+                    renderDrugSearchResults(data ? [data] : []);
+                }
+            } catch (err) {
+                console.error(err);
+                drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Failed to search drugs.</li>';
             }
         }
 
-        const payload = {
-            plan_id: parseInt(planId, 10),
-            drug_id: parseInt(drugId, 10),
-            dosage: parseInt(dosage, 10),
-            unit: unit,
-            amount_literal: amountLiteral || null,
-            note: note || null,
-            rules: [rule]   // single rule
-        };
+        drugSearchInput.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            const term = (drugSearchInput.value || "").trim();
+            searchDrugs(term);
+        });
 
-        try {
-            const resp = await fetch("/plan_item", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
+        drugSearchModeRadios.forEach(r => {
+            r.addEventListener("change", function () {
+                if (!this.checked) return;
+                drugSearchMode = this.value;
+                if (drugSearchMode === "name") {
+                    drugSearchInput.placeholder = "Type drug name and press Enter";
+                } else {
+                    drugSearchInput.placeholder = "Type NDC and press Enter";
+                }
+            });
+        });
+
+        function buildRuleFromForm() {
+            const startDate = document.getElementById("start-date").value;
+            const endDate = document.getElementById("end-date").value;
+            const repeatType = repeatTypeSelect.value;
+            const intervalVal = document.getElementById("interval-value").value;
+
+            if (!startDate) return null;
+
+            const rule = {
+                start_date: startDate,
+                end_date: endDate || null,
+                repeat_type: repeatType,
+                interval_value: null,
+                mon: false, tue: false, wed: false, thu: false,
+                fri: false, sat: false, sun: false,
+                times: []
+            };
+
+            if (repeatType === "WEEKLY") {
+                rule.mon = document.getElementById("day-mon").checked;
+                rule.tue = document.getElementById("day-tue").checked;
+                rule.wed = document.getElementById("day-wed").checked;
+                rule.thu = document.getElementById("day-thu").checked;
+                rule.fri = document.getElementById("day-fri").checked;
+                rule.sat = document.getElementById("day-sat").checked;
+                rule.sun = document.getElementById("day-sun").checked;
+                rule.times = [...timesState];
+            } else if (repeatType === "PRN") {
+                if (intervalVal) {
+                    rule.interval_value = parseInt(intervalVal, 10);
+                }
+            } else {
+                rule.times = [...timesState];
+            }
+
+            return rule;
+        }
+
+        function handleReset() {
+            // 清空所有字段
+            const inputsToClear = [
+                "start-date","end-date","interval-value",
+                "dosage","amount-literal","unit","note"
+            ];
+            inputsToClear.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = "";
             });
 
-            const data = await resp.json();
+            ["day-mon","day-tue","day-wed","day-thu","day-fri","day-sat","day-sun"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = false;
+            });
 
-            if (!resp.ok) {
-                showMessage("Failed to create plan item: " + (data.error || "Unknown error"), true);
+            timesState = [];
+            renderTimesChips();
+
+            repeatTypeSelect.value = "ONCE";
+            updateRuleVisibility();
+
+            drugIdInput.value = "";
+            currentSelectedDrug = null;
+            updateSelectedDrugDisplayFromDrug(null);
+
+            showMessage("Form cleared.", false);
+        }
+        window.handleReset = handleReset;
+
+        function handleCancelConflict() {
+            document.getElementById("validation-alert").classList.add("hidden");
+        }
+        window.handleCancelConflict = handleCancelConflict;
+
+        function handleOverrideConflict() {
+            document.getElementById("validation-alert").classList.add("hidden");
+            handleConfirm();
+        }
+        window.handleOverrideConflict = handleOverrideConflict;
+
+        async function handleConfirm() {
+            const planIdRaw = document.getElementById("plan-id").value;
+            const patientIdRaw = document.getElementById("patient-id").value;
+            const drugId = drugIdInput.value;
+            const dosage = document.getElementById("dosage").value;
+            const unit = document.getElementById("unit").value;
+            const amountLiteral = document.getElementById("amount-literal").value;
+            const note = document.getElementById("note").value;
+
+            if (!planIdRaw && !patientIdRaw) {
+                showMessage("Missing plan_id / patient_id. Please check backend template logic.", true);
+                return;
+            }
+            if (!drugId) {
+                showMessage("Please select a drug first.", true);
+                return;
+            }
+            if (!dosage || !unit) {
+                showMessage("Dosage and unit are required.", true);
                 return;
             }
 
-            showMessage("Plan item created successfully. ID: " + data.plan_item_id, false);
-        } catch (err) {
-            console.error(err);
-            showMessage("Network or server error when creating plan item.", true);
+            const rule = buildRuleFromForm();
+            if (!rule) {
+                showMessage("Start date is required.", true);
+                return;
+            }
+
+            if (rule.repeat_type === "PRN") {
+                if (!rule.interval_value || Number.isNaN(rule.interval_value) || rule.interval_value <= 0) {
+                    showMessage("Interval must be a positive number of hours for PRN.", true);
+                    return;
+                }
+            }
+
+            const payload = {
+                drug_id: parseInt(drugId, 10),
+                dosage: parseInt(dosage, 10),
+                unit: unit,
+                amount_literal: amountLiteral || null,
+                note: note || null,
+                rules: [rule]
+            };
+
+            if (planIdRaw) {
+                payload.plan_id = parseInt(planIdRaw, 10);
+            } else if (patientIdRaw) {
+                payload.patient_id = parseInt(patientIdRaw, 10);
+            }
+
+            try {
+                const resp = await fetch("/plan_item", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    showMessage("Failed to create plan item: " + (data.error || "Unknown error"), true);
+                    return;
+                }
+
+                showMessage("Plan item created successfully. ID: " + data.plan_item_id, false);
+                setTimeout(() => {
+                    window.location.href = `/doctor/plan_editor?patient_id=${patientId}`;
+                }, 1500);
+            } catch (err) {
+                console.error(err);
+                showMessage("Network or server error when creating plan item.", true);
+            }
         }
-    });
-</script>
+        window.handleConfirm = handleConfirm;
+
+        // ====== init ======
+        repeatTypeSelect.addEventListener("change", () => {
+            updateRuleVisibility();
+        });
+
+        updateRuleVisibility();
+    </script>
 
 </body>
 </html>
