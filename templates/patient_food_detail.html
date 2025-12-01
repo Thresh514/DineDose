@@ -4,6 +4,7 @@
     <!-- 页面标题 -->
     <div class="food-detail-header">
         <h1 class="food-detail-title">Add Meal Intake</h1>
+        <h3 class="food-detail-subtitle">{{ food.description }}</h3>
     </div>
 
     <!-- 主要内容卡片 -->
@@ -71,6 +72,20 @@
                     Save Meal
                 </button>
             </div>
+        <!-- <display food info for reference> -->
+        Food Information:
+        <p>Description: {{ food.description }}</p>
+        <p>Calories: {{ food.calories }} kcal</p>
+
+        <!-- not yet -->
+        <!-- <p><strong>Protein:</strong> {{ food.protein }} g</p> -->
+
+        <p>Carbohydrates:{{ food.carbonhydrate }} g</p>
+        <p>Fats:{{ food.fat }} g</p>
+
+        <p>Data Type: {{ food.data_type }}</p>
+        <p>DineDose ID: {{ food.id }}</p>
+        <p>FDC ID: {{ food.fdc_id }}</p>
         </form>
     </div>
 </div>

@@ -22,11 +22,10 @@ def get_drug_by_id_locally():
 
 
 
-
 # Return a sample of drugs (first 100)
 @drug_bp.route('/get_sample_drugs', methods=['GET'])
 def get_sample_drugs_locally():
-    sample_drugs = drug_repo.get_drugs_by_name_locally("")
+    sample_drugs = drug_repo.get_sample_drugs_locally()
     return jsonify([drug.to_dict() for drug in sample_drugs]), 200
 
 
@@ -45,7 +44,7 @@ def search_drug_locally():
     if len(name) < 2:
         return jsonify({"error": "Name too short, must be at least 2 characters"}), 400
 
-    drugs = drug_repo.get_drugs_by_name_locally(names)
+    drugs = drug_repo.search_drugs_by_keywords_locally(names)
     if not drugs:
         return jsonify([]), 404
 
