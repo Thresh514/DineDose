@@ -22,7 +22,6 @@ def get_drug_by_id_locally():
 
 
 
-
 # Return a sample of drugs (first 100)
 @drug_bp.route('/get_sample_drugs', methods=['GET'])
 def get_sample_drugs_locally():

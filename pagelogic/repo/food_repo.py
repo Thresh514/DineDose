@@ -40,7 +40,7 @@ class food:
             f"calories={self.calories}, "
             f"protein={self.protein}, "
             f"fat={self.fat}, "
-            f"carbohydrates={self.carbohydrates})"
+            f"carbohydrates={self.carbonhydrate})"
         )
     
 def _row_to_food(cur, row):
