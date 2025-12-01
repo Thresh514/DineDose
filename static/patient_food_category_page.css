@@ -19,3 +19,49 @@
   font-size: 12px;
   opacity: 0.8;
 }
+
+/* Pretty toggle pills for drug search mode */
+.pfc-drug-mode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.pfc-drug-mode-label {
+  font-weight: 600;
+  color: #475569; /* slate-600 */
+}
+
+/* container for each option */
+.pfc-drug-mode-option {
+  position: relative;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: #f1f5f9; /* slate-100 */
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
+}
+
+/* hide default radio */
+.pfc-drug-mode-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* checked style */
+.pfc-drug-mode-option input[type="radio"]:checked + span {
+  background: #2563eb; /* blue-600 */
+  color: white;
+}
+
+/* use a span wrapper to apply background */
+.pfc-drug-mode-option span {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 14px;
+  transition: 0.2s ease;
+}

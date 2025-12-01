@@ -143,23 +143,15 @@
   <!-- Search mode for drugs -->
   <div class="pfc-drug-mode">
     <span class="pfc-drug-mode-label">Search mode:</span>
-    <label class="pfc-drug-mode-option">
-      <input
-        type="radio"
-        name="drug-search-mode"
-        value="name"
-        checked
-      >
-      By name
-    </label>
-    <label class="pfc-drug-mode-option">
-      <input
-        type="radio"
-        name="drug-search-mode"
-        value="ndc"
-      >
-      By NDC
-    </label>
+        <label class="pfc-drug-mode-option">
+        <input type="radio" name="drug-search-mode" value="name" checked>
+        <span>By name</span>
+        </label>
+
+        <label class="pfc-drug-mode-option">
+        <input type="radio" name="drug-search-mode" value="ndc">
+        <span>By NDC</span>
+        </label>
   </div>
 
   <ul class="pfc-list" id="pfc-list-drugs">
@@ -382,7 +374,7 @@
         const title = document.createElement("div");
         title.className = "pfc-title";
         title.textContent =
-          drug.brand_name || drug.generic_name || "No name";
+          drug.generic_name || drug.brand_name || "No name";
 
         const ndcLine = document.createElement("div");
         ndcLine.className = "pfc-subtitle";
