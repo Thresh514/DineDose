@@ -1,14 +1,213 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <header class="app-header">
     <div class="brand">Dine Dose</div>
     <div class="header-actions">
-        <a class="icon" href="{{ url_for('patient_home.patient_feedback_page') }}" aria-label="messages">
-            <img class="icon" src="{{ url_for('static', filename='public/message.png') }}" alt="messages">
+        <a class="header-icon" href="{{ url_for('patient_home.patient_feedback_page') }}" aria-label="messages">
+            <i class="fas fa-message"></i>
         </a>
-        <a class="icon" href="{{ url_for('patient_home.patient_food_history_page') }}" aria-label="food history">
-            <img class="icon" src="{{ url_for('static', filename='public/history.png') }}" alt="food history">
+        <a class="header-icon" href="{{ url_for('patient_home.patient_food_history_page') }}" aria-label="food history">
+            <i class="fas fa-clock-rotate-left"></i>
         </a>
-        <a class="icon" href="{{ url_for('logout.logout') }}" aria-label="my">
-            <img class="icon" src="{{ url_for('static', filename='public/user.png') }}" alt="my">
-        </a>
+        <div class="user-menu-container">
+            <button class="header-icon user-menu-trigger" aria-label="user menu" id="user-menu-trigger">
+                <i class="fas fa-user"></i>
+            </button>
+            <div class="user-menu-dropdown" id="user-menu-dropdown">
+                <button class="user-menu-item" id="edit-username-btn">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit Username</span>
+                </button>
+                <a class="user-menu-item" href="{{ url_for('logout.logout') }}">
+                    <i class="fas fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
     </div>
 </header>
+
+<!-- Username Edit Dialog -->
+<div id="username-dialog" class="plan-dialog" role="dialog" aria-labelledby="username-dialog-title" aria-modal="true">
+    <div class="plan-dialog-overlay"></div>
+    <div class="plan-dialog-content">
+        <div class="plan-dialog-header">
+            <h3 id="username-dialog-title" class="plan-dialog-title">Edit Username</h3>
+            <button class="plan-dialog-close" id="username-dialog-close" aria-label="Close dialog">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="plan-dialog-body">
+            <div class="username-form-field">
+                <label for="username-input" class="username-label">Username</label>
+                <input type="text" id="username-input" class="username-input" placeholder="Enter new username" maxlength="50">
+                <div id="username-error" class="username-error" style="display: none;"></div>
+            </div>
+        </div>
+        <div class="plan-dialog-footer">
+            <button class="plan-dialog-btn" id="username-dialog-cancel">Cancel</button>
+            <button class="plan-dialog-btn plan-dialog-btn--primary" id="username-dialog-save">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // User Menu Toggle
+    const userMenuTrigger = document.getElementById('user-menu-trigger');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+    const userMenuContainer = document.querySelector('.user-menu-container');
+    let currentUser = null;
+
+    // Close menu when clicking outside
+    if (userMenuContainer && userMenuDropdown) {
+        document.addEventListener('click', function(e) {
+            if (!userMenuContainer.contains(e.target)) {
+                userMenuDropdown.classList.remove('show');
+            }
+        });
+    }
+
+    if (userMenuTrigger) {
+        userMenuTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenuDropdown.classList.toggle('show');
+        });
+    }
+
+    // Username Dialog
+    const usernameDialog = document.getElementById('username-dialog');
+    const usernameInput = document.getElementById('username-input');
+    const usernameError = document.getElementById('username-error');
+    const usernameDialogClose = document.getElementById('username-dialog-close');
+    const usernameDialogCancel = document.getElementById('username-dialog-cancel');
+    const usernameDialogSave = document.getElementById('username-dialog-save');
+    const editUsernameBtn = document.getElementById('edit-username-btn');
+
+    function showUsernameDialog() {
+        if (currentUser) {
+            usernameInput.value = currentUser.username || '';
+        }
+        usernameError.style.display = 'none';
+        usernameDialog.classList.add('show');
+        setTimeout(() => {
+            usernameInput.focus();
+        }, 100);
+    }
+
+    function hideUsernameDialog() {
+        usernameDialog.classList.remove('show');
+        usernameInput.value = '';
+        usernameError.style.display = 'none';
+    }
+
+    function showError(message) {
+        usernameError.textContent = message;
+        usernameError.style.display = 'block';
+    }
+
+    function hideError() {
+        usernameError.style.display = 'none';
+    }
+
+    // Load current user info
+    async function loadCurrentUser() {
+        try {
+            const response = await fetch('/get_current_user');
+            if (response.ok) {
+                currentUser = await response.json();
+            }
+        } catch (error) {
+            console.error('Failed to load user:', error);
+        }
+    }
+
+    // Save username
+    async function saveUsername() {
+        const newUsername = usernameInput.value.trim();
+        
+        if (!newUsername) {
+            showError('Username cannot be empty');
+            return;
+        }
+
+        if (newUsername.length > 50) {
+            showError('Username cannot exceed 50 characters');
+            return;
+        }
+
+        try {
+            const response = await fetch('/update_username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username: newUsername })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                currentUser = data;
+                hideUsernameDialog();
+                // Show success message
+                alert('Username updated successfully');
+            } else {
+                showError(data.error || 'Update failed, please try again');
+            }
+        } catch (error) {
+            console.error('Failed to update username:', error);
+            showError('Network error, please try again');
+        }
+    }
+
+    // Event listeners
+    if (editUsernameBtn) {
+        editUsernameBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            userMenuDropdown.classList.remove('show');
+            showUsernameDialog();
+        });
+    }
+
+    if (usernameDialogClose) {
+        usernameDialogClose.addEventListener('click', hideUsernameDialog);
+    }
+
+    if (usernameDialogCancel) {
+        usernameDialogCancel.addEventListener('click', hideUsernameDialog);
+    }
+
+    if (usernameDialogSave) {
+        usernameDialogSave.addEventListener('click', saveUsername);
+    }
+
+    if (usernameInput) {
+        usernameInput.addEventListener('input', hideError);
+        usernameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                saveUsername();
+            } else if (e.key === 'Escape') {
+                hideUsernameDialog();
+            }
+        });
+    }
+
+    // Close dialog on overlay click
+    const dialogOverlay = usernameDialog?.querySelector('.plan-dialog-overlay');
+    if (dialogOverlay) {
+        dialogOverlay.addEventListener('click', hideUsernameDialog);
+    }
+
+    // Close dialog on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && usernameDialog?.classList.contains('show')) {
+            hideUsernameDialog();
+        }
+    });
+
+    // Load user info on page load
+    loadCurrentUser();
+})();
+</script>
