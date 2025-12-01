@@ -1,0 +1,21 @@
+.pfc-detail {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.pfc-detail-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+}
+
+.pfc-detail-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.pfc-subtitle {
+  font-size: 12px;
+  opacity: 0.8;
+}
