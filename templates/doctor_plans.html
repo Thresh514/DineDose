@@ -26,7 +26,7 @@
         const doctorId = "{{ doctor_id }}";
         let plansData = [];
 
-        // 显示加载提示
+        // Show loading indicator
         function showLoading() {
             const container = document.getElementById('plans-list');
             container.innerHTML = `
@@ -37,7 +37,7 @@
             `;
         }
 
-        // 隐藏加载提示
+        // Hide loading indicator
         function hideLoading() {
             const loadingIndicator = document.getElementById('loading-indicator');
             if (loadingIndicator) {
@@ -45,14 +45,14 @@
             }
         }
 
-        // 加载计划列表
+        // Load plans list
         async function loadPlans() {
             showLoading();
             try {
                 const response = await fetch(`/get_patients?id=${doctorId}`);
                 const patients = await response.json();
 
-                // 获取每个患者的原始 plan（包含规则信息）
+                // Get raw plan for each patient (includes rule information)
                 const plansWithInfo = await Promise.all(
                     patients.map(async (patient) => {
                         try {
@@ -89,16 +89,16 @@
             }
         }
 
-        // 格式化时间
+        // Format time
         function formatTime(timeStr) {
             if (!timeStr) return '';
             try {
                 let timePart = timeStr;
-                // 如果是 ISO 格式，提取时间部分
+                // Extract time part if ISO format
                 if (timeStr.includes('T')) {
                     timePart = timeStr.split('T')[1];
                 }
-                // 移除秒和毫秒部分
+                // Remove seconds and milliseconds
                 const [hours, minutes] = timePart.split(':');
                 const hour = parseInt(hours);
                 const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -110,7 +110,7 @@
             }
         }
 
-        // 格式化日期
+        // Format date
         function formatDate(dateStr) {
             if (!dateStr) return '';
             try {
@@ -124,7 +124,7 @@
             }
         }
 
-        // 获取周几的显示文本（仅用于 WEEKLY 类型）
+        // Get weekday display text (for WEEKLY type only)
         function getWeekdaysText(rule) {
             if (!rule || rule.repeat_type !== 'WEEKLY') return '';
             const days = [];
@@ -138,7 +138,7 @@
             return days.length > 0 ? days.join(', ') : 'None';
         }
 
-        // 获取重复类型显示文本
+        // Get repeat type display text
         function getRepeatTypeText(rule) {
             if (!rule) return 'Once';
             const type = rule.repeat_type || 'ONCE';
@@ -154,7 +154,7 @@
             }
         }
 
-        // 获取间隔值显示（仅用于 PRN 类型）
+        // Get interval display (for PRN type only)
         function getIntervalText(rule) {
             if (!rule || rule.repeat_type !== 'PRN') return '';
             if (rule.interval_value) {
@@ -163,7 +163,7 @@
             return 'As needed';
         }
 
-        // 渲染计划列表
+        // Render plans list
         function renderPlans(plans) {
             const container = document.getElementById('plans-list');
             
@@ -178,7 +178,7 @@
                 const avatarText = patient.username ? patient.username.charAt(0).toUpperCase() : '?';
                 const planName = plan ? (plan.name || 'Treatment Plan') : 'No plan found';
                 
-                // 处理计划项，显示规则信息
+                // Process plan items and display rule information
                 let planDetailsHtml = '';
                 let hasPlanItems = false;
                 if (plan && plan.plan_items && plan.plan_items.length > 0) {
@@ -206,13 +206,13 @@
                             planDetailsHtml += '<div class="plans-page-item-rule-info">';
                             planDetailsHtml += '<div class="plans-page-schedule-row">';
                             
-                            // Start Date（总是显示）
+                            // Start Date (always shown)
                             planDetailsHtml += '<div class="plans-page-schedule-item">';
                             planDetailsHtml += '<div class="plans-page-schedule-label">Start Date</div>';
                             planDetailsHtml += `<div class="plans-page-schedule-value">${formatDate(rule.start_date) || 'Not specified'}</div>`;
                             planDetailsHtml += '</div>';
                             
-                            // End Date（如果有则显示）
+                            // End Date (shown if exists)
                             if (rule.end_date) {
                                 planDetailsHtml += '<div class="plans-page-schedule-item">';
                                 planDetailsHtml += '<div class="plans-page-schedule-label">End Date</div>';
@@ -220,54 +220,54 @@
                                 planDetailsHtml += '</div>';
                             }
                             
-                            // 根据重复类型显示不同的信息
+                            // Display different information based on repeat type
                             if (repeatType === 'WEEKLY') {
-                                // WEEKLY: 显示周几、每天几次、具体时间
+                                // WEEKLY: show weekdays, times per day, specific times
                                 const weekdays = getWeekdaysText(rule);
                                 const timesCount = rule.times ? rule.times.length : 0;
                                 const timesText = rule.times && rule.times.length > 0 
                                     ? rule.times.map(t => formatTime(t)).join(', ') 
                                     : 'Not specified';
                                 
-                                // 周几
+                                // Weekdays
                                 planDetailsHtml += '<div class="plans-page-schedule-item">';
                                 planDetailsHtml += '<div class="plans-page-schedule-label">Days</div>';
                                 planDetailsHtml += `<div class="plans-page-schedule-value">${weekdays || 'None'}</div>`;
                                 planDetailsHtml += '</div>';
                                 
-                                // 每天几次
+                                // Times per day
                                 planDetailsHtml += '<div class="plans-page-schedule-item">';
                                 planDetailsHtml += '<div class="plans-page-schedule-label">Times/Day</div>';
                                 planDetailsHtml += `<div class="plans-page-schedule-value">${timesCount} time${timesCount !== 1 ? 's' : ''}</div>`;
                                 planDetailsHtml += '</div>';
                                 
-                                // 具体时间
+                                // Specific times
                                 planDetailsHtml += '<div class="plans-page-schedule-item plans-page-schedule-item-times">';
                                 planDetailsHtml += '<div class="plans-page-schedule-label">Times</div>';
                                 planDetailsHtml += `<div class="plans-page-schedule-value">${timesText}</div>`;
                                 planDetailsHtml += '</div>';
                                 
                             } else if (repeatType === 'DAILY') {
-                                // DAILY: 显示每天几次、具体时间
+                                // DAILY: show times per day, specific times
                                 const timesCount = rule.times ? rule.times.length : 0;
                                 const timesText = rule.times && rule.times.length > 0 
                                     ? rule.times.map(t => formatTime(t)).join(', ') 
                                     : 'Not specified';
                                 
-                                // 每天几次
+                                // Times per day
                                 planDetailsHtml += '<div class="plans-page-schedule-item">';
                                 planDetailsHtml += '<div class="plans-page-schedule-label">Times/Day</div>';
                                 planDetailsHtml += `<div class="plans-page-schedule-value">${timesCount} time${timesCount !== 1 ? 's' : ''}</div>`;
                                 planDetailsHtml += '</div>';
                                 
-                                // 具体时间
+                                // Specific times
                                 planDetailsHtml += '<div class="plans-page-schedule-item plans-page-schedule-item-times">';
                                 planDetailsHtml += '<div class="plans-page-schedule-label">Times</div>';
                                 planDetailsHtml += `<div class="plans-page-schedule-value">${timesText}</div>`;
                                 planDetailsHtml += '</div>';
                                 
                             } else if (repeatType === 'PRN') {
-                                // PRN: 显示间隔时间
+                                // PRN: show interval
                                 const intervalText = getIntervalText(rule);
                                 
                                 planDetailsHtml += '<div class="plans-page-schedule-item">';
@@ -276,7 +276,7 @@
                                 planDetailsHtml += '</div>';
                                 
                             } else {
-                                // ONCE 或其他类型
+                                // ONCE or other types
                                 const timesCount = rule.times ? rule.times.length : 0;
                                 const timesText = rule.times && rule.times.length > 0 
                                     ? rule.times.map(t => formatTime(t)).join(', ') 
@@ -290,7 +290,7 @@
                                 }
                             }
                             
-                            // 重复类型（总是显示）
+                            // Repeat type (always shown)
                             planDetailsHtml += '<div class="plans-page-schedule-item">';
                             planDetailsHtml += '<div class="plans-page-schedule-label">Repeat</div>';
                             planDetailsHtml += `<div class="plans-page-schedule-value">${repeatTypeText}</div>`;
@@ -340,7 +340,7 @@
             }).join('');
         }
 
-        // 页面加载时获取计划列表
+        // Load plans list on page load
         window.addEventListener('load', loadPlans);
     </script>
 

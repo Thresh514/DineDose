@@ -1,7 +1,7 @@
 {% extends 'patient_base.html' %}
 {% block content %}
 <div class="reminder-page">
-    <!-- 当前提醒卡片 -->
+    <!-- Current Reminder Card -->
     <div class="reminder-card reminder-card--current">
         {% if current_reminder %}
         <div class="reminder-card-row">
@@ -19,7 +19,7 @@
             <span class="reminder-value">{{ current_reminder.time|default('No time') }}</span>
         </div>
         {% else %}
-        <!-- 占位数据，后端数据传入后会被替换 -->
+        <!-- Placeholder data, will be replaced by backend data -->
         <div class="reminder-card-row">
             <span class="reminder-label">Task Name:</span>
             <span class="reminder-value">Ibuprofen 100mg</span>
@@ -35,7 +35,7 @@
         {% endif %}
     </div>
     
-    <!-- 状态显示 -->
+    <!-- Status Display -->
     {% if current_reminder %}
     <div class="reminder-status">
         <span class="reminder-label">Status:</span>
@@ -43,7 +43,7 @@
     </div>
     {% endif %}
     
-    <!-- 完成按钮 -->
+    <!-- Complete Button -->
     {% if current_reminder %}
     <button class="reminder-complete-btn" 
             aria-label="Mark as Completed"
@@ -58,10 +58,10 @@
     <button class="reminder-complete-btn" aria-label="Mark as Completed" disabled>Mark as Completed</button>
     {% endif %}
     
-    <!-- 同步提示 -->
+    <!-- Sync Note -->
     <div class="reminder-sync-note">Will sync when online</div>
     
-    <!-- 即将到来的提醒 -->
+    <!-- Upcoming Reminder -->
     <div class="reminder-card reminder-card--upcoming">
         <div class="reminder-card-header">Upcoming Reminder</div>
         {% if upcoming_reminder %}
@@ -80,7 +80,7 @@
             <span class="reminder-value">{{ upcoming_reminder.time|default('No time') }}</span>
         </div>
         {% else %}
-        <!-- 占位数据，后端数据传入后会被替换 -->
+        <!-- Placeholder data, will be replaced by backend data -->
         <div class="reminder-card-row">
             <span class="reminder-label">Task Name:</span>
             <span class="reminder-value">Ibuprofen 100mg</span>
@@ -96,7 +96,7 @@
         {% endif %}
     </div>
     
-    <!-- 成功消息横幅 -->
+    <!-- Success Banner -->
     <div class="reminder-success-banner" id="success-banner" role="alert" style="display: none;">
         ⚡ Status updated successfully
     </div>
@@ -118,7 +118,7 @@
         return;
     }
     
-    // 从按钮的 data 属性获取提醒信息
+    // Get reminder info from button data attributes
     const reminderData = {
         planItemId: parseInt(completeBtn.dataset.planItemId),
         drugId: parseInt(completeBtn.dataset.drugId),
@@ -129,7 +129,7 @@
         note: completeBtn.dataset.note || ''
     };
     
-    // 更新 UI 显示已完成状态
+    // Update UI to show completed status
     function updateUIForCompleted() {
         if (statusBadge) {
             statusBadge.textContent = '✅ Completed';
@@ -142,7 +142,7 @@
         }
     }
     
-    // 页面加载时检查当前提醒是否已完成
+    // Check if current reminder is completed on page load
     async function checkReminderStatus() {
         try {
             const recordsResponse = await fetch(`/get_drug_records_by_user_id?user_id=${userId}`);
@@ -152,7 +152,7 @@
             }
             const allRecords = await recordsResponse.json();
             
-            // 查找是否已存在对应的记录（通过 plan_item_id 和日期匹配）
+            // Find existing record by plan_item_id and date
             const existingRecord = allRecords.find(record => 
                 record.plan_item_id === reminderData.planItemId &&
                 record.taken_date === reminderData.dateIso &&
@@ -160,7 +160,7 @@
             );
             
             if (existingRecord) {
-                // 如果存在且状态是 TAKEN 或 ON_TIME，更新 UI
+                // Update UI if record exists with TAKEN or ON_TIME status
                 updateUIForCompleted();
             }
         } catch (error) {
@@ -168,30 +168,30 @@
         }
     }
     
-    // 页面加载时执行检查
+    // Check on page load
     checkReminderStatus();
     
     completeBtn.addEventListener('click', async function() {
-        // 禁用按钮，防止重复点击
+        // Disable button to prevent duplicate clicks
         completeBtn.disabled = true;
         completeBtn.textContent = 'Processing...';
         
         try {
-            // 1. 获取用户的所有 drug records
+            // Get all drug records for user
             const recordsResponse = await fetch(`/get_drug_records_by_user_id?user_id=${userId}`);
             if (!recordsResponse.ok) {
                 throw new Error('Failed to fetch drug records');
             }
             const allRecords = await recordsResponse.json();
             
-            // 2. 查找是否已存在对应的记录（通过 plan_item_id 和日期匹配）
+            // Find existing record by plan_item_id and date
             const existingRecord = allRecords.find(record => 
                 record.plan_item_id === reminderData.planItemId &&
                 record.taken_date === reminderData.dateIso
             );
             
             if (existingRecord) {
-                // 3. 如果存在，更新记录状态为 TAKEN
+                // Update record status to TAKEN
                 const params = new URLSearchParams({
                     id: existingRecord.id.toString(),
                     status: 'TAKEN'
@@ -214,7 +214,7 @@
                 
                 console.log('Drug record updated:', await updateResponse.json());
             } else {
-                // 4. 如果不存在，创建新记录
+                // Create new record if it doesn't exist
                 const createData = {
                     user_id: userId,
                     drug_id: reminderData.drugId,
@@ -242,11 +242,11 @@
                 console.log('Drug record created:', await createResponse.json());
             }
             
-            // 5. 更新 UI：显示成功消息，更新状态徽章
+            // Update UI: show success message and update status badge
             successBanner.style.display = 'block';
             updateUIForCompleted();
             
-            // 3秒后隐藏成功消息
+            // Hide success message after 3 seconds
             setTimeout(() => {
                 successBanner.style.display = 'none';
             }, 3000);

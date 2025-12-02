@@ -24,7 +24,6 @@ class plan_item_rule:
     times: Optional[List[dt_time]] = None
 
     def to_dict(self) -> dict:
-        # 交给通用序列化函数处理（含 date/time）
         return serializer.serialize_for_json(self)
 
     def __str__(self) -> str:
@@ -45,13 +44,13 @@ class plan_item:
     id: int
     plan_id: int
     drug_id: int
-    drug_name: Optional[str]   # DB 不存，后面在逻辑层填
+    drug_name: Optional[str]   # Not stored in DB, filled in logic layer
     dosage: int
     unit: str
     amount_literal: Optional[str]
     note: Optional[str]
-    date: Optional["date"] = None          # 展开后的具体日期
-    time: Optional[dt_time] = None       # 展开后的具体时间
+    date: Optional["date"] = None
+    time: Optional[dt_time] = None
     plan_item_rule: Optional["plan_item_rule"] = None
 
     def to_dict(self) -> dict:
@@ -81,7 +80,6 @@ class plan:
     description: Optional[str]
     doctor_name: Optional[str]
     patient_name: Optional[str]
-    # plan_items 默认空 list，之后在逻辑层填充
     plan_items: List[plan_item] = field(default_factory=list)
 
     def __str__(self) -> str:
@@ -104,15 +102,13 @@ class plan:
 # ==================== repo functions ====================
 
 def _row_to_dict(cur, row) -> dict:
-    """把 tuple row 转成 dict，避免依赖 DictCursor。"""
+    """Convert tuple row to dict, avoid DictCursor dependency."""
     columns = [desc[0] for desc in cur.description]
     return dict(zip(columns, row))
 
 
 def get_plan_by_user_id(user_id: int) -> Optional[plan]:
-    """
-    根据 patient_id 获取一个 plan instance。
-    """
+    """Get a plan instance by patient_id."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -147,9 +143,7 @@ def get_plan_by_user_id(user_id: int) -> Optional[plan]:
     )
 
 def get_plans_by_user_ids(user_ids: List[int]) -> List[plan]:
-    """
-    根据一组 patient_id 获取对应的 plan 列表。
-    """
+    """Get plan list for a group of patient_ids."""
     if not user_ids:
         return []
 
@@ -186,9 +180,7 @@ def get_plans_by_user_ids(user_ids: List[int]) -> List[plan]:
 
 
 def get_plan_by_id(plan_id: int) -> Optional[plan]:
-    """
-    根据 plan.id 获取一个 plan instance。
-    """
+    """Get a plan instance by plan.id."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -223,9 +215,7 @@ def get_plan_by_id(plan_id: int) -> Optional[plan]:
 
 
 def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
-    """
-    返回指定 plan_id 的所有 plan_item 列表。
-    """
+    """Return all plan_item list for specified plan_id."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -245,7 +235,7 @@ def get_all_plan_items_by_plan_id(plan_id: int) -> List[plan_item]:
             id=rd["id"],
             plan_id=rd["plan_id"],
             drug_id=rd["drug_id"],
-            drug_name=None,                     # 逻辑层再填 generic_name
+            drug_name=None,
             dosage=rd["dosage"],
             unit=rd["unit"],
             amount_literal=rd.get("amount_literal"),
@@ -297,11 +287,7 @@ def get_all_plan_items() -> List[plan_item]:
 
 
 def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rule]]:
-    """
-    通过 plan_id 获取：
-        plan_item_id -> [plan_item_rule, ...]
-    的字典。
-    """
+    """Get dictionary of plan_item_id -> [plan_item_rule, ...] by plan_id."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -341,7 +327,7 @@ def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rul
         rd = dict(zip(columns, row))
         item_id = rd["plan_item_id"]
 
-        # 可能有 plan_item 但没有对应 rule（LEFT JOIN）
+        # plan_item may exist without rule (LEFT JOIN)
         if rd["rule_id"] is None:
             item_id_to_rules.setdefault(item_id, [])
             continue
@@ -360,7 +346,7 @@ def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rul
             fri=rd["rule_fri"],
             sat=rd["rule_sat"],
             sun=rd["rule_sun"],
-            times=rd["rule_times"],  # PostgreSQL time[] → list[time]
+            times=rd["rule_times"],
         )
 
         item_id_to_rules.setdefault(item_id, []).append(rule_obj)
@@ -370,7 +356,7 @@ def get_plan_item_rules_by_plan_id(plan_id: int) -> Dict[int, List[plan_item_rul
 
 from typing import Any
 
-# ====== 内部工具：解析 time 字符串 ======
+# ====== Internal helper: parse time string ======
 def _parse_time_str(t: str) -> dt_time:
     parts = t.split(":")
     hour = int(parts[0])
@@ -379,7 +365,7 @@ def _parse_time_str(t: str) -> dt_time:
     return dt_time(hour, minute, second)
 
 
-# ====== CREATE: 新建 plan_item + 对应的 rules ======
+# ====== CREATE: new plan_item + corresponding rules ======
 def create_plan_item_with_rules(
     plan_id: int,
     drug_id: int,
@@ -389,23 +375,12 @@ def create_plan_item_with_rules(
     note: Optional[str],
     rules: List[Dict[str, Any]],
 ) -> int:
-    """
-    创建一个 plan_item，并一次性插入对应的 plan_item_rule 列表。
-    rules 里每个元素应该是：
-    {
-        "start_date": date,
-        "end_date": Optional[date],
-        "repeat_type": str,
-        "interval_value": Optional[int],
-        "mon": bool, ..., "sun": bool,
-        "times": List[dt_time]
-    }
-    """
+    """Create a plan_item and insert corresponding plan_item_rule list at once."""
     conn = mydb()
     cur = conn.cursor()
 
     try:
-        # 1) 先插入 plan_item
+        # Insert plan_item first
         insert_item_sql = """
             INSERT INTO plan_item (plan_id, drug_id, dosage, unit, amount_literal, note)
             VALUES (%s, %s, %s, %s, %s, %s)
@@ -417,7 +392,7 @@ def create_plan_item_with_rules(
         )
         new_item_id = cur.fetchone()[0]
 
-        # 2) 插入对应的 rule
+        # Insert corresponding rule
         insert_rule_sql = """
             INSERT INTO plan_item_rule (
                 plan_item_id,
@@ -437,7 +412,6 @@ def create_plan_item_with_rules(
 
         for r in rules:
             times_list = r.get("times") or []
-            # times_list 已经是 dt_time 列表，如果你在 bp 里解析了的话
             cur.execute(
                 insert_rule_sql,
                 (
@@ -468,7 +442,7 @@ def create_plan_item_with_rules(
         conn.close()
 
 
-# ====== UPDATE: 修改 plan_item + 整体替换 rules ======
+# ====== UPDATE: modify plan_item + replace all rules ======
 def update_plan_item_with_rules(
     item_id: int,
     plan_id: int,
@@ -479,14 +453,12 @@ def update_plan_item_with_rules(
     note: Optional[str],
     rules: List[Dict[str, Any]],
 ) -> bool:
-    """
-    修改 plan_item 的基本信息，并 **删除原有所有 rule，再插入新的 rule 列表**。
-    """
+    """Modify plan_item basic info, delete all existing rules, then insert new rule list."""
     conn = mydb()
     cur = conn.cursor()
 
     try:
-        # 1) 更新 plan_item
+        # Update plan_item
         update_item_sql = """
             UPDATE plan_item
             SET plan_id = %s,
@@ -506,10 +478,10 @@ def update_plan_item_with_rules(
             conn.rollback()
             return False
 
-        # 2) 删掉原来的 rule
+        # Delete old rules
         cur.execute("DELETE FROM plan_item_rule WHERE plan_item_id = %s", (item_id,))
 
-        # 3) 插入新的 rule
+        # Insert new rules
         insert_rule_sql = """
             INSERT INTO plan_item_rule (
                 plan_item_id,
@@ -559,14 +531,14 @@ def update_plan_item_with_rules(
         conn.close()
 
 
-# ====== DELETE: 删除 plan_item + 对应 rules ======
+# ====== DELETE: delete plan_item + corresponding rules ======
 def delete_plan_item_and_rules(item_id: int) -> bool:
     conn = mydb()
     cur = conn.cursor()
     try:
-        # 先删 rule
+        # Delete rule first
         cur.execute("DELETE FROM plan_item_rule WHERE plan_item_id = %s", (item_id,))
-        # 再删 item
+        # Then delete item
         cur.execute("DELETE FROM plan_item WHERE id = %s", (item_id,))
         deleted = cur.rowcount > 0
         conn.commit()
@@ -580,7 +552,7 @@ def delete_plan_item_and_rules(item_id: int) -> bool:
         conn.close()
 
 
-# ====== CREATE: 创建 plan ======
+# ====== CREATE: create plan ======
 def create_plan(
     patient_id: int,
     doctor_id: int,
@@ -589,22 +561,19 @@ def create_plan(
     doctor_name: Optional[str] = None,
     patient_name: Optional[str] = None,
 ) -> plan:
-    """
-    创建一个新的 plan，建立 doctor 和 patient 的关系。
-    如果该 patient 已经有 plan，则返回现有的 plan。
-    """
+    """Create a new plan, establish doctor-patient relationship. Return existing plan if patient already has one."""
     conn = mydb()
     cur = conn.cursor()
     
     try:
-        # 先检查是否已存在 plan
+        # Check if plan already exists
         existing = get_plan_by_user_id(patient_id)
         if existing:
             cur.close()
             conn.close()
             return existing
         
-        # 创建新的 plan
+        # Create new plan
         query = """
             INSERT INTO plan (patient_id, doctor_id, name, description, doctor_name, patient_name)
             VALUES (%s, %s, %s, %s, %s, %s)

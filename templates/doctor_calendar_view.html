@@ -20,12 +20,12 @@
 
     <script>
         window.addEventListener("load", function () {
-            // 这里用的是后端传进来的 patient_id，
+            // Use patient_id from backend
             const patientId = "{{ patient_id }}";
 
             create_calendar({
                 userId: patientId,
-                planApiBase: "/get_user_plan",  // 后端已经根据 id 返回该 user 的 plan
+                planApiBase: "/get_user_plan",  // Backend returns plan for this user
                 drugApiBase: "/get_drug"
             });
         });

@@ -13,15 +13,13 @@ def patient_home():
 
 @patient_home_bp.route('/patient/reminder', methods=['GET'])
 def patient_reminder_page():
-    # 获取当前用户ID
     user_id = session.get('user_id')
     if not user_id:
-        # 如果没有登录，返回空数据
         return render_template('patient_reminder.html', 
                              current_reminder=None, 
                              upcoming_reminder=None)
     
-    # 获取今天和未来7天的计划
+    # Get plan for today and next 7 days
     today = date.today()
     future_date = today + timedelta(days=7)
     
@@ -37,16 +35,14 @@ def patient_reminder_page():
                              current_reminder=None, 
                              upcoming_reminder=None)
     
-    # 获取当前时间
     now = datetime.now()
     current_time = now.time()
     current_date = now.date()
     
-    # 找到当前提醒和即将到来的提醒
     current_reminder = None
     upcoming_reminder = None
     
-    # 辅助函数：将时间转换为可比较的格式
+    # Helper function: convert time to comparable format
     def get_item_time(item):
         if not item.time:
             return None
@@ -60,37 +56,33 @@ def patient_reminder_page():
             return item.time
         return None
     
-    # 按日期和时间排序所有计划项
+    # Sort all plan items by date and time
     sorted_items = sorted(plan.plan_items, 
                          key=lambda x: (x.date or date.max, 
                                        get_item_time(x) or dt_time.max))
     
-    # 找到当前提醒（今天且时间最接近当前时间）
+    # Find current reminder (today, closest to current time)
     today_items = [item for item in sorted_items 
                    if item.date == current_date and get_item_time(item) is not None]
     
     if today_items:
-        # 找到今天已过但最近的，或即将到来的最近的
         past_items = [item for item in today_items 
                       if get_item_time(item) < current_time]
         future_items = [item for item in today_items 
                        if get_item_time(item) >= current_time]
         
         if future_items:
-            # 有即将到来的，选择最近的
             current_reminder = min(future_items, 
                                   key=lambda x: get_item_time(x))
-            # 下一个即将到来的
             future_items_sorted = sorted(future_items, 
                                         key=lambda x: get_item_time(x))
             if len(future_items_sorted) > 1:
                 upcoming_reminder = future_items_sorted[1]
         elif past_items:
-            # 只有已过的，选择最近的
             current_reminder = max(past_items, 
                                   key=lambda x: get_item_time(x))
     
-    # 如果还没有找到即将到来的提醒，从未来日期中找
+    # If no upcoming reminder found, search future dates
     if not upcoming_reminder:
         future_items = [item for item in sorted_items 
                        if item.date and item.date > current_date]
@@ -98,17 +90,17 @@ def patient_reminder_page():
             upcoming_reminder = min(future_items, 
                                    key=lambda x: (x.date, get_item_time(x) or dt_time.min))
     
-    # 如果还没有当前提醒，使用即将到来的提醒作为当前提醒
+    # If no current reminder, use upcoming as current
     if not current_reminder and upcoming_reminder:
         current_reminder = upcoming_reminder
         upcoming_reminder = None
     
-    # 格式化提醒数据
+    # Format reminder data
     def format_reminder(item):
         if not item:
             return None
         
-        # 格式化时间
+        # Format time
         time_str = "No time"
         time_obj_for_api = None
         if item.time:
@@ -125,7 +117,7 @@ def patient_reminder_page():
                 time_obj_for_api = item.time
                 time_str = item.time.strftime('%I:%M %p')
         
-        # 格式化日期为 ISO 格式（用于 API）
+        # Format date as ISO format (for API)
         date_str = None
         if item.date:
             date_str = item.date.isoformat()
@@ -162,14 +154,13 @@ def patient_food_page():
 @patient_home_bp.route('/patient/food/detail/<int:food_id>', methods=['GET'])
 def patient_food_detail_page(food_id):
     """
-    食物详情/添加餐食页面
+    Food detail / add meal page
     """
     food = food_repo.get_food_by_id_locally(food_id)
     if not food:
         return "Food not found", 404
     
-    # 获取当前用户ID（从session）
-    user_id = session.get('user_id', 1)  # 默认值，实际应从session获取
+    user_id = session.get('user_id', 1)
     
     return render_template('patient_food_detail.html', 
                           food=food.to_dict(), 
@@ -179,21 +170,17 @@ def patient_food_detail_page(food_id):
 @patient_home_bp.route('/patient/food/history', methods=['GET'])
 def patient_food_history_page():
     """
-    食物历史记录页面
-    支持筛选：GET /patient/food/history?period=all|today|week|month
+    Food history page
+    Supports filtering: GET /patient/food/history?period=all|today|week|month
     """
-    # 获取当前用户ID
     user_id = session.get('user_id')
     if not user_id:
         return render_template('patient_food_history.html', food_records=[])
     
-    # 获取筛选时间段
     period = request.args.get('period', 'all')
-    
-    # 获取所有食物记录
     records = food_record_repo.get_food_records_by_user_id(user_id)
     
-    # 根据时间段筛选
+    # Filter by time period
     today = date.today()
     if period == 'today':
         records = [r for r in records if r.eaten_date == today]
@@ -203,19 +190,17 @@ def patient_food_history_page():
     elif period == 'month':
         month_start = date(today.year, today.month, 1)
         records = [r for r in records if r.eaten_date >= month_start and r.eaten_date <= today]
-    # period == 'all' 时不需要筛选
     
-    # 关联food表获取food_name，构建适合模板的数据结构
+    # Join with food table to get food_name
     food_records_with_name = []
     for record in records:
         food = food_repo.get_food_by_id_locally(record.food_id)
-        # 直接使用record对象的属性，保持date和time对象的原始类型
         record_dict = {
             'id': record.id,
             'food_id': record.food_id,
             'food_name': food.description if food else 'Unknown Food',
-            'eaten_date': record.eaten_date,  # date对象
-            'eaten_time': record.eaten_time,  # time对象或None
+            'eaten_date': record.eaten_date,
+            'eaten_time': record.eaten_time,
             'amount_numeric': record.amount_numeric,
             'unit': record.unit,
             'amount_literal': record.amount_literal,
@@ -234,7 +219,7 @@ def patient_food_history_page():
 @patient_home_bp.route('/patient/get_feedback', methods=['GET'])
 def get_patient_feedback():
     """
-    患者获取某一天的医生反馈
+    Get doctor feedback for a specific date
     """
     user_id = session.get('user_id')
     if not user_id:
@@ -260,14 +245,13 @@ def get_patient_feedback():
 @patient_home_bp.route('/patient/feedback', methods=['GET'])
 def patient_feedback_page():
     """
-    患者反馈页面
-    显示医生给患者的所有反馈
+    Patient feedback page - displays all doctor feedbacks
     """
     user_id = session.get('user_id')
     if not user_id:
         return render_template('patient_feedback.html', feedbacks=[])
     
-    # 获取前后三天的反馈
+    # Get feedbacks from 3 days before to 3 days after today
     today = date.today()
     start_date = today - timedelta(days=3)
     end_date = today + timedelta(days=3)
@@ -279,18 +263,16 @@ def patient_feedback_page():
             end_date=end_date
         )
         
-        # 转换为字典格式并格式化日期显示
+        # Convert to dict format and format date/time display
         feedbacks_list = []
         for fb in feedbacks:
             fb_dict = fb.to_dict()
-            # 格式化日期显示
             if fb.feedback_date:
                 fb_dict['feedback_date_display'] = fb.feedback_date.strftime('%B %d, %Y')
                 fb_dict['feedback_date_weekday'] = fb.feedback_date.strftime('%A')
             else:
                 fb_dict['feedback_date_display'] = 'Unknown Date'
                 fb_dict['feedback_date_weekday'] = ''
-            # 格式化时间显示
             if fb.created_at:
                 if isinstance(fb.created_at, datetime):
                     fb_dict['created_at_display'] = fb.created_at.strftime('%I:%M %p')
@@ -314,7 +296,6 @@ def patient_feedback_page():
 
 @patient_home_bp.route('/patient/plan', methods=['GET'])
 def patient_plan_page():
-    # 从 session 获取当前用户ID
     user_id = session.get('user_id')
 
     selected_date_str = request.args.get('date')
@@ -395,8 +376,7 @@ def patient_plan_page():
             week_end=week_end
         )
     
-    # ====== 关键：查这一周内已经记录过的 drug_records，构建 completed_map ======
-    # ====== 查这一周内已经记录过的 drug_records，构建 completed_map ======
+    # Get drug records for this week and build completed_map
     records = drug_record_repo.get_drug_records_by_date_range(
         user_id=user_id,
         start=week_start,
@@ -405,13 +385,13 @@ def patient_plan_page():
 
     completed_map = {}
     for r in records:
-        # 必须要挂在某个 plan_item 上，且有 expected_date
+        # Must be linked to a plan_item with expected_date
         if r.plan_item_id is None or r.expected_date is None:
             continue
 
         key = f"{r.plan_item_id}_{r.expected_date.isoformat()}_{r.expected_time.isoformat() if r.expected_time else ''}"
 
-        # 用 expected_date + expected_time 和 updated_at 来判断 EARLY / LATE / ON_TIME
+        # Determine EARLY / LATE / ON_TIME using expected_date + expected_time vs updated_at
         timing_status = "ON_TIME"
         if r.updated_at and r.expected_time:
             if r.expected_time:
@@ -419,7 +399,6 @@ def patient_plan_page():
             else:
                 expected_dt = datetime.combine(r.expected_date, dt_time.min)
 
-            # updated_at 是 aware，取它的 tzinfo
             tz = r.updated_at.tzinfo
             expected_dt = expected_dt.replace(tzinfo=tz)
 
@@ -433,18 +412,16 @@ def patient_plan_page():
             else:
                 timing_status = "EARLY"
 
-        # 记录下实际记录时间（HH:MM）
         taken_time_str = r.updated_at.isoformat() if r.updated_at else None
-        # e.g. "2025-11-20T22:16:52.843000"
         completed_map[key] = {
             "status": timing_status,
             "taken_time": taken_time_str,
         }
     
-    # 过滤出选中日期的 plan_items
+    # Filter plan_items for selected date
     day_items = [item for item in plan.plan_items if item.date == selected_date]
     
-    # 根据时间分组
+    # Group by time
     morning_items = []
     noon_items = []
     evening_items = []

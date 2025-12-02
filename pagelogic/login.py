@@ -14,7 +14,7 @@ def login():
         return redirect_by_role(session['type'])
     return render_template("login.html")
 
-# Magic Link 登录
+# Magic Link login
 @login_bp.route('/login/magic', methods=['GET','POST'])
 def send_magic_link():
     email = request.form['email']
@@ -50,7 +50,7 @@ def magic_login():
     cur.execute('SELECT * FROM users WHERE email = %s', (email,))
     user = cur.fetchone()
 
-    # 自动注册
+    # Auto-register if user doesn't exist
     if not user:
         cur.execute('INSERT INTO users (email, role, is_verified) VALUES (%s, %s, TRUE)', (email, 'patient'))
         mydb.commit()
@@ -68,10 +68,10 @@ def magic_login():
         (user['id'], session['session_token'], request.headers.get('User-Agent'), request.remote_addr)
     )
     mydb.commit()
-    flash('登录成功', 'success')
+    flash('Login successful', 'success')
     return redirect_by_role(user['role'])
 
-# Google OAuth 登录
+# Google OAuth login
 @login_bp.route('/login/google', methods=['GET'])
 def oauth_login():
     redirect_uri = url_for('login.oauth_authorize', _external=True)
@@ -82,7 +82,7 @@ def oauth_authorize():
     try:
         token = oauth.google.authorize_access_token()
     except Exception as e:
-        flash(f'OAuth 认证失败: {str(e)}', 'error')
+        flash(f'OAuth authentication failed: {str(e)}', 'error')
         return redirect(url_for('login.login'))
     
     user_info = oauth.google.get('userinfo').json()

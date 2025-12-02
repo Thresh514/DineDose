@@ -399,16 +399,12 @@ def test_give_feedback_manual_success(client, monkeypatch):
 
 
 def test_give_feedback_ai_success(client, monkeypatch):
-    """ FULL mock for AI branch → MUST return 200 """
-
     with client.session_transaction() as s:
         s["user_id"] = 1
 
-    # permission
     monkeypatch.setattr(doctor_bp.plan_repo, "get_plan_by_user_id",
                         lambda x: DummyPlan(doctor_id=1))
 
-    # user plan for that day
     monkeypatch.setattr(
         doctor_bp.plan_service, "get_user_plan",
         lambda pid, start, end: DummyPlan(
@@ -416,21 +412,18 @@ def test_give_feedback_ai_success(client, monkeypatch):
         )
     )
 
-    # drug record
     monkeypatch.setattr(
         doctor_bp.drug_record_repo,
         "get_drug_records_by_date_range",
         lambda **k: [DummyRecord()]
     )
 
-    # no previous feedback
     monkeypatch.setattr(
         doctor_bp.feedback_repo,
         "get_feedback_by_date",
         lambda *a, **k: None
     )
 
-    # AI generation
     monkeypatch.setattr(
         doctor_bp, "call_llm_api",
         lambda **k: {"success": True, "output": "AI OK"}
@@ -455,21 +448,18 @@ def test_give_feedback_ai_failed(client, monkeypatch):
     with client.session_transaction() as s:
         s["user_id"] = 1
 
-    # plan 权限
     monkeypatch.setattr(
         doctor_bp.plan_repo,
         "get_plan_by_user_id",
         lambda x: DummyPlan(doctor_id=1)
     )
 
-    # mock AI 失败
     monkeypatch.setattr(
         doctor_bp,
         "call_llm_api",
         lambda **k: {"success": False, "error": "x"}
     )
 
-    # mock 计划与记录（避免内部 None 崩溃）
     monkeypatch.setattr(
         doctor_bp.plan_service, "get_user_plan",
         lambda *a, **k: DummyPlan(plan_items=[])
@@ -605,9 +595,8 @@ def test_doctor_plans_ok(client):
 
 
 def test_doctor_home_no_doctor_id(client):
-    """覆盖 line 57–60: session 无 user_id"""
     resp = client.get("/doctor/home")
-    assert resp.status_code == 200   # 页面正常返回
+    assert resp.status_code == 200
 
 
 def test_add_patient_triggered_flag(client, monkeypatch):
@@ -622,7 +611,6 @@ def test_add_patient_triggered_flag(client, monkeypatch):
     doctor = DummyUser(id=1)
     monkeypatch.setattr(doctor_bp.user_repo, "get_user_by_id", lambda x: doctor)
 
-    # create_plan 将被触发
     monkeypatch.setattr(doctor_bp.plan_repo, "create_plan",
                         lambda **k: DummyPlan(id=99))
 
@@ -635,13 +623,11 @@ def test_feedback_page_no_tasks_and_no_records(client, monkeypatch):
     with client.session_transaction() as s:
         s["user_id"] = 1
 
-    # one patient
     patient = DummyUser(id=2)
     monkeypatch.setattr(doctor_bp.user_repo,
                         "get_patients_by_doctor_id",
                         lambda x: [patient])
 
-    # plan exists but has 0 items
     base_plan = DummyPlan(id=5, doctor_id=1, plan_items=[])
     monkeypatch.setattr(doctor_bp.plan_repo,
                         "get_plan_by_user_id",
@@ -653,12 +639,10 @@ def test_feedback_page_no_tasks_and_no_records(client, monkeypatch):
 
     yesterday = date.today() - timedelta(days=1)
 
-    # yesterday also empty
     monkeypatch.setattr(doctor_bp.plan_service,
                         "get_user_plan",
                         lambda pid, start, end: DummyPlan(plan_items=[]))
 
-    # no records
     monkeypatch.setattr(doctor_bp.drug_record_repo,
                         "get_drug_records_by_date_range",
                         lambda **k: [])
@@ -680,7 +664,6 @@ def test_patient_stats_no_plan_items(client, monkeypatch):
                         "get_plan_by_user_id",
                         lambda x: plan)
 
-    # yesterday empty
     monkeypatch.setattr(doctor_bp.plan_service,
                         "get_user_plan",
                         lambda *a: DummyPlan(plan_items=[]))
@@ -691,7 +674,7 @@ def test_patient_stats_no_plan_items(client, monkeypatch):
 
     resp = client.get("/doctor/patient_stats?patient_id=2")
     assert resp.status_code == 200
-    assert resp.get_json()["risk_level"] == "High"   # ← 修改
+    assert resp.get_json()["risk_level"] == "High"
 
 
 def test_patient_stats_taken_late_medium_risk(client, monkeypatch):
@@ -718,7 +701,7 @@ def test_patient_stats_taken_late_medium_risk(client, monkeypatch):
 
     resp = client.get("/doctor/patient_stats?patient_id=2")
     assert resp.status_code == 200
-    assert resp.get_json()["risk_level"] == "High"   # ← 修改
+    assert resp.get_json()["risk_level"] == "High"
 
 
 

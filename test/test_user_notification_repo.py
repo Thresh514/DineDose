@@ -218,9 +218,6 @@ def test_upsert_notification_config(monkeypatch):
 # get_or_create_default_notification_config
 # =====================================================
 def test_get_or_create_existing(monkeypatch, sample_row):
-    """
-    path 1: 存在 → 直接 return
-    """
     cur = FakeCursor(rows=[sample_row])
     conn = FakeConn(cur)
 
@@ -231,21 +228,14 @@ def test_get_or_create_existing(monkeypatch, sample_row):
 
 
 def test_get_or_create_create_default(monkeypatch):
-    """
-    path 2: 不存在 → 插入 default
-    """
-    # step1: 对 get 返回 None
     cur1 = FakeCursor(rows=[])
     conn1 = FakeConn(cur1)
 
-    # step2: 对 create 调用一个新的 cursor
     cur2 = FakeCursor()
     conn2 = FakeConn(cur2)
 
     calls = []
     def fake_mydb():
-        # 第一次 get → 返回 conn1
-        # 第二次 create → 返回 conn2
         calls.append(1)
         return conn1 if len(calls) == 1 else conn2
 

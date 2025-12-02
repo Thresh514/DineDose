@@ -1298,7 +1298,7 @@ body {
     color: #e65100;
 }
 
-/* 兼容旧的类名（calendar_dom.html 使用的简单类名） */
+/* Compatibility with old class names (simple class names used by calendar_dom.html) */
 .toolbar {
     margin-bottom: 20px;
     display: flex;

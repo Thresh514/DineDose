@@ -102,7 +102,7 @@
         const doctorId = "{{ doctor_id }}";
         const patientsData = JSON.parse('{{ patients | tojson | safe }}');
 
-        // 生成AI反馈
+        // Generate AI feedback
         async function generateAIFeedback(patientId) {
             const textarea = document.getElementById(`feedback-${patientId}`);
             const card = textarea.closest('.feedback-page-card');
@@ -146,7 +146,7 @@
             }
         }
 
-        // 发送反馈
+        // Send feedback
         async function sendFeedback(patientId, hasFeedbackToday = false) {
             const textarea = document.getElementById(`feedback-${patientId}`);
             const card = textarea.closest('.feedback-page-card');
@@ -157,7 +157,7 @@
                 return;
             }
 
-            // 如果今天已经发过feedback，显示确认对话框
+            // Show confirmation dialog if feedback already sent today
             if (hasFeedbackToday) {
                 const confirmMessage = 'You have already sent feedback today. Do you want to update it?';
                 if (!confirm(confirmMessage)) {
@@ -195,7 +195,7 @@
                 alert('Feedback saved successfully!');
                 textarea.value = '';
                 
-                // 更新状态显示（在统计区域）
+                // Update status display in stats area
                 const statsContainer = card.querySelector('.feedback-page-stats');
                 const feedbackStatItem = Array.from(statsContainer.querySelectorAll('.feedback-page-stat-item')).find(item => {
                     return item.querySelector('.feedback-page-stat-label').textContent === 'Feedback Status';
@@ -205,7 +205,7 @@
                     statValue.innerHTML = '<span class="feedback-page-stat-badge feedback-page-status sent">Already sent today</span>';
                 }
                 
-                // 更新按钮的hasFeedbackToday状态
+                // Update button's hasFeedbackToday status
                 const sendBtn = card.querySelector('.btn-send');
                 if (sendBtn) {
                     sendBtn.setAttribute('onclick', `sendFeedback(${patientId}, true)`);
@@ -218,12 +218,12 @@
             }
         }
 
-        // 筛选功能（简单实现）
+        // Filter functionality
         document.querySelectorAll('.feedback-page-filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.feedback-page-filter-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                // 这里可以添加筛选逻辑
+                // Add filter logic here
             });
         });
     </script>

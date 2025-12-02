@@ -47,10 +47,7 @@ def create_or_update_feedback(
     feedback_date: date,
     feedback: str
 ) -> doctor_feedback:
-    """
-    创建或更新某一天的反馈（每天只能有一条）
-    使用 ON CONFLICT 来处理唯一约束
-    """
+    """Create or update feedback for a day (only one per day). Use ON CONFLICT to handle unique constraint."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -82,9 +79,7 @@ def get_feedback_by_date(
     patient_id: int,
     feedback_date: date
 ) -> Optional[doctor_feedback]:
-    """
-    获取某一天的反馈
-    """
+    """Get feedback for a day."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -114,9 +109,7 @@ def get_feedbacks_by_date_range(
     start_date: date,
     end_date: date
 ) -> List[doctor_feedback]:
-    """
-    获取日期范围内的所有反馈
-    """
+    """Get all feedbacks within date range."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -138,9 +131,7 @@ def get_feedbacks_by_date_range(
 
 # ---------- DELETE ----------
 def delete_feedback(patient_id: int, feedback_date: date) -> bool:
-    """
-    删除某一天的反馈
-    """
+    """Delete feedback for a day."""
     conn = mydb()
     cur = conn.cursor()
 

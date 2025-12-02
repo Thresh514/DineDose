@@ -143,7 +143,7 @@ html,body{
 }
 .dotted-progress li:first-child,
 .dotted-progress li:last-child{
-  flex:0 0 36px; /* 两端更短，贴近设计感 */
+  flex:0 0 36px; /* Shorter ends for design */
 }
 
 /* Bottom Navbar */
@@ -173,7 +173,7 @@ html,body{
   font-weight:600;
 }
 
-/* Button 样式 */
+/* Button styles */
 button,
 .btn{
   font-size:1rem;
@@ -207,11 +207,11 @@ button:active,
 
 
 /* =========================================================
-   Patient Food Category Page (patient_food_category_page.html) 专用
-   采用 .pfc-* 前缀避免影响其它页面
+   Patient Food Category Page (patient_food_category_page.html)
+   Uses .pfc-* prefix to avoid conflicts
    ========================================================= */
 
-/* 固定容器（包含tabs和搜索栏） */
+/* Fixed container (tabs and search) */
 .pfc-container{
   position:sticky;
   top:0;
@@ -225,7 +225,7 @@ button:active,
   box-shadow:0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* 顶部 Tabs */
+/* Top tabs */
 .pfc-tabs{
   position:relative;
   display:flex;
@@ -264,12 +264,12 @@ button:active,
   border-width:0px;
 }
 
-/* Panel容器 */
+/* Panel container */
 .pfc-panel{
   margin-top:0;
 }
 
-/* 列表 */
+/* List */
 .pfc-list{
   list-style:none;
   margin:0;
@@ -310,7 +310,7 @@ button:active,
   min-width:0;
 }
 
-/* 搜索栏（固定在tabs下方） */
+/* Search bar (fixed below tabs) */
 .pfc-search{
   padding:8px 0 8px;
   background:var(--bg);
@@ -319,7 +319,7 @@ button:active,
   align-items:center;
   gap:14px;
 }
-/* 放大镜装饰（左侧独立圆圈） */
+/* Search icon decoration */
 .pfc-search-leading{
   position:relative;
   width:40px;
@@ -335,7 +335,7 @@ button:active,
   height:auto;
   display:block;
 }
-/* 输入框容器 */
+/* Input container */
 .pfc-search-field{
   flex:1;
   display:flex;
@@ -367,7 +367,7 @@ button:active,
 }
 .pfc-search-clear:active{opacity:0.8}
 
-/* 小屏细节优化（本页面） */
+/* Small screen optimizations */
 @media (max-width:360px){
   .pfc-tab{font-size:18px}
   .pfc-title{font-size:15px}
@@ -376,8 +376,8 @@ button:active,
 }
 
 /* =========================================================
-   Plan Page (patient_plan.html) 专用
-   采用 .calendar-* 前缀避免影响其它页面
+   Plan Page (patient_plan.html)
+   Uses .calendar-* prefix to avoid conflicts
    ========================================================= */
 
 .plan-page{
@@ -392,7 +392,7 @@ button:active,
   height:100svh;
 }
 
-/* 标题 */
+/* Title */
 .plan-title{
   font-size:32px;
   font-weight:600;
@@ -402,8 +402,7 @@ button:active,
   letter-spacing:0.2px;
 }
 
-/* 星期导航 */
-/* 周导航控制 */
+/* Week navigation */
 .plan-week-controls{
   display:flex;
   align-items:center;
@@ -505,7 +504,7 @@ button:active,
   line-height:1.2;
 }
 
-/* 时间段部分容器 */
+/* Time section container */
 .plan-sections{
   display:flex;
   flex-direction:column;
@@ -517,7 +516,7 @@ button:active,
   max-height:calc(100vh - 200px);
 }
 
-/* 时间段部分 */
+/* Time section */
 .time-section{
   position:relative;
   padding:16px var(--side);
@@ -535,7 +534,7 @@ button:active,
   border-bottom:0;
 }
 
-/* 背景图标 */
+/* Background icon */
 .time-section-bg{
   position:absolute;
   top:50%;
@@ -559,7 +558,7 @@ button:active,
   max-height:100%;
 }
 
-/* 计划项列表 */
+/* Plan item list */
 .plan-item-list{
   list-style:none;
   margin:0;
@@ -571,7 +570,7 @@ button:active,
   z-index:1;
 }
 
-/* 计划项 */
+/* Plan item */
 .plan-item{
   display:flex;
   align-items:center;
@@ -579,7 +578,7 @@ button:active,
   padding:4px 0;
 }
 
-/* 头像圆圈 */
+/* Avatar circle */
 .plan-item-avatar{
   width:48px;
   height:48px;
@@ -593,7 +592,7 @@ button:active,
   flex-shrink:0;
 }
 
-/* 内容区域 */
+/* Content area */
 .plan-item-content{
   flex:1;
   display:flex;
@@ -617,7 +616,7 @@ button:active,
   color:#666;
 }
 
-/* 复选框按钮 */
+/* Checkbox button */
 .plan-item-checkbox{
   width:32px;
   height:32px;
@@ -646,12 +645,12 @@ button:active,
   height:24px;
 }
 
-/* 复选框选中状态 */
+/* Checkbox checked state */
 .plan-item-checkbox.checked{
   color:var(--text);
 }
 
-/* 复选框禁用状态 */
+/* Checkbox disabled state */
 .plan-item-checkbox.disabled,
 .plan-item-checkbox:disabled{
   opacity:0.4;
@@ -665,7 +664,7 @@ button:active,
   opacity:0.4;
 }
 
-/* 空状态 */
+/* Empty state */
 .plan-empty-state{
   display:flex;
   align-items:center;
@@ -680,7 +679,7 @@ button:active,
   color:#999;
 }
 
-/* Dialog组件 */
+/* Dialog component */
 .plan-dialog{
   display:none;
   position:fixed;
@@ -812,7 +811,7 @@ button:active,
   opacity:0.8;
 }
 
-/* 医生反馈卡片 */
+/* Doctor feedback card */
 .doctor-feedback-card{
   background:linear-gradient(135deg, #e8f2ff 0%, #f0f7ff 100%);
   border:2px solid #1976d2;
@@ -859,7 +858,7 @@ button:active,
   margin-top:4px;
 }
 
-/* 小屏优化 */
+/* Small screen optimizations */
 @media (max-width:360px){
   .plan-title{font-size:28px}
   .week-day{font-size:16px;min-width:32px;height:32px}
@@ -872,15 +871,15 @@ button:active,
 }
 
 /* =========================================================
-   Reminder Page (patient_reminder.html) 专用
-   采用 .reminder-* 前缀避免影响其它页面
+   Reminder Page (patient_reminder.html)
+   Uses .reminder-* prefix to avoid conflicts
    ========================================================= */
 
 .reminder-page{
   padding:0 var(--side) 24px;
 }
 
-/* 页面标题 */
+/* Page title */
 .reminder-page-title{
   font-size:14px;
   color:#999;
@@ -888,7 +887,7 @@ button:active,
   font-weight:400;
 }
 
-/* 主标题 */
+/* Main title */
 .reminder-main-title{
   font-size:28px;
   font-weight:700;
@@ -897,7 +896,7 @@ button:active,
   letter-spacing:0.2px;
 }
 
-/* 提醒卡片 */
+/* Reminder card */
 .reminder-card{
   background:var(--bg);
   border:1px solid var(--muted);
@@ -906,7 +905,7 @@ button:active,
   margin:20px 0px;
 }
 
-/* 当前提醒卡片 - 更醒目 */
+/* Current reminder card */
 .reminder-card--current{
   border:2px solid var(--text);
   box-shadow:0 4px 12px rgba(0,0,0,0.1);
@@ -957,7 +956,7 @@ button:active,
   font-weight:400;
 }
 
-/* 状态显示 */
+/* Status display */
 .reminder-status{
   display:flex;
   align-items:center;
@@ -979,7 +978,7 @@ button:active,
   color:#4caf50;
 }
 
-/* 完成按钮 */
+/* Complete button */
 .reminder-complete-btn{
   width:100%;
   padding:16px 24px;
@@ -1002,7 +1001,7 @@ button:active,
   opacity:0.8;
 }
 
-/* 同步提示 */
+/* Sync note */
 .reminder-sync-note{
   font-size:14px;
   color:#999;
@@ -1010,7 +1009,7 @@ button:active,
   margin:0 0 24px;
 }
 
-/* 成功消息横幅 */
+/* Success banner */
 .reminder-success-banner{
   background:var(--muted-2);
   border-radius:12px;
@@ -1021,7 +1020,7 @@ button:active,
   margin:24px 0 0;
 }
 
-/* 小屏优化 */
+/* Small screen optimizations */
 @media (max-width:360px){
   .reminder-main-title{font-size:28px}
   .reminder-card{padding:16px}
@@ -1030,15 +1029,15 @@ button:active,
 }
 
 /* =========================================================
-   Food History Page (patient_food_history.html) 专用
-   采用 .food-history-* 前缀避免影响其它页面
+   Food History Page (patient_food_history.html)
+   Uses .food-history-* prefix to avoid conflicts
    ========================================================= */
 
 .food-history-page{
   padding:0 var(--side) 24px;
 }
 
-/* 页面标题 */
+/* Page title */
 .food-history-header{
   padding:16px 0;
   border-bottom:1px solid var(--muted);
@@ -1053,7 +1052,7 @@ button:active,
   letter-spacing:0.2px;
 }
 
-/* 筛选按钮 */
+/* Filter buttons */
 .food-history-filters{
   display:flex;
   gap:8px;
@@ -1086,14 +1085,14 @@ button:active,
   border-color:var(--text);
 }
 
-/* 食物记录列表 */
+/* Food record list */
 .food-history-list{
   display:flex;
   flex-direction:column;
   gap:24px;
 }
 
-/* 日期分组 */
+/* Date grouping */
 .food-history-date-group{
   margin-bottom:8px;
 }
@@ -1127,7 +1126,7 @@ button:active,
   gap:12px;
 }
 
-/* 食物记录项 */
+/* Food record item */
 .food-history-item{
   display:flex;
   align-items:flex-start;
@@ -1232,7 +1231,7 @@ button:active,
   color:#ef5757;
 }
 
-/* 空状态 */
+/* Empty state */
 .food-history-empty{
   display:flex;
   flex-direction:column;
@@ -1259,7 +1258,7 @@ button:active,
   color:#666;
 }
 
-/* 小屏适配 */
+/* Small screen adaptions */
 @media (max-width:360px){
   .food-history-title{font-size:24px}
   .food-history-item{padding:12px}
@@ -1269,8 +1268,8 @@ button:active,
 }
 
 /* =========================================================
-   Food Detail Page (patient_food_detail.html) 专用
-   采用 .food-detail-* 前缀避免影响其它页面
+   Food Detail Page (patient_food_detail.html)
+   Uses .food-detail-* prefix to avoid conflicts
    ========================================================= */
 
 .food-detail-page {
@@ -1278,7 +1277,7 @@ button:active,
     padding-bottom: calc(var(--nav-h) + 80px);
 }
 
-/* 页面标题 */
+/* Page title */
 .food-detail-header {
     padding: 8px 0;
     margin-bottom: 12px;
@@ -1292,7 +1291,7 @@ button:active,
     letter-spacing: 0.2px;
 }
 
-/* 主卡片 */
+/* Main card */
 .food-detail-card {
     background: var(--bg);
     border-radius: 16px;
@@ -1300,7 +1299,7 @@ button:active,
     margin-top: 8px;
 }
 
-/* 食物图片容器 */
+/* Food image container */
 .food-detail-image-container {
     width: 100%;
     margin-bottom: 16px;
@@ -1328,7 +1327,7 @@ button:active,
     object-fit: cover;
 }
 
-/* 加载中动画 */
+/* Loading animation */
 .food-detail-image-spinner {
     width: 60px;
     height: 60px;
@@ -1346,14 +1345,14 @@ button:active,
     100% { transform: rotate(360deg); }
 }
 
-/* 表单 */
+/* Form */
 .food-detail-form {
     display: flex;
     flex-direction: column;
     gap: 14px;
 }
 
-/* 表单字段 */
+/* Form field */
 .food-detail-field {
     display: flex;
     flex-direction: column;
@@ -1390,7 +1389,7 @@ button:active,
     min-height: 70px;
 }
 
-/* 按钮组 */
+/* Button group */
 .food-detail-actions {
     display: flex;
     gap: 10px;
@@ -1430,7 +1429,7 @@ button:active,
     opacity: 0.8;
 }
 
-/* 成功消息横幅 */
+/* Success banner */
 .food-detail-success-banner {
     margin-top: 12px;
     padding: 12px 16px;
@@ -1441,9 +1440,9 @@ button:active,
     color: var(--text);
 }
 
-/* 小屏优化 */
+/* Small screen optimizations */
 @media (max-width: 360px) {
-    .food-detail-title {
+  .food-detail-title {
         font-size: 24px;
     }
     .food-detail-card {
@@ -1456,7 +1455,7 @@ button:active,
 }
 
 /* =========================================================
-   User Menu (patient_header.html) 专用
+   User Menu (patient_header.html)
    ========================================================= */
 
 /* User Menu Container */

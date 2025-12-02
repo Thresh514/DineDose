@@ -29,17 +29,12 @@ class NotificationConfig:
         )
 
 
-# ================== 内部工具函数 ==================
+# ================== Internal helper functions ==================
 
 def _row_to_notification_config(cur, row) -> NotificationConfig:
-    """
-    把一行 tuple 转成 NotificationConfig dataclass。
-    和 drug 那套一样，通过 cur.description 拿列名。
-    """
+    """Convert a tuple row to NotificationConfig dataclass."""
     columns = [desc[0] for desc in cur.description]
     rd = dict(zip(columns, row))
-
-    # rd["notify_minutes"] 在 PostgreSQL 里是 list / array，直接用即可
     return NotificationConfig(
         user_id=rd["user_id"],
         enabled=rd["enabled"],
@@ -50,26 +45,22 @@ def _row_to_notification_config(cur, row) -> NotificationConfig:
 
 
 def _validate_notification_config(cfg: NotificationConfig) -> None:
-    """
-    做一点简单的校验，不合法直接 raise。
-    """
+    """Simple validation, raise if invalid."""
     if not isinstance(cfg.notify_minutes, list):
-        raise ValueError("notify_minutes 必须是 List[int]")
+        raise ValueError("notify_minutes must be List[int]")
 
     for n in cfg.notify_minutes:
         if not isinstance(n, int):
-            raise ValueError("notify_minutes 中的元素必须是 int")
+            raise ValueError("Elements in notify_minutes must be int")
         if n < -1440 or n > 1440:
-            raise ValueError("notify_minutes 超出允许范围 [-1440, 1440]")
+            raise ValueError("notify_minutes out of allowed range [-1440, 1440]")
 
     if not cfg.timezone:
-        raise ValueError("timezone 不能为空")
+        raise ValueError("timezone cannot be empty")
 
 
 def default_notification_config(user_id: int) -> NotificationConfig:
-    """
-    新用户默认通知配置。
-    """
+    """Default notification config for new users."""
     return NotificationConfig(
         user_id=user_id,
         enabled=True,
@@ -82,9 +73,7 @@ def default_notification_config(user_id: int) -> NotificationConfig:
 # ================== repo functions ==================
 
 def get_notification_config(user_id: int) -> Optional[NotificationConfig]:
-    """
-    查单个 user 的通知配置，不存在返回 None。
-    """
+    """Get notification config for a single user; returns None if not found."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -115,10 +104,7 @@ def get_notification_config(user_id: int) -> Optional[NotificationConfig]:
 
 
 def get_notification_configs_by_user_ids(user_ids: List[int]) -> Dict[int, NotificationConfig]:
-    """
-    批量查一组 user 的通知配置。
-    返回 { user_id: NotificationConfig }，方便在 send_notifications 里用。
-    """
+    """Batch query notification configs for a group of users. Returns {user_id: NotificationConfig}."""
     if not user_ids:
         return {}
 
@@ -151,9 +137,7 @@ def get_notification_configs_by_user_ids(user_ids: List[int]) -> Dict[int, Notif
 
 
 def create_notification_config(cfg: NotificationConfig) -> None:
-    """
-    只做 insert，不存在冲突就插入。
-    """
+    """Insert only, insert if no conflict."""
     _validate_notification_config(cfg)
 
     conn = mydb()
@@ -171,7 +155,7 @@ def create_notification_config(cfg: NotificationConfig) -> None:
             cfg.user_id,
             cfg.enabled,
             cfg.email_enabled,
-            cfg.notify_minutes,  # integer[]，直接传 list 即可（Postgres）
+            cfg.notify_minutes,
             cfg.timezone,
         ),
     )
@@ -182,9 +166,7 @@ def create_notification_config(cfg: NotificationConfig) -> None:
 
 
 def update_notification_config(cfg: NotificationConfig) -> None:
-    """
-    更新一条已存在的配置。
-    """
+    """Update an existing config."""
     _validate_notification_config(cfg)
 
     conn = mydb()
@@ -218,10 +200,7 @@ def update_notification_config(cfg: NotificationConfig) -> None:
 
 
 def upsert_notification_config(cfg: NotificationConfig) -> None:
-    """
-    存在则更新，不存在则插入。
-    依赖 user_id 上有 PRIMARY KEY / UNIQUE 约束。
-    """
+    """Update if exists, insert if not. Requires PRIMARY KEY / UNIQUE constraint on user_id."""
     _validate_notification_config(cfg)
 
     conn = mydb()
@@ -256,9 +235,7 @@ def upsert_notification_config(cfg: NotificationConfig) -> None:
 
 
 def get_or_create_default_notification_config(user_id: int) -> NotificationConfig:
-    """
-    没有记录就插一条默认的。
-    """
+    """Insert default if no record exists."""
     cfg = get_notification_config(user_id)
     if cfg is not None:
         return cfg

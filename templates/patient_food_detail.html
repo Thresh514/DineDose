@@ -1,15 +1,15 @@
 {% extends 'patient_base.html' %}
 {% block content %}
 <div class="food-detail-page">
-    <!-- 页面标题 -->
+    <!-- Page Title -->
     <div class="food-detail-header">
         <h1 class="food-detail-title">Add Meal Intake</h1>
         <h3 class="food-detail-subtitle">{{ food.description }}</h3>
     </div>
 
-    <!-- 主要内容卡片 -->
+    <!-- Main Content Card -->
     <div class="food-detail-card" data-food-id="{{ food.id }}" data-user-id="{{ user_id }}" data-food-name="{{ food.description|e }}">
-        <!-- 食物图片 -->
+        <!-- Food Image -->
         <div class="food-detail-image-container">
             <div id="food-detail-image-wrapper">
                 <img src="" 
@@ -21,19 +21,19 @@
             </div>
         </div>
 
-        <!-- 错误消息横幅 -->
+        <!-- Error Banner -->
         <div id="error-banner" class="food-detail-error-banner" style="display: none;">
             <!-- error text fill by JS -->
         </div>
 
-        <!-- 成功消息横幅 -->
+        <!-- Success Banner -->
         <div id="success-banner" class="food-detail-success-banner" style="display: none;">
             Meal added successfully
         </div>
 
-        <!-- 表单 -->
+        <!-- Form -->
         <form id="food-detail-form" class="food-detail-form">
-            <!-- Amount 输入 -->
+            <!-- Amount Input -->
             <div class="food-detail-field">
                 <label for="amount" class="food-detail-label">Amount</label>
                 <input type="text" 
@@ -43,7 +43,7 @@
                        placeholder="e.g. 300">
             </div>
 
-            <!-- Unit 输入 -->
+            <!-- Unit Input -->
             <div class="food-detail-field">
                 <label for="unit" class="food-detail-label">Unit</label>
                 <input type="text" 
@@ -53,7 +53,7 @@
                        placeholder="gram">
             </div>
 
-            <!-- Notes 输入 -->
+            <!-- Notes Input -->
             <div class="food-detail-field">
                 <label for="notes" class="food-detail-label">Notes</label>
                 <textarea id="notes" 
@@ -63,7 +63,7 @@
                           placeholder="Write notes here if needed!"></textarea>
             </div>
 
-            <!-- 按钮组 -->
+            <!-- Button Group -->
             <div class="food-detail-actions">
                 <button type="button" 
                         id="cancel-btn" 
@@ -95,7 +95,7 @@
 </div>
 
 <style>
-/* 简单给 error / success 一个样式 */
+/* Error / Success Banner Styles */
 .food-detail-error-banner {
     margin-top: 10px;
     padding: 10px 14px;
@@ -172,12 +172,12 @@
         errorBanner.textContent = '';
     }
 
-    // Cancel 按钮 - 返回上一页
+    // Cancel button - go back
     cancelBtn.addEventListener('click', function() {
         window.history.back();
     });
 
-    // 表单提交
+    // Form submission
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -185,28 +185,28 @@
         const unit = document.getElementById('unit').value.trim();
         const notes = document.getElementById('notes').value.trim();
 
-        // ====== 前端校验（满足 Test Case 18/19/20） ======
+        // Frontend validation
 
-        // 1) 必填：amount + unit
+        // Required: amount + unit
         if (!amountStr || !unit) {
             showError('Amount and unit are required.');
             return;
         }
 
-        // 2) must be num
+        // Must be a number
         const amountNum = Number(amountStr);
         if (Number.isNaN(amountNum)) {
             showError('Amount must be a number.');
             return;
         }
 
-        // 3) must be positive
+        // Must be positive
         if (amountNum <= 0) {
             showError('Amount must be positive');
             return;
         }
 
-        // clear previous error
+        // Clear previous error
         clearError();
 
         const data = {

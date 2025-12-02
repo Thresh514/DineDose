@@ -153,7 +153,6 @@ def test_get_plans_by_user_ids_empty_input():
 # get_all_plan_items
 # ===============================================
 def test_get_all_plan_items(monkeypatch):
-    # row = id, plan_id, drug_id, dosage, unit, amount_literal, note
     row = (1, 100, 2000, 10, "mg", "literal", "note")
     cursor = FakeCursor(rows=[row])
     cursor.description = [
@@ -191,7 +190,6 @@ def test_get_all_plan_items_by_plan_id(monkeypatch):
 # get_plan_item_rules_by_plan_id
 # ===============================================
 def test_get_plan_item_rules_by_plan_id_no_rule(monkeypatch):
-    # plan_item_id exists, rule_id=None (LEFT JOIN)
     row = (1, None, None, None, None, None, None, None, None, None, None, None, None, None)
     cursor = FakeCursor(rows=[row])
     cursor.description = [
@@ -206,11 +204,10 @@ def test_get_plan_item_rules_by_plan_id_no_rule(monkeypatch):
     monkeypatch.setattr(plan_repo, "mydb", lambda: conn)
 
     res = plan_repo.get_plan_item_rules_by_plan_id(100)
-    assert res[1] == []  # rule is empty list
+    assert res[1] == []
 
 
 def test_get_plan_item_rules_by_plan_id_with_rule(monkeypatch):
-    # rule exists
     row = (
         1,       # plan_item_id
         10,      # rule_id
@@ -240,7 +237,6 @@ def test_get_plan_item_rules_by_plan_id_with_rule(monkeypatch):
 # create_plan_item_with_rules
 # ===============================================
 def test_create_plan_item_with_rules_success(monkeypatch):
-    # first fetchone for plan_item_id
     row_item = (123,)
     cursor = FakeCursor(rows=[row_item])
     conn = FakeConn(cursor)
@@ -294,7 +290,7 @@ def test_create_plan_item_with_rules_exception(monkeypatch):
 # ===============================================
 def test_update_plan_item_with_rules_success(monkeypatch):
     cursor = FakeCursor(rows=[(1,)])
-    cursor.rowcount = 1  # simulate update success
+    cursor.rowcount = 1
     conn = FakeConn(cursor)
     monkeypatch.setattr(plan_repo, "mydb", lambda: conn)
 
@@ -307,7 +303,7 @@ def test_update_plan_item_with_rules_success(monkeypatch):
 
 def test_update_plan_item_with_rules_not_found(monkeypatch):
     cursor = FakeCursor(rows=[(1,)])
-    cursor.rowcount = 0  # simulate update 0 rows
+    cursor.rowcount = 0
     conn = FakeConn(cursor)
     monkeypatch.setattr(plan_repo, "mydb", lambda: conn)
 
@@ -341,7 +337,7 @@ def test_update_plan_item_with_rules_exception(monkeypatch):
 # ===============================================
 def test_delete_plan_item_and_rules_success(monkeypatch):
     cursor = FakeCursor()
-    cursor.rowcount = 1  # simulate delete success
+    cursor.rowcount = 1
     conn = FakeConn(cursor)
     monkeypatch.setattr(plan_repo, "mydb", lambda: conn)
 

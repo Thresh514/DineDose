@@ -45,7 +45,7 @@
                 .then(res => res.json())
                 .then(patients => {
                     const list = document.getElementById("patient-list");
-                    // 保留添加卡片，移除其他内容
+                    // Keep add card, remove other content
                     const addCard = document.getElementById("add-patient-card");
                     list.innerHTML = "";
                     list.appendChild(addCard);
@@ -87,7 +87,7 @@
                         list.appendChild(card);
                     });
 
-                    // 事件代理：点击 Remove 按钮
+                    // Event delegation: click Remove button
                     list.addEventListener("click", function (e) {
                         if (!e.target.closest(".home-page-btn-remove")) return;
 
@@ -106,7 +106,7 @@
                         "Error loading patients.";
                 });
 
-            // 添加患者功能
+            // Add patient functionality
             const addPatientCard = document.getElementById("add-patient-card");
             const addPatientPlaceholder = document.getElementById("add-patient-placeholder");
             const addPatientForm = document.getElementById("add-patient-form");
@@ -115,14 +115,14 @@
             const patientEmailInput = document.getElementById("patient-email-input");
             const messageDiv = document.getElementById("add-patient-message");
 
-            // 点击占位符显示表单
+            // Click placeholder to show form
             addPatientPlaceholder.addEventListener("click", function() {
                 addPatientPlaceholder.style.display = "none";
                 addPatientForm.style.display = "block";
                 patientEmailInput.focus();
             });
 
-            // 点击取消按钮隐藏表单
+            // Click cancel button to hide form
             cancelAddBtn.addEventListener("click", function() {
                 addPatientForm.style.display = "none";
                 addPatientPlaceholder.style.display = "flex";
@@ -179,14 +179,14 @@
                     });
             });
 
-            // 支持回车键提交
+            // Support Enter key submission
             patientEmailInput.addEventListener("keypress", function(e) {
                 if (e.key === "Enter") {
                     addPatientBtn.click();
                 }
             });
 
-            // 移除患者功能
+            // Remove patient functionality
             function removePatient(patientId, button) {
                 button.disabled = true;
                 const originalText = button.innerHTML;
@@ -206,14 +206,14 @@
                             button.disabled = false;
                             button.innerHTML = originalText;
                         } else {
-                            // 移除卡片
+                            // Remove card
                             const card = button.closest(".home-page-card");
                             if (card) {
                                 card.style.transition = "opacity 0.3s";
                                 card.style.opacity = "0";
                                 setTimeout(() => {
                                     card.remove();
-                                    // 如果没有患者了，显示提示
+                                    // Show message if no patients left
                                     const list = document.getElementById("patient-list");
                                     if (list.children.length === 0) {
                                         list.textContent = "You currently have no patients.";

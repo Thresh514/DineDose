@@ -1,4 +1,4 @@
-/* 基础重置和变量 - 与 patient.css 统一 */
+/* Base reset and variables */
 *,
 *::before,
 *::after {
@@ -31,7 +31,7 @@ html, body {
   line-height: 1.6;
 }
 
-/* Index 页面样式 */
+/* Index page styles */
 body {
   position: relative;
   overflow-x: hidden;
@@ -123,7 +123,7 @@ body {
   opacity: 0.9;
 }
 
-/* 淡入动画 */
+/* Fade in animation */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -147,7 +147,7 @@ body {
   animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
-/* 标题呼吸效果 */
+/* Title breathing effect */
 @keyframes breathe {
   0%, 100% {
     transform: scale(1);
@@ -157,7 +157,7 @@ body {
   }
 }
 
-/* Login 页面样式 */
+/* Login page styles */
 .login-container {
   display: flex;
   flex-direction: column;
@@ -196,7 +196,7 @@ body {
 }
 
 
-/* 表单样式 */
+/* Form styles */
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -231,7 +231,7 @@ body {
   color: var(--text-light);
 }
 
-/* 登录按钮通用样式 */
+/* Login button styles */
 .login-btn {
   display: block;
   width: 100%;
@@ -257,12 +257,12 @@ body {
   opacity: 0.8;
 }
 
-/* Google Login 按钮 */
+/* Google login button */
 .google-login-btn {
   margin-bottom: 0;
 }
 
-/* 分隔线 */
+/* Divider */
 .divider {
   text-align: center;
   margin: 1.5rem 0;
@@ -289,12 +289,12 @@ body {
   right: 0;
 }
 
-/* Magic Link 按钮 */
+/* Magic link button */
 .magic-link-btn {
   margin-top: 1rem;
 }
 
-/* Forgot password 链接 */
+/* Forgot password link */
 .forgot-password {
   display: block;
   text-align: center;
@@ -331,7 +331,7 @@ body {
   margin-bottom: 0;
 }
 
-/* 响应式设计 */
+/* Responsive design */
 @media (max-width: 768px) {
   .index-container h1 {
     font-size: 2.5rem;

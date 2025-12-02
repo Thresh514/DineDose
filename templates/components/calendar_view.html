@@ -1,8 +1,8 @@
 <script>
 /**
- * 通用日历组件（Doctor View 版本）
- * 额外从 /get_drug_records_by_user_id?user_id=xx 拉取服药记录，
- * 用 expected_date/time + updated_at 计算 EARLY / ON_TIME / LATE。
+ * Generic calendar component (Doctor View version)
+ * Fetches drug records from /get_drug_records_by_user_id?user_id=xx,
+ * calculates EARLY / ON_TIME / LATE using expected_date/time + updated_at.
  */
 function create_calendar(options) {
     const {
@@ -60,7 +60,7 @@ function create_calendar(options) {
     const recordMap   = {};            // key(plan_item+date+time) -> {status, takenAt: Date}
     let   recordsLoaded = false;       // 服药记录只拉一次
 
-    // ==== 工具函数 ====
+    // ==== Utility Functions ====
     function toISODate(d) {
         return d.toISOString().slice(0, 10);
     }
@@ -121,7 +121,7 @@ function create_calendar(options) {
         return { from, to };
     }
 
-    // ==== 拉取计划 ====
+    // ==== Fetch Plans ====
     async function fetchRange(fromDate, toDate) {
         const fromStr = toISODate(fromDate);
         const toStr   = toISODate(toDate);
@@ -161,7 +161,7 @@ function create_calendar(options) {
         if (tasks.length) await Promise.all(tasks);
     }
 
-    // ==== 拉取服药记录（一次性） ====
+    // ==== Fetch Drug Records (one-time) ====
     async function fetchDrugRecordsOnce() {
         if (recordsLoaded) return;
         const url = `${recordsApiBase}?user_id=${userId}`;
@@ -172,7 +172,7 @@ function create_calendar(options) {
                 recordsLoaded = true;
                 return;
             }
-            const list = await res.json();  // 数组
+            const list = await res.json();  // Array
             buildRecordMap(list || []);
             recordsLoaded = true;
         } catch (e) {
@@ -181,20 +181,20 @@ function create_calendar(options) {
         }
     }
 
-    // 用 updated_at + expected_date/time 算 EARLY / ON_TIME / LATE
+    // Calculate EARLY / ON_TIME / LATE using updated_at + expected_date/time
     function buildRecordMap(records) {
         records.forEach(rec => {
             if (!rec.plan_item_id || !rec.expected_date) return;
 
             const key = makeKeyFromRecord(rec);
             if (!rec.updated_at) {
-                // 没有 updated_at 的就当没吃，直接跳过
+                // Skip if no updated_at
                 return;
             }
 
             try {
-                const updated = new Date(rec.updated_at); // 有时区
-                // expected_time 可能是 "12:00:00" 或 null
+                const updated = new Date(rec.updated_at); // Has timezone
+                // expected_time may be "12:00:00" or null
                 const timeStr = rec.expected_time || "00:00:00";
                 const expectedLocal = new Date(rec.expected_date + "T" + timeStr);
 
@@ -238,7 +238,7 @@ function create_calendar(options) {
         };
     }
 
-    // 药物详情（带缓存）
+    // Drug details (with cache)
     async function fetchDrugDetail(drugId) {
         if (!drugId) return null;
         if (drugCache[drugId]) return drugCache[drugId];
@@ -258,7 +258,7 @@ function create_calendar(options) {
     async function showEventDetail(ev) {
         const drug = await fetchDrugDetail(ev.drug_id);
 
-        // 根据 recordMap 取状态
+        // Get status from recordMap
         const key = makeKeyFromItem(ev);
         const rec = recordMap[key];
 
@@ -310,14 +310,14 @@ function create_calendar(options) {
         openModal(eventHTML);
     }
 
-    // ==== 渲染 ====
+    // ==== Rendering ====
     async function loadAndRenderCurrentView() {
         showLoading();
         try {
             const { from, to } = computeViewRange(currentAnchor, currentView);
-            // 先把服药记录加载到 recordMap
+            // Load drug records into recordMap first
             await fetchDrugRecordsOnce();
-            // 再保证计划数据
+            // Then ensure plan data
             await ensureDataForRange(from, to);
             renderFromCache(from, to);
         } finally {
@@ -411,7 +411,7 @@ function create_calendar(options) {
         }
     }
 
-    // ==== 控件 ====
+    // ==== Controls ====
     function initViewButtons() {
         viewButtons.forEach(btn => {
             btn.addEventListener("click", () => {
@@ -446,12 +446,12 @@ function create_calendar(options) {
         loadAndRenderCurrentView();
     }
 
-    // ==== 初始化 ====
+    // ==== Initialization ====
     initViewButtons();
     initNavButtons();
     loadAndRenderCurrentView();
 
-    // 返回可选 API
+    // Return optional API
     return {
         refresh: loadAndRenderCurrentView,
         setView(view) {

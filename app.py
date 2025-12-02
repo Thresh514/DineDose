@@ -17,10 +17,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config')
 
-    # 初始化扩展
+    # Initialize extensions
     mail.init_app(app)
     oauth.init_app(app)
-    # 注册 OAuth Provider
+    # Register OAuth Provider
     import config
     oauth.register(
         name='google',
@@ -31,7 +31,7 @@ def create_app():
         client_kwargs={'scope': 'openid email profile'}
     )
 
-    # 注册 Blueprints
+    # Register Blueprints
     from pagelogic.index import index_bp
     from pagelogic.login import login_bp
     from pagelogic.logout import logout_bp
@@ -54,14 +54,13 @@ def create_app():
     app.register_blueprint(food_record_bp.food_record_bp)
     app.register_blueprint(user_notification_bp.user_notification_bp)
 
-    drug_repo.get_drugs()#预热drug db入server
+    # Warm up DB caches
+    drug_repo.get_drugs()
     drug_repo.drugs
-
-    food_repo.get_foods()#预热food db入server
+    food_repo.get_foods()
     food_repo.foods
 
-
-    #启动发送提示的cronjob
+    # Start notification scheduler
     scheduler = BackgroundScheduler()
     scheduler.add_job(notify_cronjob,'interval', seconds=notify_interval)
     scheduler.start()

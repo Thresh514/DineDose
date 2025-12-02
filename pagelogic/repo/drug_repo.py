@@ -4,7 +4,7 @@ from typing import List, Optional
 from config import mydb
 import config
 
-drugs = [] #TODO: 如果查询慢，尝试优化
+drugs = []  # TODO: optimize if query is slow
 
 # =============== dataclass model ===============
 
@@ -26,7 +26,6 @@ class drug:
     finished: bool
 
     def to_dict(self) -> dict:
-        # 这里所有字段都是基本类型，直接 asdict 即可
         return asdict(self)
 
     def __str__(self) -> str:
@@ -39,10 +38,10 @@ class drug:
         )
 
 
-# =============== 内部小工具 ===============
+# =============== Internal helpers ===============
 
 def _row_to_drug(cur, row) -> drug:
-    """把一行 tuple 转成 drug dataclass。"""
+    """Convert a tuple row to drug dataclass."""
     columns = [desc[0] for desc in cur.description]
     rd = dict(zip(columns, row))
 
@@ -66,8 +65,8 @@ def _row_to_drug(cur, row) -> drug:
 
 # =============== repo functions ===============
 def get_drugs():
-    conn = mydb()       #copy-paste
-    cur = conn.cursor() #copy-paste
+    conn = mydb()
+    cur = conn.cursor()
 
     query = """
         SELECT
@@ -81,11 +80,10 @@ def get_drugs():
         query += " LIMIT 100"
 
     cur.execute(query)
-    rows = cur.fetchall() #一个list of （drugs 作为我不知道啥形式）
+    rows = cur.fetchall()
     for row in rows:
         d = _row_to_drug(cur, row)
         drugs.append(d)
-    # assign 给 drug_repo的drugs
     cur.close()
     conn.close()
 
@@ -93,11 +91,9 @@ def get_drugs():
 
 
 def get_drug_by_id(id: int) -> Optional[drug]:
-    """
-    按主键 id 拿一条 drug；不存在则返回 None。
-    """
-    conn = mydb()       #copy-paste
-    cur = conn.cursor() #copy-paste
+    """Get a drug by primary key id; returns None if not found."""
+    conn = mydb()
+    cur = conn.cursor()
 
     query = """
         SELECT
@@ -125,9 +121,7 @@ def get_drug_by_id(id: int) -> Optional[drug]:
 
 
 def get_drugs_by_ids(ids: List[int]) -> List[drug]:
-    """
-    按一组 id 查询多条 drug，返回 drug dataclass 列表。
-    """
+    """Query multiple drugs by a list of ids, returns a list of drug dataclasses."""
     if not ids:
         return []
 
@@ -181,7 +175,7 @@ def get_sample_drugs_locally() -> List[drug]:
 # Retrieve drugs whose brand_name or generic_name contain all the provided names (case-insensitive)
 def search_drugs_by_keywords_locally(names: List[str]) -> List[drug]:
     if not names or all(name == "" for name in names):
-        return drugs[:100]  # 如果 name 为空，返回前100个药品作为默认结果
+        return drugs[:100]  # Return first 100 drugs as default if name is empty
     res = []
     names = [name.lower() for name in names]
     

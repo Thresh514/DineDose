@@ -230,10 +230,7 @@ def get_drug_record_by_unique_key(
     expected_date: date,
     expected_time: Optional[dt_time]
 ) -> Optional[drug_record]:
-    """
-    用于 /mark_drug_taken：
-    按 (user_id, plan_item_id, expected_date, expected_time) 找唯一记录。
-    """
+    """Find unique record by (user_id, plan_item_id, expected_date, expected_time)."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -271,10 +268,7 @@ def get_drug_record_by_unique(
     expected_date: date,
     expected_time: Optional[dt_time]
 ) -> Optional[drug_record]:
-    """
-    查是否已经有同一个 user / plan_item / expected_date / expected_time 的记录。
-    用于防止重复打勾。
-    """
+    """Check if record exists for same user/plan_item/expected_date/expected_time to prevent duplicates."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -310,8 +304,7 @@ def get_drug_record_by_unique(
     conn.close()
     return record
 
-#get recent completed drug records within given days
-#return the list of drug_record
+# Get recent completed drug records within given days
 def get_recent_completed_drug_records(
     days: int,
     now: datetime

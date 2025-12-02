@@ -131,7 +131,7 @@
                     return;
                 }
 
-                // 渲染信息
+                // Render information
                 let text = "";
                 for (let key in data) {
                     text += `${key}: ${data[key]}\n`;
@@ -149,7 +149,7 @@
             document.getElementById("drug-modal").style.display = "none";
         }
 
-        // 点击modal外部关闭
+        // Close modal when clicking outside
         document.getElementById("drug-modal").addEventListener("click", function(e) {
             if (e.target === this) {
                 closeModal();

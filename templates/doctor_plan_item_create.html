@@ -32,7 +32,7 @@
             transition: width 0.3s ease;
         }
 
-        /* ====== 左列：表单 ====== */
+        /* ====== Left Column: Form ====== */
         .form-column {
             flex: 1;
             max-width: 600px;
@@ -189,7 +189,7 @@
             display: none;
         }
 
-        /* ====== 右列：患者信息和操作 ====== */
+        /* ====== Right Column: Patient Info and Actions ====== */
         .info-column {
             width: 350px;
             display: flex;
@@ -505,7 +505,7 @@
     {% include "components/doctor_sidebar.html" %}
 
     <div class="main-container">
-        <!-- 左列：表单 -->
+        <!-- Left Column: Form -->
         <div class="form-column">
             <div class="form-card">
                 <input type="hidden" id="plan-id" value="{{ plan_id if plan_id is defined else '' }}">
@@ -643,7 +643,7 @@
             </div>
         </div>
 
-        <!-- 右列：患者信息和操作 -->
+        <!-- Right Column: Patient Info and Actions -->
         <div class="info-column">
             <!-- Patient Info Card -->
             <div class="info-card">
@@ -662,7 +662,7 @@
                 </div>
             </div>
 
-            <!-- Validation Alert (预留给以后做 conflict 检查) -->
+            <!-- Validation Alert (reserved for future conflict checking) -->
             <div class="validation-alert hidden" id="validation-alert">
                 <div class="alert-title">Validation Alert</div>
                 <div class="alert-content">
@@ -952,7 +952,7 @@
             drugSearchResultsEl.innerHTML = '<li class="drug-search-empty">Search a drug by name or NDC.</li>';
             drugSearchInput.value = "";
 
-            // 重置通知设置为默认值（选中）
+            // Reset notification settings to default (checked)
             document.getElementById("notify-sms").checked = true;
             document.getElementById("notify-email").checked = true;
 

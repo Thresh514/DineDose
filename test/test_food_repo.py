@@ -39,7 +39,6 @@ class FakeConn:
 
 @pytest.fixture
 def mock_mydb(monkeypatch):
-    """Patch mydb() to return fake DB connection."""
     def fake_mydb():
         columns = [
             ("id",), ("fdc_id",), ("description",), ("fat",),

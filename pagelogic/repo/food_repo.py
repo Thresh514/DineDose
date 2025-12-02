@@ -113,7 +113,7 @@ def get_sample_foods_locally() -> List[food]:
 # Retrieve foods whose descriptions contain all the provided names (case-insensitive)
 def search_foods_by_keywords_locally(names: List[str]) -> List[food]:
     if not names or all(name == "" for name in names):
-        return foods[:100]  # 如果 name 为空，返回前100个食品作为默认结果
+        return foods[:100]  # Return first 100 foods as default if name is empty
     
     names = [name.lower() for name in names]
     res = []

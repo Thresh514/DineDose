@@ -14,17 +14,17 @@
     </div>
     
     <main class="container">
-      <!-- Gmail 登录 -->
+      <!-- Gmail Login -->
       <div class="login-option">
         <a href="{{ url_for('login.oauth_login') }}" class="login-btn google-login-btn">
           Gmail Login
         </a>
       </div>
 
-      <!-- 分隔线 -->
+      <!-- Divider -->
       <p class="divider">or</p>
 
-      <!-- Magic Link 登录 -->
+      <!-- Magic Link Login -->
       <div class="login-option">
         <form method="post" action="{{ url_for('login.send_magic_link') }}" id="magicLinkForm">
           <div class="form-group">

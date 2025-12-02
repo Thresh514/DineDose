@@ -120,9 +120,7 @@ def get_user_by_email(email: str) -> Optional[User]:
 
 
 def get_user_by_google_id(google_id: str) -> Optional[User]:
-    """
-    只针对使用 Google 登录的用户。
-    """
+    """Only for users logged in with Google."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -156,10 +154,7 @@ def create_user(
     role: str,
     is_verified: bool = True,
 ) -> User:
-    """
-    插入一条 user 记录并返回 User 实例。
-
-    """
+    """Insert a user record and return User instance."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -190,11 +185,8 @@ def update_user_basic_info(
     username: Optional[str] = None,
     avatar_url: Optional[str] = None,
 ) -> Optional[User]:
-    """
-    更新 username / avatar_url，返回更新后的 User。
-    如果只想改其中一个，另一个传 None 表示不变。
-    """
-    # 动态拼 set 子句
+    """Update username/avatar_url, return updated User. Pass None for unchanged field."""
+    # Dynamically build SET clause
     sets = []
     params = []
 
@@ -206,7 +198,6 @@ def update_user_basic_info(
         params.append(avatar_url)
 
     if not sets:
-        # 没有要更新的字段，直接返回当前 user
         return get_user_by_id(user_id)
 
     params.append(user_id)
@@ -240,11 +231,7 @@ def update_user_basic_info(
 
 
 def get_doctor_by_patient_id(patient_id: int) -> Optional[User]:
-    """
-    给定 patient_id，查这个 patient 对应的 doctor。
-    这里通过 plan 表上的 (patient_id, doctor_id) 关系来反查 User。
-    如果有多个 doctor，就先随便拿一个（可以按需要再加 ORDER BY）。
-    """
+    """Given patient_id, find corresponding doctor via plan table. If multiple doctors, take one."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -275,11 +262,7 @@ def get_doctor_by_patient_id(patient_id: int) -> Optional[User]:
 
 
 def get_patients_by_doctor_id(doctor_id: int) -> List[User]:
-    """
-    给定 doctor_id，查出所有由这个 doctor 负责的 patient 列表。
-    通过 plan 表上的 (doctor_id, patient_id) 关系反查 User。
-    用 DISTINCT 去重，避免同一个 patient 有多个 plan。
-    """
+    """Given doctor_id, find all patients managed by this doctor via plan table. Use DISTINCT to dedupe."""
     conn = mydb()
     cur = conn.cursor()
 
@@ -305,9 +288,7 @@ def get_patients_by_doctor_id(doctor_id: int) -> List[User]:
 
 
 def get_users_by_ids(user_ids: List[int]) -> List[User]:
-    """
-    批量查一组 user_id，返回对应的 User 列表。
-    """
+    """Batch query user_ids, return corresponding User list."""
     if not user_ids:
         return []
 

@@ -9,13 +9,8 @@ food_record_bp = Blueprint('food_record_bp', __name__)
 
 @food_record_bp.route('/create_food_record', methods=['GET', 'POST'])
 def create_food_record_handler():
-    """
-    创建食物记录
-    GET 方法：兼容旧接口，使用 query parameters
-    POST 方法：接收 JSON 数据，支持完整参数
-    """
+    """Create food record. GET: legacy query params, POST: JSON with full params."""
     if request.method == 'GET':
-        # 兼容旧的 GET 方法
         user_id = int(request.args.get("user_id", 1))
         food_id = int(request.args.get("food_id", 1))
 
@@ -39,7 +34,6 @@ def create_food_record_handler():
         if not user_id or not food_id:
             return jsonify({"error": "user_id and food_id are required"}), 400
         
-        # 解析日期和时间
         eaten_date = date.today()
         if data.get("eaten_date"):
             try:

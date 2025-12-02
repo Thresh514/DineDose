@@ -81,7 +81,6 @@ def test_create_food_record_post_success(client, monkeypatch):
 
 
 def test_create_food_record_post_bad_time(client, monkeypatch):
-    """坏的 eaten_time 仍成功（忽略解析错误）"""
     monkeypatch.setattr(
         bp.food_record_repo,
         "create_food_record",

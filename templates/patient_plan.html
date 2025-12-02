@@ -493,11 +493,11 @@
                 }
                 li.setAttribute("data-completion-time", nowDt.toISOString());
 
-                // 更新checkbox为已勾选状态
+                // Update checkbox to checked state
                 if (btn) {
                     btn.classList.add("checked");
                     btn.setAttribute("aria-label", "Already completed");
-                    // 替换SVG为勾选图标
+                    // Replace SVG with checkmark icon
                     btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
                 }
 
@@ -526,7 +526,7 @@
         btn.addEventListener('click', async function(e) {
             e.preventDefault();
             
-            // 检查是否被禁用（过去日期）
+            // Check if disabled (past date)
             if (btn.disabled || btn.classList.contains('disabled')) {
                 return;
             }
@@ -537,23 +537,23 @@
             var completed = li.getAttribute("data-completed");
             var isPastDate = li.getAttribute("data-is-past-date") === "1";
 
-            // 如果是已完成的记录，直接toggle（删除）
-            // 可以取消的记录：今天、昨天、以及未来的日期
-            // 不能取消的记录：前天及更早的日期
+            // If completed record, toggle (delete)
+            // Can cancel: today, yesterday, and future dates
+            // Cannot cancel: day before yesterday and earlier
             if (completed === "1") {
-                // 检查是否是过去日期（前天及更早不能取消）
+                // Check if past date (cannot cancel day before yesterday and earlier)
                 if (isPastDate) {
                     showDialog("Cannot modify past dates.", "Alert");
                     return;
                 }
-                // 今天、昨天和未来的日期都可以取消记录
-                // 直接删除记录，不需要验证时间
+                // Today, yesterday and future dates can cancel records
+                // Delete record directly, no time validation needed
                 await toggleDrugRecord(li, btn, null, new Date());
                 return;
             }
 
-            // 未完成的记录：检查是否可以完成
-            // 检查是否是过去日期
+            // Incomplete record: check if can complete
+            // Check if past date
             if (isPastDate) {
                 showDialog("Cannot modify past dates.", "Alert");
                 return;
@@ -577,7 +577,7 @@
         });
     });
 
-    // ---------- 初次加载时，把已完成项的时间改成本地 HH:MM ----------
+    // Convert completed items' time to local HH:MM on initial load
     document.querySelectorAll('.plan-item').forEach(function(li) {
         var completed = li.getAttribute('data-completed') === '1';
         if (!completed) return;

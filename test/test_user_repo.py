@@ -22,16 +22,13 @@ class FakeCursor:
         self.last_query = query
         self.params = params
 
-        # ---- 模拟 “UPDATE ... RETURNING …” ----
+        # Mock UPDATE ... RETURNING
         if query.strip().startswith("UPDATE") and "RETURNING" in query:
-
-            # 如果没有 row，表示更新不到任何 user -> fetchone 会返回 None
             if not self.rows:
                 self.rows = []
                 self.rowcount = 0
                 return
 
-            # 取 UPDATE 语句中的新值
             new_username = None
             new_avatar = None
 
@@ -44,16 +41,14 @@ class FakeCursor:
                 else:
                     new_avatar = params[1]
 
-            # 原 row
             orig = list(self.rows[0])
 
-            # 修改字段
             if new_username is not None:
-                orig[1] = new_username     # username
+                orig[1] = new_username
             if new_avatar is not None:
-                orig[4] = new_avatar       # avatar_url
+                orig[4] = new_avatar
 
-            # UPDATE return result only 1 row
+            # UPDATE returns only 1 row
             self.rows = [tuple(orig)]
             self.rowcount = 1
 
@@ -255,7 +250,6 @@ def test_update_user_basic_info_update_one(monkeypatch, sample_row):
 
 
 def test_update_user_basic_info_no_fields(monkeypatch, sample_row):
-    # should call get_user_by_id internally
     cur1 = FakeCursor(rows=[sample_row])
     conn1 = FakeConn(cur1)
 

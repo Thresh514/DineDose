@@ -30,7 +30,7 @@
 </div>
 
 <script>
-// 根据当前页面高亮对应的导航项
+// Highlight navigation item based on current page
 document.addEventListener('DOMContentLoaded', function() {
     const currentPath = window.location.pathname;
     const navItems = document.querySelectorAll('.nav-item');
@@ -45,11 +45,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 搜索功能
+    // Search functionality
     const searchInput = document.getElementById('patient-search');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
-            // 可以在这里添加搜索逻辑
+            // Add search logic here
             console.log('Searching for:', e.target.value);
         });
     }

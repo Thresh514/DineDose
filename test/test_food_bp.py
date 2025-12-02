@@ -35,13 +35,11 @@ def client(app):
 # -------------------------------
 
 def test_get_foods_missing_params(client):
-    """同时缺失 id 和 name → 400"""
     r = client.get("/get_foods")
     assert r.status_code == 400
 
 
 def test_get_foods_both_params(client):
-    """同时给 id 和 name → 400"""
     r = client.get("/get_foods?id=1&name=banana")
     assert r.status_code == 400
 

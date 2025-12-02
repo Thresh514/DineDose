@@ -1,12 +1,12 @@
 {% extends 'patient_base.html' %}
 {% block content %}
 <div class="feedback-page">
-    <!-- 页面标题 -->
+    <!-- Page Title -->
     <div class="feedback-header">
         <h1 class="feedback-title">Doctor's Feedback</h1>
     </div>
 
-    <!-- 反馈列表 -->
+    <!-- Feedback List -->
     <div class="feedback-list">
         {% if feedbacks and feedbacks|length > 0 %}
             {% set prev_date = "" %}
@@ -44,7 +44,7 @@
                 {% endif %}
             {% endfor %}
         {% else %}
-            <!-- 空状态 -->
+            <!-- Empty State -->
             <div class="feedback-empty">
                 <div class="feedback-empty-icon">💬</div>
                 <div class="feedback-empty-text">No feedback yet</div>
@@ -175,7 +175,7 @@
     color: #999;
 }
 
-/* 小屏优化 */
+/* Mobile Optimization */
 @media (max-width: 360px) {
     .feedback-title {
         font-size: 24px;

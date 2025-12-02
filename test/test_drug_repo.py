@@ -39,7 +39,6 @@ class FakeConn:
 
 @pytest.fixture
 def mock_mydb(monkeypatch):
-    """Patch mydb() for drug_repo."""
     def fake_mydb():
         columns = [
             ("id",), ("product_ndc",), ("brand_name",), ("brand_name_base",),

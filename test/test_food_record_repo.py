@@ -14,7 +14,7 @@ class FakeCursor:
         self.params = None
         self.rowcount = 0
 
-        # 模拟 PostgreSQL 的 cursor.description
+        # Mock PostgreSQL cursor.description
         self.description = [
             ("id",), ("user_id",), ("food_id",),
             ("eaten_date",), ("eaten_time",),
@@ -81,7 +81,7 @@ def sample_row():
 # CREATE
 # --------------------------
 def test_create_food_record(monkeypatch, sample_row):
-    fake_cursor = FakeCursor(rows=[(5,)])   # returning id=5
+    fake_cursor = FakeCursor(rows=[(5,)])
     fake_conn = FakeConn(fake_cursor)
 
     monkeypatch.setattr(food_record_repo, "mydb", lambda: fake_conn)

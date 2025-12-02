@@ -181,12 +181,11 @@ def mark_drug_taken():
     drug_id = data.get("drug_id")
     plan_item_id = data.get("plan_item_id")
     expected_date_str = data.get("expected_date")
-    expected_time_str = data.get("expected_time")  # 可能为 None
-    status = data.get("status")       # ON_TIME / EARLY / LATE（业务状态）
+    expected_time_str = data.get("expected_time")
+    status = data.get("status")  # ON_TIME / EARLY / LATE
     timing_flag = data.get("timing_flag")  # EARLY / LATE / None
-    taken_at_str = data.get("taken_at")    # ISO string，用于日志/调试
+    taken_at_str = data.get("taken_at")  # ISO string for logging/debugging
 
-    # 基本校验
     if not user_id or not drug_id or not plan_item_id or not expected_date_str:
         return jsonify({"error": "Missing required fields"}), 400
 
@@ -213,7 +212,7 @@ def mark_drug_taken():
         except (ValueError, IndexError):
             return jsonify({"error": "Invalid expected_time"}), 400
 
-    # ====== 查重：同一个 plan_item + expected_date + expected_time ======
+    # Check for duplicate: same plan_item + expected_date + expected_time
     existing = drug_record_repo.get_drug_record_by_unique(
         user_id=user_id,
         plan_item_id=plan_item_id,
@@ -221,7 +220,7 @@ def mark_drug_taken():
         expected_time=expected_time
     )
     
-    # 如果记录已存在，则删除它（toggle功能）
+    # If record exists, delete it (toggle functionality)
     if existing:
         success = drug_record_repo.delete_drug_record(existing.id)
         if not success:
@@ -233,23 +232,22 @@ def mark_drug_taken():
             "action": "deleted"
         }), 200
 
-    # ====== 插入新记录 ======
-    # 业务状态校验：创建新记录时需要status字段
+    # Create new record
     if not status or status not in ("ON_TIME", "EARLY", "LATE"):
         return jsonify({"error": "Invalid status (required for creating new record)"}), 400
 
-    # 注意：这里写入数据库的 status 统一用 TAKEN（避免 EARLY 不在 enum 里导致报错）
+    # Use TAKEN for DB status to avoid enum errors
     db_status = "TAKEN"
 
     new_id = drug_record_repo.create_drug_record(
         user_id=user_id,
         drug_id=drug_id,
-        expected_date=expected_date,   # 这里改成 expected_date
+        expected_date=expected_date,
         expected_time=expected_time,
         dosage_numeric=None,
         unit=None,
         plan_item_id=plan_item_id,
-        status=db_status,              # DB 里存 TAKEN
+        status=db_status,
         notes=None
     )
 

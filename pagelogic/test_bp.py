@@ -1,10 +1,6 @@
-from datetime import date
-from pagelogic.repo import plan_repo
+from datetime import date, time as dt_time
 from flask import jsonify, render_template, Blueprint, request
-from datetime import time as dt_time
-
-from pagelogic.repo import plan_repo
-from pagelogic.repo import food_record_repo
+from pagelogic.repo import plan_repo, food_record_repo
 
 
 test_bp = Blueprint('test_bp', __name__)

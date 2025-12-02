@@ -6,21 +6,20 @@ import traceback
 
 def send_email_ses(to, subject, html_body, text_body=None):
     """
-    通过 AWS SES 发送邮件。
+    Send email via AWS SES.
     
     Args:
-        to (str): 收件人邮箱
-        subject (str): 邮件标题
-        html_body (str): 邮件 HTML 内容
-        text_body (str, optional): 邮件纯文本内容（默认自动生成）
+        to (str): Recipient email address
+        subject (str): Email subject
+        html_body (str): Email HTML content
+        text_body (str, optional): Plain text content (auto-generated if not provided)
     
     Returns:
-        bool: True 表示发送成功，False 表示失败
+        bool: True if successful, False otherwise
     """
     if not text_body:
         text_body = "This email contains HTML content. Please view it in an HTML-capable client."
 
-    # 初始化 SES 客户端
     ses = boto3.client(
         "ses",
         region_name=config.AWS_REGION,

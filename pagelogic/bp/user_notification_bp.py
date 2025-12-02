@@ -20,10 +20,7 @@ def notification_settings_page():
 
 @user_notification_bp.route('/get_notification_setting', methods=['GET'])
 def get_notification_setting_handler():
-    """
-    给定 user_id，返回这个 user 的通知配置。
-    如果找不到，返回 404。
-    """
+    """Get notification settings by user_id."""
     user_id = int(request.args.get("id"))
 
     cfg = user_notification_repo.get_notification_config(user_id)
@@ -34,10 +31,7 @@ def get_notification_setting_handler():
 
 @user_notification_bp.route('/update_notification_setting', methods=['POST'])
 def update_notification_setting_handler():
-    """
-    给定 user_id and new settings, update the notification config.
-    if not found, create a new one. 
-    """
+    """Update notification config by user_id. Create new one if not found."""
     data = request.get_json() or {}
 
     user_id = int(data.get("user_id"))

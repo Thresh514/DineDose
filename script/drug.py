@@ -3,7 +3,7 @@ import psycopg
 from tqdm import tqdm
 from psycopg.rows import dict_row
 
-# === 数据库连接配置 ===
+# Database connection
 conn = psycopg.connect(
     host="ep-long-glitter-a8i7t160-pooler.eastus2.azure.neon.tech",
     dbname="neondb",
@@ -13,7 +13,7 @@ conn = psycopg.connect(
 )
 cur = conn.cursor(row_factory=dict_row)
 
-# === SQL 模板 ===
+# SQL templates
 insert_drug = """
     INSERT INTO drugs
     (product_ndc, brand_name, brand_name_base, generic_name, labeler_name,
@@ -28,12 +28,12 @@ insert_ingredient = """
     ON CONFLICT (drug_ndc, name, strength) DO NOTHING;
 """
 
-# === 批量缓冲区 ===
+# Batch buffers
 drug_buffer = []
 ingredient_buffer = []
-BATCH_SIZE = 1000  # 每 1000 条提交一次
+BATCH_SIZE = 1000
 
-# === 使用 ijson 流式解析 JSON ===
+# Stream parse JSON with ijson
 with open("./drug.json", "rb") as f:
     parser = ijson.items(f, "results.item")
     for d in tqdm(parser, desc="Importing"):
@@ -61,7 +61,7 @@ with open("./drug.json", "rb") as f:
         for ai in d.get("active_ingredients", []):
             ingredient_buffer.append((product_ndc, ai.get("name"), ai.get("strength")))
 
-        # === 每 1000 条批量提交一次 ===
+        # Batch commit every BATCH_SIZE records
         if len(drug_buffer) >= BATCH_SIZE:
             cur.executemany(insert_drug, drug_buffer)
             cur.executemany(insert_ingredient, ingredient_buffer)
@@ -69,7 +69,7 @@ with open("./drug.json", "rb") as f:
             drug_buffer.clear()
             ingredient_buffer.clear()
 
-# === 写入最后剩余部分 ===
+# Commit remaining records
 if drug_buffer:
     cur.executemany(insert_drug, drug_buffer)
     cur.executemany(insert_ingredient, ingredient_buffer)

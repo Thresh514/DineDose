@@ -13,7 +13,6 @@ class FakeCursor:
         self.last_query = None
         self.params = None
         self.rowcount = 0
-        # simulate pg description
         self.description = [
             ("id",), ("patient_id",), ("doctor_id",),
             ("feedback_date",), ("feedback",), ("created_at",)
@@ -114,7 +113,7 @@ def test_get_feedback_by_date_not_found(monkeypatch):
 # Tests: GET DATE RANGE
 # --------------------------
 def test_get_feedbacks_by_date_range(monkeypatch, sample_row):
-    rows = [sample_row, sample_row]  # two rows
+    rows = [sample_row, sample_row]
     fake_cursor = FakeCursor(rows=rows)
     fake_conn = FakeConn(fake_cursor)
     monkeypatch.setattr(feedback_repo, "mydb", lambda: fake_conn)

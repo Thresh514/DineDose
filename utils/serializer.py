@@ -3,8 +3,7 @@ from datetime import datetime, date, time as dt_time
 
 def serialize_for_json(obj):
     """
-    递归把 dataclass / date / time / list / dict 等
-    转成可以直接 jsonify 的结构。
+    Recursively convert dataclass/date/time/list/dict to JSON-serializable structure.
     """
     if isinstance(obj, (date, datetime)):
         return obj.isoformat()
@@ -24,7 +23,7 @@ def serialize_for_json(obj):
 
 
 def row_to_dict(cur, row) -> dict:
-    """把 tuple row 转成 dict，避免依赖 DictCursor。"""
+    """Convert tuple row to dict without using DictCursor."""
     columns = [desc[0] for desc in cur.description]
     return dict(zip(columns, row))
 

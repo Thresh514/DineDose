@@ -6,15 +6,12 @@ from pagelogic.service import plan_service
 
 
 plan_bp = Blueprint('plan_bp', __name__)
-#sample call: 
-# GET /get_use_plan?user_id=2&from=2025-11-01&to=2025-12-31
-#可以传入date
-# GET /get_user_plan?user_id=2&from=2025-11-01T10:00:00&to=2025-12-15T22:00:00
-#datetime也ok
+
 @plan_bp.route("/get_user_plan", methods=["GET"])
 def get_user_plan_handler():
+    """Get user plan. Accepts date or datetime format."""
     user_id = int(request.args.get("id"))
-    from_str = request.args.get("from")   # 可能是 None
+    from_str = request.args.get("from")
     to_str = request.args.get("to")
 
     from_when = date.fromisoformat(from_str) if from_str else None
@@ -25,12 +22,7 @@ def get_user_plan_handler():
 
 @plan_bp.route("/get_raw_plan", methods=["GET"])
 def get_raw_plan_handler():
-    """
-    GET /get_raw_plan?id=5
-
-    返回某个 user 的原始 plan（未展开的 plan_item + plan_item_rule），
-    专门给医生编辑页面用。
-    """
+    """Get raw plan (unexpanded plan_item + plan_item_rule) for doctor editing page."""
     user_id_str = request.args.get("id")
     if not user_id_str:
         return jsonify({"error": "id is required"}), 400
@@ -44,7 +36,6 @@ def get_raw_plan_handler():
     if not plan:
         return jsonify({"error": f"No plan found for user {user_id}"}), 404
 
-    # 这里直接用你原来的 to_dict
     return jsonify(plan.to_dict()), 200
 
 
@@ -52,28 +43,7 @@ def get_raw_plan_handler():
 
 @plan_bp.route("/plan_item", methods=["POST"])
 def create_plan_item():
-    """
-    Body JSON 示例：
-    {
-      "plan_id": 1,
-      "drug_id": 1001,
-      "dosage": 2000,
-      "unit": "mg",
-      "amount_literal": "2 tablets",
-      "note": "after meal",
-      "rules": [
-        {
-          "start_date": "2025-11-21",
-          "end_date": "2025-11-30",
-          "repeat_type": "DAILY",
-          "interval_value": 1,
-          "mon": true, "tue": true, "wed": true, "thu": true, "fri": true,
-          "sat": false, "sun": false,
-          "times": ["12:00:00", "18:00:00"]
-        }
-      ]
-    }
-    """
+    """Create plan item with rules."""
     data = request.get_json() or {}
     plan_id = data.get("plan_id")
     patient_id = data.get("patient_id")
@@ -82,7 +52,6 @@ def create_plan_item():
         if not patient_id:
             return jsonify({"error": "plan_id or patient_id required"}), 400
 
-        # 自动查 plan
         plan = plan_repo.get_plan_by_user_id(int(patient_id))
         if not plan:
             return jsonify({"error": f"No plan found for patient {patient_id}"}), 404
@@ -106,7 +75,6 @@ def create_plan_item():
     note           = data.get("note")
     rules_raw      = data.get("rules", [])
 
-    # 解析 rules
     parsed_rules = []
     for r in rules_raw:
         try:
@@ -125,7 +93,6 @@ def create_plan_item():
         repeat_type    = r.get("repeat_type", "ONCE")
         interval_value = r.get("interval_value")
 
-        # weekday flags
         mon = bool(r.get("mon", False))
         tue = bool(r.get("tue", False))
         wed = bool(r.get("wed", False))
@@ -134,7 +101,6 @@ def create_plan_item():
         sat = bool(r.get("sat", False))
         sun = bool(r.get("sun", False))
 
-        # times: ["12:00:00", "18:00:00"] -> [dt_time, dt_time]
         times_list = []
         for t in r.get("times", []):
             if not t:
@@ -181,18 +147,7 @@ def create_plan_item():
 
 @plan_bp.route("/plan_item/<int:item_id>", methods=["PUT"])
 def update_plan_item(item_id):
-    """
-    Body JSON 和 create 基本一样，只是 plan_item 已存在：
-    {
-      "plan_id": 1,
-      "drug_id": 1001,
-      "dosage": 1500,
-      "unit": "mg",
-      "amount_literal": "1.5 tablets",
-      "note": "after meal",
-      "rules": [ ... 同上 ... ]
-    }
-    """
+    """Update existing plan item with rules."""
     data = request.get_json() or {}
     plan_id = data.get("plan_id")
     patient_id = data.get("patient_id")
@@ -201,7 +156,6 @@ def update_plan_item(item_id):
         if not patient_id:
             return jsonify({"error": "plan_id or patient_id required"}), 400
 
-        # 自动查 plan
         plan = plan_repo.get_plan_by_user_id(int(patient_id))
         if not plan:
             return jsonify({"error": f"No plan found for patient {patient_id}"}), 404
@@ -224,7 +178,6 @@ def update_plan_item(item_id):
     note           = data.get("note")
     rules_raw      = data.get("rules", [])
 
-    # 解析 rules（和 create 一样）
     parsed_rules = []
     for r in rules_raw:
         try:
@@ -300,9 +253,7 @@ def update_plan_item(item_id):
 
 @plan_bp.route("/plan_item/<int:item_id>", methods=["DELETE"])
 def delete_plan_item(item_id):
-    """
-    删除 plan_item 以及它对应的所有 plan_item_rule
-    """
+    """Delete plan_item and all associated plan_item_rules."""
     try:
         ok = plan_repo.delete_plan_item_and_rules(item_id)
     except Exception as e:

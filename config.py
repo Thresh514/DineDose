@@ -4,16 +4,15 @@ from psycopg.rows import dict_row
 import os
 
 from dotenv import load_dotenv
-load_dotenv() #解决 环境变量 加载失败问题
-
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# Flask Session 配置 - 确保 OAuth state 在进程间正确共享
-SESSION_COOKIE_SECURE = False  # 开发环境设为 False，生产环境使用 HTTPS 时设为 True
+# Flask Session configuration
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-PERMANENT_SESSION_LIFETIME = 86400  # 24 小时
+PERMANENT_SESSION_LIFETIME = 86400  # 24 hours
 
 AWS_REGION = os.getenv("AWS_REGION")
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
