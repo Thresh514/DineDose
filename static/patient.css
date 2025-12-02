@@ -90,6 +90,14 @@ html,body{
   padding:8px var(--side) 24px;
   height:100%;
 }
+.button-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  margin-top:16px;
+}
 .cta-circle{
   display:grid;
   place-items:center;
@@ -99,16 +107,20 @@ html,body{
   background:var(--muted);
   border-radius:50%;
   text-decoration:none;
-}
-.cta-circle--secondary{
-  background:var(--muted);
+  background:transparent;
+  border:10px solid #181818;
+  margin:16px auto;
 }
 .circle-icon{
-  width:40%;
+  width:55%;
   max-width:140px;
   height:auto;
   user-select:none;
   pointer-events:none;
+}
+.circle-icon--reminder{
+  width:55%;
+  max-width:180px;
 }
 
 /* Dotted progress (middle dashed line look with rounded pills) */
