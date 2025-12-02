@@ -8,13 +8,17 @@
     </div>
 
     <!-- 主要内容卡片 -->
-    <div class="food-detail-card" data-food-id="{{ food.id }}" data-user-id="{{ user_id }}">
+    <div class="food-detail-card" data-food-id="{{ food.id }}" data-user-id="{{ user_id }}" data-food-name="{{ food.description|e }}">
         <!-- 食物图片 -->
         <div class="food-detail-image-container">
-            <img src="{{ url_for('static', filename='public/food_example.png') }}" 
-                 alt="{{ food.description }}" 
-                 class="food-detail-image"
-                 id="food-detail-image">
+            <div id="food-detail-image-wrapper">
+                <img src="" 
+                     alt="{{ food.description }}" 
+                     class="food-detail-image"
+                     id="food-detail-image"
+                     style="display: none;">
+                <div id="food-image-loading" class="food-detail-image-spinner"></div>
+            </div>
         </div>
 
         <!-- 错误消息横幅 -->
@@ -120,6 +124,41 @@
     const card = document.querySelector('.food-detail-card');
     const foodId = parseInt(card.getAttribute('data-food-id'), 10);
     const userId = parseInt(card.getAttribute('data-user-id'), 10);
+    const foodName = card.getAttribute('data-food-name');
+
+    // Load food image from Bing Images API
+    function loadFoodImage() {
+        const imageElement = document.getElementById('food-detail-image');
+        const loadingElement = document.getElementById('food-image-loading');
+
+        // Start loading - show spinner
+        loadingElement.style.display = 'flex';
+        imageElement.style.display = 'none';
+
+        fetch(`/get-food-image?food_name=${encodeURIComponent(foodName)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Food image API response:', data);
+                
+                // If we got a valid image_url, use it
+                if (data.image_url) {
+                    imageElement.src = data.image_url;
+                    imageElement.alt = data.title || foodName;
+                    imageElement.style.display = 'block';
+                }
+                
+                // Hide spinner when done (success or failure)
+                loadingElement.style.display = 'none';
+            })
+            .catch(error => {
+                console.warn('Failed to fetch food image from API:', error);
+                // Hide spinner on error too
+                loadingElement.style.display = 'none';
+            });
+    }
+
+    // Load image on page load
+    document.addEventListener('DOMContentLoaded', loadFoodImage);
 
     function showError(msg) {
         errorBanner.textContent = msg;
