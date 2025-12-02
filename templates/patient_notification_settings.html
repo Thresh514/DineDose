@@ -1,90 +1,91 @@
 {% set uid = session.get('user_id') %}
+{% extends 'patient_base.html' %}
+{% block content %}
 
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Notification Settings - Dine Dose</title>
-</head>
-<body>
-
-    <main class="container my-4">
-        <h1 class="mb-3">Notification Settings</h1>
-        <p class="text-muted mb-4">
+<div class="notification-settings-page">
+    <div class="notification-settings-header">
+        <h1 class="notification-settings-title">Notification Settings</h1>
+        <p class="notification-settings-description">
             Configure how and when Dine Dose should remind you about your tasks and plans.
         </p>
+    </div>
 
-        <div class="card my-3" id="patient-notification-setting-{{ uid }}" data-user-id="{{ uid }}">
-          <div class="card-body">
+    <div class="notification-settings-card" id="patient-notification-setting-{{ uid }}" data-user-id="{{ uid }}">
 
-            <form class="patient-notification-form">
-              <!-- Enable / Disable notifications -->
-              <div class="form-check form-switch mb-2">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="notif-enabled-{{ uid }}"
-                  name="enabled"
-                />
-                <p class="form-check-label" for="notif-enabled-{{ uid }}">
-                  Enable notifications
-                </p>
-              </div>
+        <form class="notification-settings-form">
+            <!-- Enable / Disable notifications -->
+            <div class="notification-setting-item">
+                <label class="notification-setting-label" for="notif-enabled-{{ uid }}">
+                    Enable notifications
+                </label>
+                <label class="notification-switch">
+                    <input
+                        class="notification-switch-input"
+                        type="checkbox"
+                        id="notif-enabled-{{ uid }}"
+                        name="enabled"
+                    />
+                    <span class="notification-switch-slider"></span>
+                </label>
+            </div>
 
-              <!-- Email notifications -->
-              <div class="form-check form-switch mb-3">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="notif-email-enabled-{{ uid }}"
-                  name="email_enabled"
-                />
-                <p class="form-check-label" for="notif-email-enabled-{{ uid }}">
-                  Via Email?
-                </p>
-              </div>
+            <!-- Email notifications -->
+            <div class="notification-setting-item">
+                <label class="notification-setting-label" for="notif-email-enabled-{{ uid }}">
+                    Via Email
+                </label>
+                <label class="notification-switch">
+                    <input
+                        class="notification-switch-input"
+                        type="checkbox"
+                        id="notif-email-enabled-{{ uid }}"
+                        name="email_enabled"
+                    />
+                    <span class="notification-switch-slider"></span>
+                </label>
+            </div>
 
-              <!-- Notify minutes (chip list) -->
-              <div class="mb-3">
-
+            <!-- Notify minutes (chip list) -->
+            <div class="notification-minutes-section">
+                <label class="notification-section-label">Notification Times</label>
+                
                 <!-- chips container -->
-                <div class="minutes-chips-row" id="notif-minutes-chips-{{ uid }}">
-                  <!-- chips rendered by JS -->
+                <div class="notification-chips-container" id="notif-minutes-chips-{{ uid }}">
+                    <!-- chips rendered by JS -->
                 </div>
 
                 <!-- input + add button -->
-                <div class="minutes-input-row">
-                  <input
-                    type="number"
-                    class="form-control minutes-input"
-                    id="notif-minutes-input-{{ uid }}"
-                    placeholder="Enter minutes, e.g. 60 or -60"
-                    step="1"
-                  />
-                  <button
-                    type="button"
-                    class="btn btn-outline-primary minutes-add-btn"
-                    id="notif-minutes-add-{{ uid }}"
-                  >
-                    Add
-                  </button>
+                <div class="notification-input-group">
+                    <input
+                        type="number"
+                        class="notification-input"
+                        id="notif-minutes-input-{{ uid }}"
+                        placeholder="Enter minutes, e.g. 60 or -60"
+                        step="1"
+                    />
+                    <button
+                        type="button"
+                        class="notification-add-btn"
+                        id="notif-minutes-add-{{ uid }}"
+                    >
+                        Add
+                    </button>
                 </div>
 
-                <div class="form-text" id="notif-minutes-preview-{{ uid }}">
-                  Example: 60 = 60 minutes before; 0 = at start time; -60 = 60 minutes after overdue.
+                <div class="notification-hint" id="notif-minutes-preview-{{ uid }}">
+                    Example: 60 = 60 minutes before; 0 = at start time; -60 = 60 minutes after overdue.
                 </div>
-              </div>
+            </div>
 
-              <div class="d-flex align-items-center" style="gap: 8px;">
-                <button type="submit" class="btn btn-primary btn-sm">
-                  Save Settings
+            <div class="notification-actions">
+                <button type="submit" class="notification-save-btn">
+                    Save Settings
                 </button>
-                <span class="small text-muted patient-notif-status"></span>
-              </div>
-            </form>
-          </div>
-        </div>
-    </main>
+                <span class="notification-status"></span>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
   (function () {
@@ -94,7 +95,7 @@
     if (!root) return;
 
     const userId = parseInt(root.dataset.userId, 10);
-    const form = root.querySelector(".patient-notification-form");
+    const form = root.querySelector(".notification-settings-form");
     const enabledInput = root.querySelector("#notif-enabled-{{ uid }}");
     const emailEnabledInput = root.querySelector(
       "#notif-email-enabled-{{ uid }}"
@@ -111,7 +112,7 @@
     const minutesPreview = root.querySelector(
       "#notif-minutes-preview-{{ uid }}"
     );
-    const statusSpan = root.querySelector(".patient-notif-status");
+    const statusSpan = root.querySelector(".notification-status");
 
     // keep timezone from backend, but do not expose to user
     let currentTimezone = "UTC-5";
@@ -148,18 +149,18 @@
       chipsContainer.innerHTML = "";
       if (!minutesList.length) {
         chipsContainer.innerHTML =
-          '<span class="minutes-empty-hint">No times added yet. Add one below.</span>';
+          '<span class="notification-empty-hint">No times added yet. Add one below.</span>';
         renderMinutesPreview();
         return;
       }
 
       minutesList.forEach((n, idx) => {
         const chip = document.createElement("span");
-        chip.className = "notif-chip";
+        chip.className = "notification-chip";
         chip.innerHTML = `
-          <span class="notif-chip-main">${n}</span>
-          <span class="notif-chip-sub">${describeOffset(n)}</span>
-          <button type="button" class="notif-chip-remove" data-index="${idx}">&times;</button>
+          <span class="notification-chip-main">${n}</span>
+          <span class="notification-chip-sub">${describeOffset(n)}</span>
+          <button type="button" class="notification-chip-remove" data-index="${idx}">&times;</button>
         `;
         chipsContainer.appendChild(chip);
       });
@@ -188,7 +189,7 @@
     // chip remove handler (event delegation)
     chipsContainer.addEventListener("click", (e) => {
       const target = e.target;
-      if (target.classList.contains("notif-chip-remove")) {
+      if (target.classList.contains("notification-chip-remove")) {
         const idx = parseInt(target.getAttribute("data-index"), 10);
         if (!Number.isNaN(idx)) {
           minutesList.splice(idx, 1);
@@ -284,248 +285,5 @@
     loadConfig();
   })();
 </script>
-</body>
-</html>
 
-<style>
-/* --- Base mobile-first layout & typography --- */
-body {
-  font-size: 17px;
-  line-height: 1.5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-main.container {
-  width: 100%;
-  max-width: 600px;
-  padding: 16px;
-  margin: 0 auto;
-}
-
-/* Card */
-[id^="patient-notification-setting-"] {
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  box-shadow: 0 3px 14px rgba(0,0,0,0.06);
-  padding: 2px;
-}
-
-/* Card body padding adjusted for mobile */
-[id^="patient-notification-setting-"] .card-body {
-  padding: 18px 20px;
-}
-
-/* Title */
-[id^="patient-notification-setting-"] .card-title {
-  font-size: 19px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-/* Page title & description */
-main h1 {
-  font-size: 22px;
-  margin-bottom: 8px;
-}
-
-main > p.text-muted {
-  font-size: 15px;
-}
-
-/* Text paragraph */
-[id^="patient-notification-setting-"] p.text-muted {
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-/* Switch rows – bigger targets for touch */
-[id^="patient-notification-setting-"] .form-check {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-}
-
-.form-check-label {
-  font-size: 16px;
-}
-
-.form-check-input {
-  width: 52px !important;
-  height: 30px !important;
-  cursor: pointer;
-}
-
-/* Input fields – bigger tap area */
-[id^="patient-notification-setting-"] .form-label {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-[id^="patient-notification-setting-"] .form-control {
-  font-size: 18px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-[id^="patient-notification-setting-"] .form-control::placeholder {
-  color: #9ca3af;
-}
-
-[id^="patient-notification-setting-"] .form-control:focus {
-  border-color: #2563eb;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
-}
-
-/* Minutes chips area */
-.minutes-chips-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.minutes-empty-hint {
-  font-size: 14px;
-  color: #9ca3af;
-}
-
-/* Chips container: allow wrap if we later change layout */
-.minutes-chips-row .notif-chip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 14px;
-}
-
-/* Main number + description inside chip */
-.notif-chip-main {
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.notif-chip-sub {
-  font-size: 13px;
-  color: #1d4ed8;
-  opacity: 0.9;
-}
-
-/* remove button in chip */
-.notif-chip-remove {
-  border: none;
-  background: transparent;
-  color: #1d4ed8;
-  font-size: 18px;
-  line-height: 1;
-  padding: 0 4px;
-  cursor: pointer;
-}
-
-/* Input + Add button row */
-.minutes-input-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-/* make the minutes input flex-fill */
-.minutes-input-row .minutes-input {
-  flex: 1;
-}
-
-/* Add button styling */
-.minutes-input-row .minutes-add-btn {
-  white-space: nowrap;
-  border-radius: 999px;
-  padding: 10px 14px;
-  font-size: 15px;
-}
-
-/* Preview text */
-[id^="patient-notification-setting-"] .form-text {
-  font-size: 14px;
-  margin-top: 6px;
-  color: #6b7280;
-}
-
-/* Status text */
-.patient-notif-status {
-  font-size: 15px;
-  padding-top: 6px;
-}
-
-.patient-notif-status.text-success {
-  color: #059669 !important;
-}
-.patient-notif-status.text-danger {
-  color: #dc2626 !important;
-}
-
-/* Primary button */
-[id^="patient-notification-setting-"] .btn-primary.btn-sm {
-  border-radius: 30px;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 500;
-  width: 100%; /* Full width button for mobile */
-  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-  transition: box-shadow 0.2s ease, transform 0.1s ease;
-}
-
-[id^="patient-notification-setting-"] .btn-primary.btn-sm:active {
-  transform: scale(0.97);
-}
-
-/* Status + button layout */
-[id^="patient-notification-setting-"] .d-flex {
-  flex-direction: column;
-  align-items: stretch !important;
-  gap: 6px;
-  width: 100%;
-}
-
-/* --- Tablet / Desktop Enhancements --- */
-@media (min-width: 600px) {
-  main.container {
-    padding-top: 32px;
-  }
-  [id^="patient-notification-setting-"] .btn-primary.btn-sm {
-    width: auto;
-  }
-  [id^="patient-notification-setting-"] .d-flex {
-    flex-direction: row;
-    align-items: center !important;
-  }
-  .minutes-chips-row {
-    flex-direction: column;
-  }
-}
-
-[id^="patient-notification-setting-"] .form-check-label {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-/* smaller switch knob */
-[id^="patient-notification-setting-"] .form-check-input {
-  width: 40px !important;
-  height: 22px !important;
-  cursor: pointer;
-}
-
-/* Reduce vertical spacing between switch rows */
-[id^="patient-notification-setting-"] .form-check {
-  padding: 6px 0 !important;   /* was 12px — now half */
-  margin: 0 !important;        /* remove any hidden margin */
-}
-</style>
+{% endblock %}

@@ -38,6 +38,19 @@ LLM_API_URL = os.getenv("LLM_API_URL", "https://api.openai.com/v1/chat/completio
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = "gpt-5-mini"
 
+# Bing Images API Configuration (via SerpApi)
+BING_IMAGES_API_KEY = os.getenv("BING_IMAGES_API_KEY", "")
+
+# def mydb():
+#     return pymysql.connect(
+#         host='dinedose.cds2osi82wxl.us-east-1.rds.amazonaws.com',
+#         user='admin',
+#         password='8Q8aA18WrlwUmnDPwnGh',
+#         database='db',
+#         charset='utf8mb4',
+#         port=3306,
+#         cursorclass=pymysql.cursors.DictCursor
+#     )
 
 def mydb():
     return psycopg.connect(

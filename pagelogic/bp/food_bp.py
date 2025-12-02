@@ -1,6 +1,8 @@
 from flask import jsonify, Blueprint, request
 
 from pagelogic.repo import food_repo
+from utils.bing_api import GoogleImagesAPI
+from config import BING_IMAGES_API_KEY
 
 food_bp = Blueprint('food_bp', __name__)
 
@@ -67,3 +69,63 @@ def search_foods_locally():
         return jsonify([]), 404
 
     return jsonify([food.to_dict() for food in foods]), 200
+
+
+# Get food image from Bing Images API
+# /get-food-image?food_name="Banana"
+@food_bp.route('/get-food-image', methods=['GET'])
+def get_food_image():
+    """
+    Get food image from Bing Images API using SerpApi.
+    
+    Query Parameters:
+        food_name: The name of the food to search for (required)
+    
+    Returns:
+        JSON with image_url, thumbnail, title, and source
+    """
+    food_name = request.args.get('food_name', '').strip()
+
+    if not food_name:
+        return jsonify({"error": "food_name parameter is required"}), 400
+
+    # If API key is not configured, return placeholder
+    if not BING_IMAGES_API_KEY:
+        print(f"[INFO] No API key configured. Using fallback for: {food_name}")
+        return jsonify({
+            "image_url": None,
+            "source": "placeholder",
+            "title": "Using default image - Configure BING_IMAGES_API_KEY for real images"
+        }), 200
+
+    google_api = GoogleImagesAPI(BING_IMAGES_API_KEY)
+    
+    # Try searching with the full food name first
+    result = google_api.search_food_image(food_name)
+    
+    # If no results with full name, try with just the first few meaningful words
+    if not result and len(food_name.split()) > 1:
+        # Try with first 2-3 words or meaningful keywords
+        words = food_name.split()
+        search_terms = [
+            " ".join(words[:3]),  # First 3 words
+            " ".join(words[:2]),  # First 2 words
+            words[0]              # First word
+        ]
+        
+        for search_term in search_terms:
+            if search_term and len(search_term) >= 2:
+                print(f"[INFO] Retrying with simplified search term: '{search_term}'")
+                result = google_api.search_food_image(search_term)
+                if result:
+                    break
+
+    if result:
+        return jsonify(result), 200
+    else:
+        print(f"[WARNING] No image found for food: {food_name}")
+        return jsonify({
+            "image_url": None,
+            "source": "placeholder",
+            "title": f"No image found for {food_name}"
+        }), 200

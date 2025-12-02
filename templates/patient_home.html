@@ -7,23 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='patient.css') }}">
     {% extends 'patient_base.html' %}
     {% block content %} 
-        <a class="cta-circle" href="{{ url_for('patient_home.patient_reminder_page') }}" aria-label="View Reminder">
-            <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Reminder">
-        </a>
-
-        <ul class="dotted-progress" aria-hidden="true">
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-            <li></li>
-        </ul>
-
-        <a class="cta-circle cta-circle--secondary" href="{{ url_for('patient_home.patient_food_page') }}" aria-label="Add Record">
-            <img class="circle-icon" src="{{ url_for('static', filename='public/Plus.png') }}" alt="Add Record">
-        </a>
+        <div class="button-container">
+            <a class="cta-circle" href="{{ url_for('patient_home.patient_reminder_page') }}" aria-label="View Reminder">
+                <img class="circle-icon" src="{{ url_for('static', filename='public/Eye.png') }}" alt="View Reminder">
+            </a> 
+            <a class="cta-circle" href="{{ url_for('patient_home.patient_food_page') }}" aria-label="Add Record">
+                <img class="circle-icon" src="{{ url_for('static', filename='public/Plus.png') }}" alt="Add Record">
+            </a>
+        </div>
     </main>
 
     {% endblock %}
