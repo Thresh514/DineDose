@@ -52,13 +52,14 @@ def update_notification_setting_handler():
     cfg = user_notification_repo.get_notification_config(user_id)
     if not cfg :
         cfg = user_notification_repo.create_notification_config(
-            user_id=user_id,
-            enabled=enabled,
-            email_enabled=email_enabled,
-            notify_minutes=notify_minutes,
-            timezone=timezone,
+            user_notification_repo.NotificationConfig(
+                user_id=user_id,
+                enabled=enabled,
+                email_enabled=email_enabled,
+                notify_minutes=notify_minutes,
+                timezone=timezone,
+            )
         )
-        return jsonify(cfg.to_dict()), 200
 
     cfg.enabled = enabled
     cfg.email_enabled = email_enabled
@@ -66,5 +67,5 @@ def update_notification_setting_handler():
     cfg.timezone = timezone
 
     user_notification_repo.update_notification_config(cfg)
-
-    return jsonify(cfg.to_dict()), 200
+    
+    return jsonify({"status": "success"}), 200
