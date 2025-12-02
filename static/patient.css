@@ -512,18 +512,21 @@ button:active,
   flex:1;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
+  max-height:calc(100vh - 200px);
 }
 
 /* 时间段部分 */
 .time-section{
   position:relative;
-  padding:40px var(--side);
+  padding:16px var(--side);
   margin:0 calc(-1 * var(--side)) 0;
   border:2px dashed var(--muted);
   border-left:0;
   border-right:0;
-  overflow:hidden;
-  min-height:180px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  min-height:120px;
+  max-height:400px;
 }
 
 .time-section:last-child{
@@ -561,7 +564,7 @@ button:active,
   padding:0;
   display:flex;
   flex-direction:column;
-  gap:16px;
+  gap:12px;
   position:relative;
   z-index:1;
 }
@@ -570,8 +573,8 @@ button:active,
 .plan-item{
   display:flex;
   align-items:center;
-  gap:16px;
-  padding:0;
+  gap:12px;
+  padding:4px 0;
 }
 
 /* 头像圆圈 */
@@ -861,7 +864,7 @@ button:active,
   .plan-item-avatar{width:44px;height:44px;font-size:18px}
   .plan-item-name{font-size:16px}
   .time-section-bg{width:160px;height:160px}
-  .time-section{min-height:160px;padding:32px var(--side)}
+  .time-section{min-height:120px;padding:12px var(--side);max-height:350px}
   .doctor-feedback-card{padding:16px}
   .doctor-feedback-text{font-size:14px}
 }
