@@ -1302,6 +1302,17 @@ button:active,
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    min-height: 200px;
+}
+
+#food-detail-image-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    min-height: 200px;
 }
 
 .food-detail-image {
@@ -1310,6 +1321,24 @@ button:active,
     height: auto;
     border-radius: 12px;
     object-fit: cover;
+}
+
+/* 加载中动画 */
+.food-detail-image-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid #f0f0f0;
+    border-top: 5px solid #646464;
+    border-radius: 50%;
+    animation: food-detail-spin 1s linear infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes food-detail-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* 表单 */
