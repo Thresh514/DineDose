@@ -50,22 +50,21 @@ def update_notification_setting_handler():
         return jsonify({"error": "missing_user_id"}), 400
 
     cfg = user_notification_repo.get_notification_config(user_id)
-    if not cfg :
-        cfg = user_notification_repo.create_notification_config(
-            user_notification_repo.NotificationConfig(
-                user_id=user_id,
-                enabled=enabled,
-                email_enabled=email_enabled,
-                notify_minutes=notify_minutes,
-                timezone=timezone,
-            )
+    if not cfg:
+        new_cfg = user_notification_repo.NotificationConfig(
+            user_id=user_id,
+            enabled=enabled,
+            email_enabled=email_enabled,
+            notify_minutes=notify_minutes,
+            timezone=timezone,
         )
-
-    cfg.enabled = enabled
-    cfg.email_enabled = email_enabled
-    cfg.notify_minutes = notify_minutes
-    cfg.timezone = timezone
-
-    user_notification_repo.update_notification_config(cfg)
+        user_notification_repo.create_notification_config(new_cfg)
+        cfg = new_cfg
+    else:
+        cfg.enabled = enabled
+        cfg.email_enabled = email_enabled
+        cfg.notify_minutes = notify_minutes
+        cfg.timezone = timezone
+        user_notification_repo.update_notification_config(cfg)
     
     return jsonify({"status": "success"}), 200
