@@ -22,6 +22,11 @@
                     <i class="fas fa-bell"></i>
                     <span>Notification Settings</span>
                 </a>
+
+                <button class="user-menu-item" id="want-to-be-doctor-btn">
+                    <i class="fas fa-user-doctor"></i>
+                    <span>Want to be doctor?</span>
+                </button>
                 
                 <a class="user-menu-item" href="{{ url_for('logout.logout') }}">
                     <i class="fas fa-right-from-bracket"></i>
@@ -54,6 +59,30 @@
         <div class="plan-dialog-footer">
             <button class="plan-dialog-btn" id="username-dialog-cancel">Cancel</button>
             <button class="plan-dialog-btn plan-dialog-btn--primary" id="username-dialog-save">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Doctor Request Dialog -->
+<div id="doctor-request-dialog" class="plan-dialog" role="dialog" aria-labelledby="doctor-request-dialog-title" aria-modal="true">
+    <div class="plan-dialog-overlay"></div>
+    <div class="plan-dialog-content">
+        <div class="plan-dialog-header">
+            <h3 id="doctor-request-dialog-title" class="plan-dialog-title">Request Doctor Verification</h3>
+            <button class="plan-dialog-close" id="doctor-request-dialog-close" aria-label="Close dialog">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="plan-dialog-body">
+            <p>Are you sure you want to send a doctor verification request to the DineDose management team?</p>
+            <p style="margin-top: 10px; color: #666; font-size: 14px;">After verification, your role will be updated in the background.</p>
+            <div id="doctor-request-error" class="username-error" style="display: none;"></div>
+        </div>
+        <div class="plan-dialog-footer">
+            <button class="plan-dialog-btn" id="doctor-request-dialog-cancel">Cancel</button>
+            <button class="plan-dialog-btn plan-dialog-btn--primary" id="doctor-request-dialog-confirm">Send Request</button>
         </div>
     </div>
 </div>
@@ -168,6 +197,35 @@
         }
     }
 
+    // Doctor Request Dialog
+    const doctorRequestDialog = document.getElementById('doctor-request-dialog');
+    const doctorRequestError = document.getElementById('doctor-request-error');
+    const doctorRequestDialogClose = document.getElementById('doctor-request-dialog-close');
+    const doctorRequestDialogCancel = document.getElementById('doctor-request-dialog-cancel');
+    const doctorRequestDialogConfirm = document.getElementById('doctor-request-dialog-confirm');
+    const wantToBeDoctorBtn = document.getElementById('want-to-be-doctor-btn');
+
+    function showDoctorRequestDialog() {
+        doctorRequestError.style.display = 'none';
+        doctorRequestDialog.classList.add('show');
+    }
+
+    function hideDoctorRequestDialog() {
+        doctorRequestDialog.classList.remove('show');
+        doctorRequestError.style.display = 'none';
+    }
+
+    function showDoctorRequestError(message) {
+        doctorRequestError.textContent = message;
+        doctorRequestError.style.display = 'block';
+    }
+
+    function sendDoctorRequest() {
+        // 模拟发送请求
+        hideDoctorRequestDialog();
+        alert('Doctor verification request sent successfully! The DineDose management team will review your request.');
+    }
+
     // Event listeners
     if (editUsernameBtn) {
         editUsernameBtn.addEventListener('click', function(e) {
@@ -176,6 +234,39 @@
             showUsernameDialog();
         });
     }
+
+    if (wantToBeDoctorBtn) {
+        wantToBeDoctorBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            userMenuDropdown.classList.remove('show');
+            showDoctorRequestDialog();
+        });
+    }
+
+    if (doctorRequestDialogClose) {
+        doctorRequestDialogClose.addEventListener('click', hideDoctorRequestDialog);
+    }
+
+    if (doctorRequestDialogCancel) {
+        doctorRequestDialogCancel.addEventListener('click', hideDoctorRequestDialog);
+    }
+
+    if (doctorRequestDialogConfirm) {
+        doctorRequestDialogConfirm.addEventListener('click', sendDoctorRequest);
+    }
+
+    // Close doctor request dialog on overlay click
+    const doctorRequestDialogOverlay = doctorRequestDialog?.querySelector('.plan-dialog-overlay');
+    if (doctorRequestDialogOverlay) {
+        doctorRequestDialogOverlay.addEventListener('click', hideDoctorRequestDialog);
+    }
+
+    // Close doctor request dialog on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && doctorRequestDialog?.classList.contains('show')) {
+            hideDoctorRequestDialog();
+        }
+    });
 
     if (usernameDialogClose) {
         usernameDialogClose.addEventListener('click', hideUsernameDialog);
