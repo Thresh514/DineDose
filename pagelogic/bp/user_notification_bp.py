@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, session
-from pagelogic.repo import user_notification_repo, user_repo
+from pagelogic.repo import user_notification_repo
 
 user_notification_bp = Blueprint("user_notification", __name__)
 

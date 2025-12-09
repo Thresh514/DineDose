@@ -1,6 +1,6 @@
 
 from datetime import date, time
-from flask import jsonify, render_template, Blueprint, request
+from flask import jsonify, Blueprint, request
 from pagelogic.repo import plan_repo
 from pagelogic.service import plan_service
 

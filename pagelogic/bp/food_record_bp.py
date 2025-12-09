@@ -1,5 +1,5 @@
 from datetime import date, time as dt_time
-from flask import jsonify, render_template, Blueprint, request
+from flask import jsonify, Blueprint, request
 
 
 from pagelogic.repo import food_record_repo
