@@ -1,4 +1,4 @@
-from flask import jsonify, render_template, Blueprint, request
+from flask import jsonify, Blueprint, request
 
 from pagelogic.repo import drug_repo
 
