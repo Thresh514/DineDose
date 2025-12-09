@@ -1,6 +1,5 @@
 from flask import Flask
 from extensions import mail, oauth
-from pagelogic import test_bp
 from pagelogic.login import login_bp
 from pagelogic.bp import doctor_page_bp
 from pagelogic.repo import drug_repo
@@ -36,14 +35,12 @@ def create_app():
     from pagelogic.login import login_bp
     from pagelogic.logout import logout_bp
     from pagelogic.patient_home import patient_home_bp
-    from pagelogic.test_bp import test_bp
     from pagelogic.bp import drug_bp, food_bp, plan_bp, user_bp, drug_record_bp, food_record_bp, user_notification_bp
 
     app.register_blueprint(index_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(logout_bp)
     app.register_blueprint(patient_home_bp)
-    app.register_blueprint(test_bp)
     app.register_blueprint(user_bp.user_bp)
     app.register_blueprint(plan_bp.plan_bp)
     app.register_blueprint(food_bp.food_bp)

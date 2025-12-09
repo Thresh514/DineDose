@@ -1,9 +1,7 @@
 # notification_config_repo.py
-
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict
 from config import mydb
-import config
 
 
 # ================== dataclass model ==================

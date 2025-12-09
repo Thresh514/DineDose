@@ -1,6 +1,6 @@
 # user_repo.py
-from dataclasses import dataclass, asdict, is_dataclass
-from datetime import datetime, date, time as dt_time
+from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Optional
 from config import mydb
 import utils.serializer as serializer

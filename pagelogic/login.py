@@ -2,7 +2,6 @@ from flask import render_template, request, redirect, session, url_for, flash, B
 import secrets, config
 from extensions import mail, oauth
 from itsdangerous import URLSafeTimedSerializer
-from pagelogic.bp import doctor_page_bp
 from utils.emailsender import send_email_ses
 
 login_bp = Blueprint('login', __name__)
