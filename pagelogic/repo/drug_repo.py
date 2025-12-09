@@ -1,5 +1,4 @@
 from dataclasses import dataclass, asdict
-import time
 from typing import List, Optional
 from config import mydb
 import config
