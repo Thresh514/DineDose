@@ -718,7 +718,58 @@ def test_patient_stats_taken_late_medium_risk(client, monkeypatch):
 
     resp = client.get("/doctor/patient_stats?patient_id=2")
     assert resp.status_code == 200
-    assert resp.get_json()["risk_level"] == "High"   # ← 修改
+    assert resp.get_json()["risk_level"] == "High" 
+
+def test_add_patient_not_verified(client, monkeypatch):
+    """patient.is_verified = False 分支"""
+    with client.session_transaction() as s:
+        s["user_id"] = 1
+
+    patient = DummyUser(id=2, is_verified=False)  # 🔥 不可验证
+
+    monkeypatch.setattr(doctor_bp.user_repo, "get_user_by_email", lambda x: patient)
+
+    resp = client.post("/doctor/add_patient", json={"email": "x"})
+    assert resp.status_code == 400
+    assert b"not verified" in resp.data
+
+
+def test_add_patient_wrong_role(client, monkeypatch):
+    """patient.role != 'patient' 分支"""
+    with client.session_transaction() as s:
+        s["user_id"] = 1
+
+    patient = DummyUser(id=2, role="doctor")  # 🔥 不是 patient
+
+    monkeypatch.setattr(doctor_bp.user_repo, "get_user_by_email", lambda x: patient)
+
+    resp = client.post("/doctor/add_patient", json={"email": "x"})
+    assert resp.status_code == 400
+    assert b"not a patient" in resp.data
+
+
+def test_add_patient_assigned_to_another_doctor(client, monkeypatch):
+    """existing_plan.doctor_id != current_doctor_id 分支"""
+    with client.session_transaction() as s:
+        s["user_id"] = 1  # 当前医生 1
+
+    patient = DummyUser(id=2)
+
+    monkeypatch.setattr(doctor_bp.user_repo, "get_user_by_email", lambda x: patient)
+
+    # plan 指向 doctor_id=99 → 分支触发
+    class DummyPlanObj:
+        doctor_id = 99
+    monkeypatch.setattr(
+        doctor_bp.plan_repo,
+        "get_plan_by_user_id",
+        lambda x: DummyPlanObj()
+    )
+
+    resp = client.post("/doctor/add_patient", json={"email": "x"})
+    assert resp.status_code == 400
+    assert b"assigned to another doctor" in resp.data
+
 
 
 

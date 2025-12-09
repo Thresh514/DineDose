@@ -95,3 +95,94 @@ def test_get_foods_by_name_locally():
     ]
     res = food_repo.get_foods_by_name_locally("Banana")
     assert len(res) == 2
+
+def test_get_food_by_id_locally_not_found():
+    food_repo.foods = []
+    result = food_repo.get_food_by_id_locally(999)
+    assert result is None
+
+
+def test_get_foods_by_ids_locally_empty():
+    food_repo.foods = []
+    res = food_repo.get_foods_by_ids_locally([1])
+    assert res == []
+
+
+def test_get_foods_by_name_locally_not_found():
+    food_repo.foods = [
+        food_repo.food(1, 0, "Banana", 0, 0, 0, "", "", "", 1)
+    ]
+    res = food_repo.get_foods_by_name_locally("xxx")
+    assert res == []
+
+
+def test_get_foods_by_names_locally():
+    food_repo.foods = [
+        food_repo.food(1, 0, "Apple Pie", 0, 0, 0, "foundation_food", "", "", 1),
+        food_repo.food(2, 0, "Apple Branded", 0, 0, 0, "branded_food", "", "", 1),
+    ]
+    res = food_repo.get_foods_by_names_locally(["apple"])
+    assert len(res) == 2
+    assert res[0].data_type == "foundation_food"
+
+
+def test_get_foods_by_names_locally_empty_names():
+    food_repo.foods = [food_repo.food(i, 0, f"Food {i}", 0, 0, 0, "", "", "", 1) for i in range(200)]
+    res = food_repo.get_foods_by_names_locally([""])
+    assert len(res) == 100
+
+
+def test_get_foods_by_names_locally_no_match():
+    food_repo.foods = [
+        food_repo.food(1, 0, "Banana", 0, 0, 0, "", "", "", 1)
+    ]
+    res = food_repo.get_foods_by_names_locally(["xxx"])
+    assert res == []
+
+
+def test_get_foods_by_ids():
+    food_repo.foods = [
+        food_repo.food(1, 0, "AAA", 0, 0, 0, "", "", "", 1),
+        food_repo.food(2, 0, "BBB", 0, 0, 0, "", "", "", 1)
+    ]
+    res = food_repo.get_foods_by_ids([1])
+    assert len(res) == 1
+    assert res[0].description == "AAA"
+
+
+def test_get_foods_locally():
+    food_repo.foods = [
+        food_repo.food(1, 0, "A", 0, 0, 0, "", "", "", 1)
+    ]
+    res = food_repo.get_foods_locally()
+    assert len(res) == 1
+    assert res[0].id == 1
+
+
+
+
+
+def test_get_food_by_id():
+    food_repo.foods = [
+        food_repo.food(1, 0, "Apple", 0, 0, 0, "", "", "", 1)
+    ]
+    result = food_repo.get_food_by_id(1)
+    assert result.description == "Apple"
+
+def test_row_to_food():
+    columns = [
+        ("id",), ("fdc_id",), ("description",), ("fat",),
+        ("carbonhydrate",), ("calories",), ("data_type",),
+        ("food_category_id",), ("publication_date",), ("food_category_num",)
+    ]
+    fake_cursor = type("C", (), {"description": columns})
+    row = (1, 2, "Test", 1.1, 2.2, 3.3, "test_type", "01", "2024", 9)
+
+    food_obj = food_repo._row_to_food(fake_cursor, row)
+    assert food_obj.description == "Test"
+    assert food_obj.food_category_num == 9
+
+def test_get_foods_dev_env(monkeypatch, mock_mydb):
+    monkeypatch.setattr(food_repo.config, "FLASK_ENV", "dev")
+    foods = food_repo.get_foods()
+    assert len(foods) == 1

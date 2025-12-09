@@ -244,3 +244,80 @@ def test_fill_out_of_range():
 
     assert len(result) == 0
 
+def test_fill_weekly_no_weekday_selected():
+    item = FakePlanItem(1)
+    rule = FakeRule(
+        start_date=date(2025, 1, 1),
+        end_date=date(2025, 1, 31),
+        repeat_type="WEEKLY",
+        times=[time(9, 0)],
+        mon=False, tue=False, wed=False, thu=False,
+        fri=False, sat=False, sun=False
+    )
+
+    result = fill_date_and_time(
+        [item],
+        {1: [rule]},
+        date(2025, 1, 1),
+        date(2025, 1, 31)
+    )
+
+    assert result == []
+
+def test_fill_daily_interval_none():
+    item = FakePlanItem(1)
+    rule = FakeRule(
+        start_date=date(2025, 1, 1),
+        end_date=date(2025, 1, 3),
+        repeat_type="DAILY",
+        interval_value=None,
+        times=[time(6, 0)]
+    )
+
+    result = fill_date_and_time(
+        [item],
+        {1: [rule]},
+        date(2025, 1, 1),
+        date(2025, 1, 31)
+    )
+
+    assert len(result) == 3
+    for r in result:
+        assert r.time == time(6, 0)
+
+def test_fill_daily_end_date_none():
+    item = FakePlanItem(1)
+    rule = FakeRule(
+        start_date=date(2025, 1, 1),
+        end_date=None,
+        repeat_type="DAILY",
+        interval_value=1,
+        times=[time(8, 0)]
+    )
+
+    result = fill_date_and_time(
+        [item],
+        {1: [rule]},
+        date(2025, 1, 1),
+        date(2025, 1, 5)
+    )
+
+    assert len(result) == 5
+    assert result[0].date == date(2025, 1, 1)
+    assert result[-1].date == date(2025, 1, 5)
+
+def test_fill_unsupported_repeat_type():
+    item = FakePlanItem(1)
+    rule = FakeRule(
+        start_date=date(2025, 1, 1),
+        repeat_type="UNKNOWN"
+    )
+
+    result = fill_date_and_time(
+        [item],
+        {1: [rule]},
+        date(2025, 1, 1),
+        date(2025, 1, 31)
+    )
+
+    assert result == []
