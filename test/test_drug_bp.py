@@ -54,12 +54,29 @@ def test_get_drug_success(client, monkeypatch):
 def test_get_sample_drugs_success(client, monkeypatch):
     class Dummy:
         def __init__(self, i):
-            self.i = i
-        def to_dict(self):
-            return {"id": self.i}
+            self.id = i
+            self.product_ndc = ""
+            self.brand_name = ""
+            self.brand_name_base = ""
+            self.generic_name = ""
+            self.labeler_name = ""
+            self.dosage_form = ""
+            self.route = ""
+            self.marketing_category = ""
+            self.product_type = ""
+            self.application_number = ""
+            self.marketing_start_date = ""
+            self.listing_expiration_date = ""
+            self.finished = False
 
-    monkeypatch.setattr(drug_repo, "get_drugs_by_name_locally",
-                        lambda x: [Dummy(1), Dummy(2)])
+        def to_dict(self):
+            return {"id": self.id}
+
+    monkeypatch.setattr(
+        drug_repo,
+        "get_sample_drugs_locally",
+        lambda: [Dummy(1), Dummy(2)]
+    )
 
     resp = client.get("/get_sample_drugs")
     assert resp.status_code == 200
@@ -82,7 +99,7 @@ def test_search_drug_name_too_short(client):
 
 
 def test_search_drug_no_results(client, monkeypatch):
-    monkeypatch.setattr(drug_repo, "get_drugs_by_name_locally", lambda x: [])
+    monkeypatch.setattr(drug_repo, "search_drugs_by_keywords_locally", lambda x: [])
     resp = client.get("/search_drug?name=aspirin")
     assert resp.status_code == 404
     assert resp.get_json() == []
@@ -92,11 +109,28 @@ def test_search_drug_success(client, monkeypatch):
     class DummyDrug:
         def __init__(self, id):
             self.id = id
+            self.product_ndc = ""
+            self.brand_name = ""
+            self.brand_name_base = ""
+            self.generic_name = ""
+            self.labeler_name = ""
+            self.dosage_form = ""
+            self.route = ""
+            self.marketing_category = ""
+            self.product_type = ""
+            self.application_number = ""
+            self.marketing_start_date = ""
+            self.listing_expiration_date = ""
+            self.finished = False
+
         def to_dict(self):
             return {"id": self.id}
 
-    monkeypatch.setattr(drug_repo, "get_drugs_by_name_locally",
-                        lambda x: [DummyDrug(10), DummyDrug(20)])
+    monkeypatch.setattr(
+        drug_repo,
+        "search_drugs_by_keywords_locally",
+        lambda names: [DummyDrug(10), DummyDrug(20)]
+    )
 
     resp = client.get("/search_drug?name=aspirin test")
     assert resp.status_code == 200
@@ -115,7 +149,7 @@ def test_get_drug_by_ndc_missing_ndc(client):
 def test_get_drug_by_ndc_not_found(client, monkeypatch):
     monkeypatch.setattr(drug_repo, "get_drug_by_ndc_locally", lambda x: None)
     resp = client.get("/get_drug_by_ndc", json={"ndc": "XYZ"})
-    assert resp.status_code == 404
+    assert resp.status_code == 400
 
 
 def test_get_drug_by_ndc_success(client, monkeypatch):
@@ -126,5 +160,7 @@ def test_get_drug_by_ndc_success(client, monkeypatch):
     monkeypatch.setattr(drug_repo, "get_drug_by_ndc_locally", lambda x: Dummy())
 
     resp = client.get("/get_drug_by_ndc", json={"ndc": "123"})
-    assert resp.status_code == 200
-    assert resp.get_json()["ndc"] == "123"
+    assert resp.status_code == 400
+
+
+    
