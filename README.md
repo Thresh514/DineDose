@@ -177,7 +177,7 @@ BING_IMAGES_API_KEY=your-bing-api-key
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/DineDose.git
+git clone https://github.com/Thresh514/DineDose.git
 cd DineDose
 ```
 
